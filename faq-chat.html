@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQチャット（デモ）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .chat{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 4px 18px rgba(15,42,67,.06)}
+  .msgs{height:380px;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px;background:#eef4f6}
+  .msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.65;white-space:pre-wrap}
+  .msg.bot{background:#fff;border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+  .msg.user{background:var(--teal);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px 0}
+  .chip{border:1px solid var(--teal);color:var(--teal);background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+  .chip:hover{background:var(--teal);color:#fff}
+  .input{display:flex;gap:8px;padding:12px 14px 14px}
+  .input input{flex:1;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px}
+  .input button{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:0 20px;font-size:14px;font-weight:700;cursor:pointer}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+  .note a{color:var(--teal)}
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>FAQチャット（デモ）</h1>
+  <p class="lead">よくある質問に自動で答えるチャットの体験デモです。「料金は？」「どんな作業が向いてる？」など、気軽に聞いてみてください。実際の業務では、この仕組みをAI（LLM）と連携させて、自社のFAQやマニュアルに基づく回答に育てることができます。</p>
+
+  <div class="chat">
+    <div class="msgs" id="msgs"></div>
+    <div class="chips" id="chips"></div>
+    <div class="input">
+      <input id="q" type="text" placeholder="質問を入力してください（例：料金はいくらですか？）">
+      <button id="send">送信</button>
+    </div>
+  </div>
+  <p class="note">※ このデモはキーワードマッチ方式で回答しています（外部のAIには接続していません）。答えきれないご質問は、<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にご相談ください。削減時間の目安は<a href="shindan.html">自動化診断</a>でも確認できます。</p>
+</div>
+
+<script>
+const QA = [
+ {k:["料金","いくら","価格","費用","値段","見積"], a:"料金の目安は次の通りです。\n・お試し自動化：49,800円〜（小さなツールを3〜5日で納品）\n・標準パッケージ：148,000円〜（ツール＋画面＋手順書、修正2回まで）\n・月額保守：30,000円〜／月（改修・相談の継続対応）\n内容によって前後しますので、まずは作業内容をチャットで教えてください。無料でお見積もりします。"},
+ {k:["納期","どれくらい","期間","いつまで","日数"], a:"お試し自動化で3〜5日、標準パッケージで1〜2週間程度が目安です。作業の量と確認の往復によって変わります。お急ぎの場合は、最初にその旨をお知らせください。"},
+ {k:["進め方","流れ","手順","依頼方法","どうやって"], a:"進め方はシンプルです。\n1. チャットで今の作業手順をヒアリング\n2. お見積もりと納期をご提示\n3. 制作（途中経過もチャットで共有）\n4. 納品＋使い方の説明\n連絡はすべてテキスト（チャット）で完結します。平日日中も含め、随時対応できます。"},
+ {k:["できること","対応範囲","何ができる","業務内容","サービス"], a:"対応しているのは主に次の領域です。\n・Excel／CSVの自動化（整形・集計・レポート生成）\n・問い合わせのAI分類とExcel化\n・GAS／Python／Node.jsのツール開発と復旧\n・Webサイトからの情報収集（スクレイピング）\n・Chrome拡張・小規模Webアプリの開発\n・LINEやChatGPTなどのAI連携\n「繰り返し作業」全般が得意です。"},
+ {k:["向いて","向かない","対象","どんな作業","繰り返し"], a:"向いているのは、毎週・毎月くり返している作業です。たとえば、CSVの整形と集計、請求書の作成、問い合わせの振り分け、Webサイトの巡回チェック、ファイルの名前付けと振り分けなどです。逆に、1回きりの作業や、判断のたびに大きく内容が変わる作業は自動化の効果が出にくいです。"},
+ {k:["修正","直し","変更対応","アフター","保守"], a:"標準パッケージでは、納品後の修正2回まで無料で対応します。その後の改修や継続的な相談は、月額保守（30,000円〜／月）で対応可能です。動かなくなった場合の調査も保守の範囲です。"},
+ {k:["データ","個人情報","セキュリティ","秘密","漏洩"], a:"開発は、サンプルデータやマスクしたデータでも進められます。決済や個人情報を扱う本番システムそのものの開発・運用はお受けしていません。お預かりした業務内容を外部に公開することはありません。"},
+ {k:["excel","csv","エクセル","集計","レポート"], a:"Excel／CSVの自動化は最も得意な領域です。表記ゆれ・日付のバラつき・重複のあるCSVを整形し、月別集計やグラフつきレポートまで自動生成します。トップページの体験デモで、実際に動く様子をご覧いただけます。"},
+ {k:["ai","分類","問い合わせ","チャットボット","line","自動返信"], a:"AI活用では、問い合わせをカテゴリ・緊急度で分類してExcel化する仕組みや、返信の下書きを自動生成するフローを構築できます。送信前に人の確認を挟む設計を基本にしています。実績として、問い合わせ100件を約10分・APIコスト約161円で分類したデモを公開しています。"},
+ {k:["相談","連絡","問い合わせ先","発注","お願い"], a:"ご相談はココナラまたはランサーズからお受けしています。プロフィールのリンク先からお気軽にどうぞ。「何を自動化できるか分からない」という段階でも大丈夫です。作業の内容を箇条書きで送っていただければ、できること・できないことと、お見積もりをお返しします。"},
+ {k:["実績","経験","信頼","大丈夫"], a:"本業はITヘルプデスクで、現場の業務ツールを日常的に扱っています。制作物はGitHubとポートフォリオサイトで公開しており、デモはすべて実際に動くものです。まずは小さなお試し（49,800円〜）で、進め方と品質をご確認いただく形をおすすめしています。"}
+];
+const FALLBACK = "すみません、その質問にはこのデモでは答えきれませんでした。「料金」「納期」「進め方」「できること」などのキーワードで聞いていただくか、ココナラ／ランサーズから直接ご相談ください。自動化できる作業かどうかは、自動化診断でもチェックできます。";
+const msgs = document.getElementById('msgs');
+function add(text, who){
+  const d = document.createElement('div');
+  d.className = 'msg ' + who; d.textContent = text;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+function answer(q){
+  const s = q.toLowerCase();
+  let best = null, score = 0;
+  for (const item of QA){
+    let sc = 0;
+    for (const kw of item.k){ if (s.includes(kw.toLowerCase())) sc += kw.length; }
+    if (sc > score){ score = sc; best = item; }
+  }
+  return score > 0 ? best.a : FALLBACK;
+}
+function send(){
+  const inp = document.getElementById('q');
+  const q = inp.value.trim(); if (!q) return;
+  add(q, 'user'); inp.value = '';
+  setTimeout(() => add(answer(q), 'bot'), 350);
+}
+document.getElementById('send').addEventListener('click', send);
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+const chipQs = ["料金はいくらですか？","どんな作業が向いていますか？","進め方を教えてください","納期はどれくらい？","修正や保守はどうなりますか？"];
+const chips = document.getElementById('chips');
+for (const cq of chipQs){
+  const b = document.createElement('button');
+  b.className = 'chip'; b.textContent = cq;
+  b.addEventListener('click', () => { document.getElementById('q').value = cq; send(); });
+  chips.appendChild(b);
+}
+add("こんにちは、ウェブオートラボのFAQチャット（デモ）です。料金・進め方・対応できる作業など、お気軽にご質問ください。下のボタンからも選べます。", 'bot');
+</script>
+</body>
+</html>

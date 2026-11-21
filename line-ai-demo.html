@@ -49,7 +49,7 @@
   .badge.sent{background:#e2f5e6;border-color:#9ed3a8;color:#245c2e}
   .log{background:#f6f3ec;border-radius:10px;padding:10px 12px;font-size:12.5px;max-height:150px;overflow-y:auto}
   .log div{padding:2px 0;border-bottom:1px dotted #ddd}
-  .empty{color:#888;font-size:13px}
+  .empty{color:var(--muted);font-size:13px}
   /* テンプレート編集 */
   .tpl{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fdfcf8}
   .tpl .cat{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:6px}
@@ -73,6 +73,10 @@
     .samples{width:100%}
     .admin{min-width:0;width:100%;padding:14px}
     .msg{max-width:85%}
+    .inputrow input,.draft textarea,.tpl textarea{font-size:16px}
+    .inputrow button,.samples button,.draft button,.tplbar .save,.tplbar .reset{min-height:40px}
+    .brand-back{padding:10px 13px}
+    .brandfoot-links a{display:inline-flex;align-items:center;min-height:40px}
   }
 </style>
 </head>
@@ -132,7 +136,8 @@
     <nav class="brandfoot-links">
       <a href="index.html">トップ</a>
       <a href="shindan.html">自動化診断</a>
-    </nav>
+            <a href="legal.html">運営者情報・プライバシー</a>
+      </nav>
   </div>
 </footer>
 

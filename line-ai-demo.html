@@ -28,10 +28,11 @@
   .inputrow input{flex:1;padding:9px;border:1px solid #ccc;border-radius:18px;font-size:13.5px;min-width:0}
   .inputrow button{background:var(--linegreen);color:#fff;border:none;border-radius:18px;padding:9px 14px;font-weight:700;cursor:pointer}
   .samples{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;width:330px;max-width:100%}
-  .samples button{background:#fff;border:1px solid var(--linegreen);color:#04963f;border-radius:16px;padding:6px 10px;font-size:12.5px;cursor:pointer}
+  .samples button{background:#fff;border:1px solid var(--linegreen);color:#04963f;border-radius:16px;padding:6px 10px;font-size:12.5px;cursor:pointer;text-align:left}
   /* 管理者画面 */
   .admin{flex:1;min-width:340px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 4px 18px rgba(15,42,67,.06)}
   .admin h2{font-size:16px;margin:4px 0 10px;color:var(--navy)}
+  .admin h2.mt{margin-top:22px}
   .draft{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
   .draft .meta{font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.6}
   .draft textarea{width:100%;box-sizing:border-box;min-height:74px;font-size:13.5px;padding:8px;border:1px solid #ccc;border-radius:8px;font-family:inherit}
@@ -41,8 +42,30 @@
   .log{background:#f7f8f9;border-radius:10px;padding:10px 12px;font-size:12.5px;max-height:150px;overflow-y:auto}
   .log div{padding:2px 0;border-bottom:1px dotted #ddd}
   .empty{color:#888;font-size:13px}
+  /* テンプレート編集 */
+  .tpl{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fcfdfe}
+  .tpl .cat{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:6px}
+  .tpl textarea{width:100%;box-sizing:border-box;min-height:64px;font-size:13px;padding:8px;border:1px solid #ccc;border-radius:8px;font-family:inherit;line-height:1.6}
+  .tplbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
+  .tplbar .save{background:var(--teal);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer}
+  .tplbar .reset{background:#fff;border:1px solid #b9c4cc;color:#44545f;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+  .tplbar .status{font-size:12.5px;color:var(--teal)}
+  .tplnote{font-size:12px;color:var(--muted);line-height:1.7;margin:0 0 10px}
   .note{font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.8}
   .note a{color:var(--teal)}
+  /* スマホ対応 */
+  @media (max-width:640px){
+    .wrap{padding:20px 12px 40px}
+    h1{font-size:20px}
+    header{padding:12px 14px}
+    .demo{flex-direction:column;gap:16px}
+    .phone-col{width:100%;max-width:400px;margin:0 auto}
+    .phone{width:100%}
+    .phone .screen{height:480px}
+    .samples{width:100%}
+    .admin{min-width:0;width:100%;padding:14px}
+    .msg{max-width:85%}
+  }
 </style>
 </head>
 <body>
@@ -52,12 +75,12 @@
 </header>
 <div class="wrap">
   <h1>LINE×AI返信デモ（シミュレーター）</h1>
-  <p class="lead">LINE公式アカウントの問い合わせ対応を、ブラウザだけで再現した体験デモです。左のお客様画面からメッセージを送ると、疑似AIが返信の「下書き」を作り、右の管理者画面に届きます。管理者が内容を確認（編集も可能）して「このまま送信」を押すと、お客様の画面に返信が届きます。ポイントは <strong>「AIが下書きまで、送信は人が確認してから」</strong> という設計です。</p>
+  <p class="lead">LINE公式アカウントに届く問い合わせへの返信を、ブラウザだけで再現した体験デモです。舞台は、今治タオルや備前焼のマグカップを売る小さなオンラインショップ「ひより堂」（架空のお店）。左のお客様画面からメッセージを送ると、内容に合った返信の「下書き」が右の管理者画面に届きます。管理者は下書きをその場で直してから送れますし、下書きのもとになるテンプレート自体も管理者画面で書き換えられます。ポイントは <strong>「AIが下書きまで、送信は人が確認してから」</strong> という設計です。</p>
 
   <div class="demo">
-    <div>
+    <div class="phone-col">
       <div class="phone"><div class="screen">
-        <div class="bar">サンプルサロン（公式アカウント）</div>
+        <div class="bar">ひより堂（公式アカウント）</div>
         <div class="chat" id="chat"></div>
         <div class="inputrow">
           <input id="input" type="text" placeholder="メッセージを入力">
@@ -65,41 +88,76 @@
         </div>
       </div></div>
       <div class="samples">
-        <button type="button" class="sample">営業時間を教えてください</button>
-        <button type="button" class="sample">予約したいのですが空いていますか</button>
-        <button type="button" class="sample">カットの料金はいくらですか</button>
-        <button type="button" class="sample">お店の場所と行き方を教えてください</button>
+        <button type="button" class="sample" data-name="田中さん">注文 #A-2314 なんですが、まだ届きません。いつ頃届きますか？</button>
+        <button type="button" class="sample" data-name="佐藤さん">今治タオルのブルーって、在庫ありますか？</button>
+        <button type="button" class="sample" data-name="高橋さん">注文 #A-2298 のマグカップ、欠けて届きました。交換できますか？</button>
+        <button type="button" class="sample" data-name="鈴木さん">土曜日に注文したら、いつ発送されますか？</button>
+        <button type="button" class="sample" data-name="伊藤さん">支払いはコンビニ払いでも大丈夫ですか？</button>
       </div>
     </div>
     <div class="admin">
       <h2>管理者画面（返信の下書きを確認して送信）</h2>
       <div id="drafts"></div>
-      <h2>通知ログ</h2>
+      <h2 class="mt">返信テンプレートの編集</h2>
+      <p class="tplnote">カテゴリごとの下書きの文面は、ここで書き換えられます。「{注文番号}」と書くと、お客様のメッセージに含まれる注文番号がそのまま差し込まれます。編集したテンプレートはこのブラウザの中（localStorage）にだけ保存され、サーバーなど外部に送信されることはありません。</p>
+      <div id="templates"></div>
+      <div class="tplbar">
+        <button type="button" class="save" id="saveTpl">テンプレートを保存</button>
+        <button type="button" class="reset" id="resetTpl">初期テンプレートに戻す</button>
+        <span class="status" id="tplStatus"></span>
+      </div>
+      <h2 class="mt">通知ログ</h2>
       <div class="log" id="log"></div>
     </div>
   </div>
 
-  <p class="note">※ これはデモです。実LINE・実LLM（ChatGPT等）には接続しておらず、返信の下書きはキーワード判定によるルールベースの疑似AIが生成します。店舗名・営業時間・料金はすべて架空のサンプル（サンプルサロン）です。状態はこのページのメモリ上だけに保持され、保存はされません（リロードするとリセットされます）。<br>
-  実案件では、LINE Messaging APIでメッセージを受け取り、LLMが店舗情報を根拠に下書きを生成し、送信前に人の確認を挟む構成にします。導入のご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+  <p class="note">※ このページは体験用のデモです。お店の「ひより堂」も、商品名・注文番号・発送の目安もすべて架空のものです。実際のLINEにはつながっておらず、下書きはキーワード判定で選んだテンプレートをもとに作っています。チャットのやり取りはリロードすると消えますが、テンプレートの編集内容だけはこのブラウザに残ります。<br>
+  このデモで試しているのは、「AIが下書き、送信は人が最終確認」という役割分担そのものです。実際に導入するお店では、LINEのMessaging APIで受けた問い合わせに、その店の営業時間・発送ルール・在庫状況を踏まえた下書きが付き、店主がスマホで目を通してから送る形になります。「任せきりにしない」ための確認ステップをあえて残すのが、この仕組みの肝です。導入のご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
 </div>
 
 <script>
-const SHOP_NAME = "サンプルサロン";
-
-// --- 疑似AI（ルールベース）: Python版 app.py と同じ判定・文面 ---
+// --- 疑似AI（ルールベース）: 問い合わせ文のキーワードでカテゴリを判定 ---
 const CATEGORY_RULES = [
-  ["営業時間", ["営業時間", "何時", "開店", "閉店", "休み", "定休日"]],
-  ["料金", ["料金", "いくら", "値段", "価格", "費用", "円"]],
-  ["予約", ["予約", "空き", "空いて", "行きたい", "お願いしたい"]],
-  ["アクセス", ["アクセス", "場所", "行き方", "住所", "駅", "駐車場"]]
+  ["返品・交換", ["交換", "返品", "欠け", "壊れ", "不良", "間違"]],
+  ["配送状況", ["届か", "届き", "配送", "追跡", "まだ来"]],
+  ["在庫・再入荷", ["在庫", "再入荷", "売り切れ", "入荷"]],
+  ["営業時間・発送", ["発送", "営業時間", "何時", "土曜", "日曜", "休み", "定休日"]],
+  ["支払い方法", ["支払", "コンビニ", "クレジット", "代引き", "振込", "カード"]]
 ];
-const DRAFT_TEMPLATES = {
-  "営業時間": "お問い合わせありがとうございます。" + SHOP_NAME + "の営業時間は、平日10:00〜20:00、土日祝10:00〜18:00です（定休日：火曜日）。ご来店をお待ちしております。",
-  "料金": "お問い合わせありがとうございます。" + SHOP_NAME + "の料金は、カット 4,400円〜、カラー 6,600円〜、パーマ 7,700円〜です。詳しいメニューはお気軽にお尋ねください。",
-  "予約": "ご予約ありがとうございます。空き状況を確認いたしますので、ご希望の日時とメニューを教えていただけますか？",
-  "アクセス": "お問い合わせありがとうございます。" + SHOP_NAME + "は最寄り駅から徒歩5分の場所にあります。専用駐車場はございませんので、近隣のコインパーキングをご利用ください。",
-  "その他": "お問い合わせありがとうございます。内容を確認のうえ、担当者より改めてご連絡いたします。少々お待ちくださいませ。"
+const TEMPLATE_CATEGORIES = ["配送状況", "返品・交換", "在庫・再入荷", "営業時間・発送", "支払い方法", "その他"];
+const DEFAULT_TEMPLATES = {
+  "配送状況": "お問い合わせありがとうございます。{注文番号}は一昨日発送済みで、明日までにお届けの予定です。お待たせしてすみません。もし明日を過ぎても届かない場合は、追跡番号をお調べしますのでご連絡ください。",
+  "返品・交換": "ご連絡ありがとうございます。{注文番号}のマグカップが欠けていたとのこと、ご不便をおかけしました。新しいものを手配しますので、お手数ですが届いたマグカップは着払いでお戻しください。返送の手順は改めてご案内します。",
+  "在庫・再入荷": "ありがとうございます。今治タオルのブルーは在庫がございます。本日15時までのご注文で明日発送できます。ご注文お待ちしています。",
+  "営業時間・発送": "お問い合わせありがとうございます。土日は発送をお休みしているため、土曜日のご注文は月曜日に発送します。お急ぎでしたら、金曜15時までのご注文で当日発送もできます。",
+  "支払い方法": "お問い合わせありがとうございます。コンビニ払い（前払い）もご利用いただけます。ご注文後に払込番号をお送りしますので、7日以内にお支払いをお願いします。",
+  "その他": "お問い合わせありがとうございます。内容を確認して担当からお返事します。本日中にはご連絡しますので、少々お待ちください。"
 };
+
+// --- テンプレートの保存（localStorage。このブラウザ内にのみ保存） ---
+const TPL_KEY = "wal_lineai_templates_v1";
+function loadTemplates(){
+  const templates = Object.assign({}, DEFAULT_TEMPLATES);
+  try {
+    const raw = localStorage.getItem(TPL_KEY);
+    if (raw){
+      const saved = JSON.parse(raw);
+      for (const k of TEMPLATE_CATEGORIES){
+        if (typeof saved[k] === "string" && saved[k].trim()) templates[k] = saved[k];
+      }
+    }
+  } catch (e) { /* 保存データが壊れている場合は初期値を使う */ }
+  return templates;
+}
+function saveTemplates(){
+  try { localStorage.setItem(TPL_KEY, JSON.stringify(templates)); } catch (e) { /* 保存できない環境では無視 */ }
+}
+function resetTemplates(){
+  templates = Object.assign({}, DEFAULT_TEMPLATES);
+  try { localStorage.removeItem(TPL_KEY); } catch (e) { /* 無視 */ }
+}
+let templates = loadTemplates();
+
 function classify(text){
   for (const [category, keywords] of CATEGORY_RULES){
     if (keywords.some(k => text.includes(k))) return category;
@@ -108,11 +166,18 @@ function classify(text){
 }
 function makeDraft(text){
   const category = classify(text);
-  return [category, DRAFT_TEMPLATES[category]];
+  const m = text.match(/#?A-\d{4}/);
+  const orderNo = m ? (m[0].startsWith("#") ? m[0] : "#" + m[0]) : "ご注文の品";
+  const draft = (templates[category] || DEFAULT_TEMPLATES[category]).split("{注文番号}").join(orderNo);
+  return [category, draft];
 }
 
-// --- デモの状態（メモリ上のみ。リロードでリセット） ---
-const state = { customerMessages: [], drafts: [], log: [] };
+// --- デモの状態（チャットと下書きはメモリ上のみ。リロードでリセット） ---
+const state = {
+  customerMessages: [{ from: "shop", text: "ひより堂です。ご注文の確認や商品についてのご質問は、このトークからどうぞ。", time: now() }],
+  drafts: [],
+  log: []
+};
 let nextId = 1;
 function now(){
   const d = new Date();
@@ -139,7 +204,7 @@ function render(){
     dr.innerHTML = state.drafts.slice().reverse().map(d => {
       const sent = d.status === "送信済み";
       return '<div class="draft">' +
-        '<div class="meta">お客様：' + escapeHtml(d.question) + " ／ 分類：" + d.category +
+        '<div class="meta">お客様：' + escapeHtml(d.name) + " ／ 問い合わせ：" + escapeHtml(d.question) + " ／ 分類：" + d.category +
         ' ／ <span class="badge' + (sent ? " sent" : "") + '">' + d.status + "</span></div>" +
         '<textarea id="draft-' + d.id + '"' + (sent ? " disabled" : "") + ">" + escapeHtml(d.draft) + "</textarea>" +
         (sent ? "" : '<button type="button" data-approve="' + d.id + '">このまま送信</button>') +
@@ -155,14 +220,21 @@ function render(){
     ? state.log.slice().reverse().map(l => "<div>" + escapeHtml(l) + "</div>").join("")
     : '<div class="empty">まだ通知はありません。</div>';
 }
+function renderTemplates(){
+  const box = document.getElementById("templates");
+  box.innerHTML = TEMPLATE_CATEGORIES.map(cat =>
+    '<div class="tpl"><div class="cat">' + cat + '</div>' +
+    '<textarea id="tpl-' + cat + '">' + escapeHtml(templates[cat]) + "</textarea></div>"
+  ).join("");
+}
 
 // --- 操作 ---
-function customerSend(text){
+function customerSend(text, name){
   text = (text || "").trim();
   if (!text) return;
   state.customerMessages.push({ from: "customer", text: text, time: now() });
   const [category, draftText] = makeDraft(text);
-  state.drafts.push({ id: nextId, question: text, category: category, draft: draftText, status: "下書き（未送信）" });
+  state.drafts.push({ id: nextId, name: name || "お客様（直接入力）", question: text, category: category, draft: draftText, status: "下書き（未送信）" });
   state.log.push(now() + " 新しい問い合わせ（" + category + "）の下書きを作成しました");
   nextId++;
   render();
@@ -188,8 +260,26 @@ function sendFromInput(){
 document.getElementById("sendBtn").addEventListener("click", sendFromInput);
 document.getElementById("input").addEventListener("keydown", e => { if (e.key === "Enter") sendFromInput(); });
 document.querySelectorAll(".sample").forEach(btn => {
-  btn.addEventListener("click", () => customerSend(btn.textContent));
+  btn.addEventListener("click", () => customerSend(btn.textContent, btn.getAttribute("data-name")));
 });
+document.getElementById("saveTpl").addEventListener("click", () => {
+  for (const cat of TEMPLATE_CATEGORIES){
+    const v = document.getElementById("tpl-" + cat).value.trim();
+    if (v) templates[cat] = v;
+  }
+  saveTemplates();
+  document.getElementById("tplStatus").textContent = "保存しました。次に届く問い合わせから反映されます。";
+  state.log.push(now() + " 返信テンプレートを編集・保存しました");
+  render();
+});
+document.getElementById("resetTpl").addEventListener("click", () => {
+  resetTemplates();
+  renderTemplates();
+  document.getElementById("tplStatus").textContent = "初期テンプレートに戻しました。";
+  state.log.push(now() + " 返信テンプレートを初期状態に戻しました");
+  render();
+});
+renderTemplates();
 render();
 </script>
 </body>

@@ -35,6 +35,21 @@
   .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.7}
   .note a{color:var(--teal)}
   #result{display:none}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .summary{background:#eef6f7;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.85}
+  @media (max-width:640px){
+    header{padding:12px 14px}
+    .wrap{padding:20px 10px 36px}
+    h1{font-size:20px}
+    h2{font-size:16px;margin:22px 0 8px}
+    .card{padding:12px}
+    textarea{min-height:180px;font-size:13.5px;padding:10px}
+    .btns{flex-direction:column}
+    .btns button{width:100%}
+    table{font-size:13px;min-width:520px}
+    th,td{padding:7px 8px}
+    .summary{font-size:13.5px;padding:12px 13px}
+  }
 </style>
 </head>
 <body>
@@ -44,7 +59,7 @@
 </header>
 <div class="wrap">
   <h1>議事録 → タスク抽出（デモ）</h1>
-  <p class="lead">会議メモを貼り付けるだけで、「決まったこと」と「誰が・何を・いつまでにやるか」を自動で抜き出して表にします。会議後の議事録整理やタスクの共有に使う仕組みの体験デモです。まずは「サンプル議事録を入れる」からお試しください。</p>
+  <p class="lead">会議のあと、メモを読み返して「で、何が決まったんだっけ」「あの件、誰がやるんだっけ」を拾い直すの、地味に時間がかかります。このデモは、会議メモを貼るだけで決定事項とToDo（誰が・何を・いつまでに）を抜き出し、要約つきの表にするところまでを自動でやります。まずは「サンプル議事録を入れる」で、実際の週次会議メモに近い文面で試してみてください。</p>
 
   <div class="card">
     <textarea id="src" placeholder="ここに会議メモ（議事録）を貼り付けてください。"></textarea>
@@ -56,6 +71,8 @@
   </div>
 
   <div id="result">
+    <h2>要約</h2>
+    <div id="summary-area"></div>
     <h2>決定事項<span class="count" id="cnt-dec">0件</span></h2>
     <div id="dec-area"></div>
     <h2>ToDoリスト<span class="count" id="cnt-todo">0件</span></h2>
@@ -65,27 +82,34 @@
     </div>
   </div>
 
-  <p class="note">※ このデモはキーワードと文のパターンで判定する「ルールベース」方式です（外部のAIには接続していません）。入力したテキストはブラウザの中だけで処理され、外部に送信されることはありません。実案件ではAI（LLM）と組み合わせ、あいまいな言い回しや文脈を踏まえた抽出に精度を上げる構成にできます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にどうぞ。</p>
+  <p class="note">※ 抽出と要約は、キーワードと文のパターンで判定する「ルールベース」方式で行っています（外部のAIには接続していません）。貼り付けたテキストはブラウザの中だけで処理され、外部に送信されることはありません。そのため、言い回しによっては拾いきれないものもあります。実際の業務で使う場合は、AI（LLM）と組み合わせて、あいまいな言い回しや前後の文脈も踏まえた抽出・要約に精度を上げる構成にできます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にどうぞ。</p>
 </div>
 
 <script>
 // === CORE LOGIC START ===
 const SAMPLE_TEXT = [
-"週次定例会議 議事メモ",
-"参加者：佐藤、鈴木、田中、高橋",
+"自社EC「暮らしの道具箱」リニューアル 週次定例メモ（11月18日 10:00〜11:00）",
+"参加者：中村、木村、加藤、吉田、渡辺、伊藤",
+"記録：木村",
 "",
-"まず、先週の売上について報告があった。鈴木さんから、新商品の評判は上々だという話があった。",
-"新商品の発売日は、準備の進み具合を踏まえて12月10日に決定した。",
-"価格については、税込1,980円とすることにした。",
-"チラシのデザイン案は、B案を採用することに決まった。",
-"佐藤さんは、見積書のドラフトを11月28日までに作成する。",
-"鈴木さんは、取引先への案内メールを今週中にお願いします。",
-"田中さんは在庫リストを更新すること。期限：12月2日。",
-"高橋さんは、来週月曜までに予約ページの文案を用意する。",
-"次回の会議は12月5日に行う。"
+"まず数字の共有から。中村さんから、先週の注文件数は1,284件で前週比プラス6.8%、コンバージョン率は2.31%だったと報告があった。",
+"カート離脱率は71.2%と相変わらず高く、決済画面の表示に平均2.4秒かかっているのが一因では、という話になった。",
+"トップページのファーストビューは、A/Bテストで勝率の高かったB案を採用することに決まった。",
+"リニューアルの公開日は12月16日に決定した。当初は12月9日案もあったが、決済テストの期間を考えると厳しいという判断。",
+"そういえば先週末にサイトが重くなった件、あれは夜間バッチの実行時間が延びていたのが原因で、すでに解消済みとのこと。",
+"決済手数料の交渉結果を受けて、来年度の運用予算は480万円で承認された。",
+"木村さんは、決済画面の表示速度の計測結果を11月21日までに共有する。",
+"加藤さんは、来週月曜までにカート離脱の要因分析レポートを作成する。",
+"吉田さんは在庫連携APIの仕様確認を担当する。期限：11月25日。",
+"渡辺さんは、商品画像の差し替えリストを今週中に用意する。",
+"送料無料のしきい値は、現行の8,000円から変えないことにした。",
+"レビュー機能の追加は時期尚早ということで、来週以降に持ち越しになった。伊藤さんが参考事例をいくつか挙げてくれたが、導入効果の試算がまだ粗い。",
+"キャンペーンの件は、たぶん来月の予算会議で改めて…ということで、今日はここまで。",
+"（エアコンが効きすぎて寒い、という木村さんのぼやきで5分休憩）",
+"次回は11月25日10時から。伊藤さんは、レビュー機能の費用対効果の試算を11月25日までに提出する。"
 ].join("\n");
 
-const DECISION_KEYS = ["決定", "決まった", "決まりました", "することにした", "することになりました", "合意した", "合意しました", "承認された", "承認しました", "採用すること", "方針とした"];
+const DECISION_KEYS = ["決定", "決まった", "決まりました", "することにした", "することになりました", "ことにした", "合意した", "合意しました", "承認された", "承認しました", "採用すること", "方針とした"];
 const DEADLINE_RE = /(\d{1,2}月\d{1,2}日|\d{1,2}\/\d{1,2}|来週[月火水木金土日]曜(?:日)?|今週[月火水木金土日]曜(?:日)?|今週中|来週中|今月中|月末|週明け|明日|明後日|本日中|今日中)/;
 const ASK_KEYS = ["お願い", "担当", "宿題", "アクション", "やること", "TODO", "ToDo"];
 const ACTION_RE = /(作成|用意|準備|更新|提出|連絡|確認|手配|送付|発注|調査|共有|設定)(する|します|して|すること|し)/;
@@ -154,6 +178,35 @@ function extractAll(text){
   }
   return { decisions: decisions, todos: todos };
 }
+
+function buildSummary(res){
+  const dn = res.decisions.length, tn = res.todos.length;
+  if (!dn && !tn) return "この会議メモからは、決定事項もToDoも見つかりませんでした。";
+  let s = "この会議では、決定事項" + dn + "件・ToDo" + tn + "件が抽出されました。";
+  if (dn){
+    const main = res.decisions[0].replace(/。+$/, "");
+    s += "主な決定は「" + (main.length > 60 ? main.slice(0, 60) + "…" : main) + "」です。";
+  }
+  if (tn){
+    const dated = res.todos.filter(t => /\d{1,2}月\d{1,2}日/.test(t.due));
+    let near = null;
+    if (dated.length){
+      near = dated.slice().sort((a, b) => {
+        const pa = a.due.match(/(\d{1,2})月(\d{1,2})日/), pb = b.due.match(/(\d{1,2})月(\d{1,2})日/);
+        return (pa[1] * 100 + (+pa[2])) - (pb[1] * 100 + (+pb[2]));
+      })[0];
+    } else {
+      near = res.todos.find(t => t.due !== "（未定）") || res.todos[0];
+    }
+    if (near){
+      const whoPart = near.who !== "（未指定）" ? near.who + "さん：" : "";
+      s += "直近の期限は" + near.due + "（" + whoPart + near.task + "）です。";
+    }
+    const who = [...new Set(res.todos.map(t => t.who).filter(w => w !== "（未指定）"))];
+    if (who.length) s += "担当は" + who.map(w => w + "さん").join("、") + "の" + who.length + "名です。";
+  }
+  return s;
+}
 // === CORE LOGIC END ===
 
 const $ = id => document.getElementById(id);
@@ -165,19 +218,21 @@ function esc(s){
 
 function render(res){
   lastResult = res;
+  $("summary-area").innerHTML = "<div class='summary'>" + esc(buildSummary(res)) + "</div>"
+    + "<p class='note' style='margin-top:8px'>※ 要約はルールベースの簡易版です。実案件ではAIと組み合わせ、文脈を踏まえた要約に精度を上げられます。</p>";
   $("cnt-dec").textContent = res.decisions.length + "件";
   $("cnt-todo").textContent = res.todos.length + "件";
   if (res.decisions.length){
-    let h = "<table><tr><th>#</th><th>決定事項</th></tr>";
+    let h = "<div class='tbl-wrap'><table><tr><th>#</th><th>決定事項</th></tr>";
     res.decisions.forEach((d, i) => { h += "<tr><td class='num'>" + (i + 1) + "</td><td>" + esc(d) + "</td></tr>"; });
-    $("dec-area").innerHTML = h + "</table>";
+    $("dec-area").innerHTML = h + "</table></div>";
   } else {
     $("dec-area").innerHTML = "<p class='empty'>決定事項は見つかりませんでした。「決定」「決まった」「することにした」などの表現があると抽出できます。</p>";
   }
   if (res.todos.length){
-    let h = "<table><tr><th>担当者</th><th>タスク内容</th><th>期限</th></tr>";
+    let h = "<div class='tbl-wrap'><table><tr><th>担当者</th><th>タスク内容</th><th>期限</th></tr>";
     res.todos.forEach(t => { h += "<tr><td class='who'>" + esc(t.who) + "</td><td>" + esc(t.task) + "</td><td class='due'>" + esc(t.due) + "</td></tr>"; });
-    $("todo-area").innerHTML = h + "</table>";
+    $("todo-area").innerHTML = h + "</table></div>";
   } else {
     $("todo-area").innerHTML = "<p class='empty'>ToDoは見つかりませんでした。「〜さんは〜まで」「期限：〜」などの表現があると抽出できます。</p>";
   }

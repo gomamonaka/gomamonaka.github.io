@@ -25,8 +25,17 @@
   button.sub{background:#fff;color:var(--teal);border:1px solid var(--teal);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px}
   button.small{background:var(--navy);color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12.5px}
   .slots{margin:8px 0 2px}
-  .slot{display:inline-block;border:1px solid var(--teal);color:var(--teal);border-radius:8px;padding:4px 12px;margin:2px;font-size:13px}
-  .slot.none{border-color:var(--line);color:var(--muted)}
+  .slot{display:inline-block;border:1px solid var(--teal);color:var(--teal);border-radius:8px;padding:4px 12px;margin:2px;font-size:13px;font-family:inherit}
+  button.slot{background:#fff;cursor:pointer}
+  button.slot:hover{background:#e6f4f5}
+  button.slot.sel{background:var(--teal);color:#fff}
+  .slot.full{border-color:var(--line);background:#eef1f3;color:var(--muted)}
+  .slot.full .tm{text-decoration:line-through}
+  .daybar{display:flex;gap:3px;margin:12px 0 6px}
+  .daybar i{flex:1;height:10px;border-radius:5px;background:#dce8ec}
+  .daybar i.on{background:var(--teal)}
+  .daysum{font-size:13px;color:var(--muted);margin:0 0 6px}
+  .daysum b{color:var(--text)}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{color:var(--muted);font-weight:700}
@@ -40,6 +49,25 @@
   .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
   .note a{color:var(--teal)}
   .hidden{display:none}
+  @media (max-width:640px){
+    header{padding:12px 14px}
+    .wrap{padding:18px 10px 36px}
+    h1{font-size:20px}
+    h2{font-size:16px}
+    .card{padding:16px 14px}
+    .tabs{flex-wrap:wrap}
+    .tab{flex:1 1 140px;padding:12px 8px;font-size:13px;min-height:44px}
+    input,select{font-size:16px;padding:12px}
+    button.primary{width:100%;padding:14px 24px;font-size:15px;min-height:48px}
+    button.sub{min-height:40px;padding:8px 14px}
+    button.small{min-height:40px;padding:8px 12px}
+    .slot{padding:9px 12px;font-size:13.5px}
+    table{min-width:580px;font-size:12.5px}
+    th,td{padding:7px 5px}
+    .status-form{flex-wrap:wrap}
+    .status-form select{min-height:40px}
+    textarea{height:240px;font-size:13.5px}
+  }
 </style>
 </head>
 <body>
@@ -49,7 +77,7 @@
 </header>
 <div class="wrap">
   <h1>予約・受付システム（デモ）</h1>
-  <p class="lead">紙の予約台帳や電話受付で回している予約業務をWeb化するイメージの体験デモです。実際に予約を入れて、管理画面でステータスを変えたり、リマインド文面が自動で作られる様子まで触れます。</p>
+  <p class="lead">電話が鳴るたびに手を止めて、紙の台帳をめくって空き枠を探す。お客さんが重なる土曜の午後は、それだけでひと仕事です。このデモは、スタッフ2人の小さな美容室を想定して、その予約台帳をそのままブラウザに移したものです。お客様が自分で入れる予約画面と、お店側が見る管理画面、両方を触れます。昼前後は埋まりやすく、夕方は空きがち——という実際の偏りもサンプルデータに入れてあるので、まずは今日の日付で空き枠のバーを眺めてみてください。</p>
 
   <div class="tabs">
     <button class="tab active" id="tab-customer" type="button">お客様画面（予約する）</button>
@@ -63,7 +91,9 @@
       <h2>空き枠の確認</h2>
       <label>日付</label>
       <input type="date" id="cust-date">
-      <p style="margin:12px 0 4px;font-size:13.5px"><span id="cust-date-label"></span> の空き枠：</p>
+      <div class="daybar" id="cust-daybar"></div>
+      <p class="daysum" id="cust-daysum"></p>
+      <p style="margin:4px 0 4px;font-size:13.5px"><span id="cust-date-label"></span> の枠ごとの状況（空いている枠はタップで選べます）：</p>
       <div class="slots" id="cust-slots"></div>
     </div>
     <div class="card">
@@ -95,6 +125,8 @@
         <tbody id="admin-rows"></tbody>
       </table>
       </div>
+      <p style="margin-top:16px"><button class="sub" id="reset-sample" type="button">サンプルデータに戻す</button>
+      <span style="font-size:12px;color:var(--muted);margin-left:8px">触っているうちにデータがぐちゃぐちゃになったら、ここで最初の状態に戻せます。</span></p>
     </div>
     <div class="card hidden" id="reminder-card">
       <h2>リマインドメール文面（下書き）</h2>
@@ -105,17 +137,18 @@
     </div>
   </div>
 
-  <p class="note">※ これは体験用のデモです。店舗・メニュー・予約データはすべて架空のサンプルで、実在の店舗ではありません。予約データはブラウザのメモリ上だけに保持され、ページを再読み込みすると最初の状態にリセットされます（外部に送信されることはありません）。実際のシステムでは、ログイン認証・メール送信・決済連携などを要件に合わせて追加します。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+  <p class="note">※ 登場するお店・メニュー・お客様はすべて架空で、実在の人物や店舗とは関係ありません。入力した予約は、このブラウザの localStorage にだけ保存されます。サーバーに送られることは一切なく、別の端末や別のブラウザには引き継がれません。ブラウザのデータを消去するか、管理画面の「サンプルデータに戻す」を押すと、最初のサンプル状態に戻ります。<br>現場で効いてくるのは、施術中でもスマホで空き枠がぱっと見えること、キャンセルが出た瞬間に枠が空いて次の予約が入れること、前日のリマインドを手書きせずに済むこと。そのあたりを意識して作ってあります。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
 </div>
 
 <script>
-// ===== 元デモ（Python版）と同じ仕様 =====
+// ===== 枠・メニュー定義 =====
 const SLOTS = ["10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
 const MENUS = [
-  {id:1, name:"カット", duration:60, price:5000},
-  {id:2, name:"カット＋カラー", duration:120, price:12000},
-  {id:3, name:"パーマ", duration:120, price:11000},
-  {id:4, name:"ヘッドスパ", duration:45, price:4000}
+  {id:1, name:"カット", duration:60, price:5500},
+  {id:2, name:"カット＋カラー", duration:120, price:12100},
+  {id:3, name:"カット＋パーマ", duration:150, price:15400},
+  {id:4, name:"ヘッドスパ", duration:45, price:4400},
+  {id:5, name:"前髪カット＋眉カット", duration:30, price:1650}
 ];
 const STATUS_LABEL = {pending:"仮予約", confirmed:"確定", cancelled:"キャンセル", visited:"来店済み"};
 const TRANSITIONS = {
@@ -124,6 +157,7 @@ const TRANSITIONS = {
   cancelled:[],
   visited:[]
 };
+const STORAGE_KEY = "wal-booking-demo-v1";
 
 // ===== 日付ユーティリティ（ローカル日付で処理） =====
 function fmtDate(d){
@@ -140,33 +174,67 @@ function esc(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-// ===== サンプルデータ（起動日基準の相対日付。メモリ上のみ） =====
+// ===== サンプルデータ（起動日基準の相対日付） =====
+// 昼前後は埋まりやすく、夕方は空きがち、という偏りを付けた初期データ。
 const TODAY = new Date();
-let nextId = 1;
-let bookings = [];
-(function seed(){
+function seedData(){
+  let id = 1;
+  const list = [];
   const samples = [
     // [menu_id, 日付オフセット, 時間, 名前, 連絡先, ステータス]
-    [1, -1, "10:00", "サンプル花子", "090-0000-0001", "visited"],
-    [2,  0, "11:00", "サンプル太郎", "090-0000-0002", "confirmed"],
-    [1,  0, "13:00", "サンプル美咲", "090-0000-0003", "pending"],
-    [4,  0, "15:00", "サンプル健",   "090-0000-0004", "cancelled"],
-    [3,  1, "10:00", "サンプル直子", "090-0000-0005", "confirmed"],
-    [1,  1, "12:00", "サンプル翔太", "090-0000-0006", "pending"],
-    [2,  2, "14:00", "サンプル結衣", "090-0000-0007", "pending"],
-    [1,  3, "10:00", "サンプル大輔", "090-0000-0008", "pending"],
-    [4,  3, "16:00", "サンプル真由", "090-0000-0009", "confirmed"],
-    [1,  5, "11:00", "サンプル蓮",   "090-0000-0010", "pending"]
+    [1, -2, "10:00", "中村 葵",   "090-3847-2916", "visited"],
+    [2, -2, "13:00", "木村 颯太", "080-5129-6643", "visited"],
+    [2, -1, "11:00", "林 真由美", "070-2214-8857", "visited"],
+    [1, -1, "15:00", "清水 大輝", "090-6730-1184", "visited"],
+    [4, -1, "17:00", "山本 さくら", "080-9452-3071", "cancelled"],
+    [5,  0, "10:00", "井上 蓮",   "070-1186-4529", "confirmed"],
+    [2,  0, "11:00", "渡辺 千尋", "090-4265-7730", "confirmed"],
+    [1,  0, "12:00", "山口 拓海", "080-7591-0248", "confirmed"],
+    [2,  0, "13:00", "中島 梨乃", "090-2084-6315", "pending"],
+    [3,  0, "14:00", "小川 裕子", "070-8843-1972", "confirmed"],
+    [1,  0, "16:00", "藤田 翔",   "090-5517-8206", "cancelled"],
+    [2,  1, "11:00", "岡田 美月", "080-3174-5690", "confirmed"],
+    [1,  1, "14:00", "近藤 悠真", "090-9028-4413", "pending"],
+    [4,  1, "17:00", "佐々木 凛", "070-6651-2087", "pending"],
+    [3,  2, "13:00", "西村 佳奈", "080-1937-7452", "confirmed"],
+    [1,  4, "10:00", "松本 健一", "090-7402-9861", "pending"],
+    [2,  4, "15:00", "池田 彩花", "080-4268-1359", "pending"],
+    [1,  6, "12:00", "森田 直樹", "070-3591-8042", "pending"]
   ];
   for (const [menuId, off, time, name, contact, status] of samples){
-    bookings.push({id: nextId++, menuId, date: fmtDate(addDays(TODAY, off)), time, name, contact, status});
+    list.push({id: id++, menuId, date: fmtDate(addDays(TODAY, off)), time, name, contact, status});
   }
+  return {bookings: list, nextId: id};
+}
+
+// ===== 保存（このブラウザの localStorage のみ。外部送信なし） =====
+function save(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({bookings, nextId})); } catch (e) { /* 保存できない環境ではメモリ上のみで動作 */ }
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.bookings) || typeof data.nextId !== "number") return null;
+    if (!data.bookings.every(b => b && b.id && b.date && b.time && b.status)) return null;
+    return data;
+  } catch (e) { return null; }
+}
+
+let bookings, nextId;
+(function restore(){
+  const saved = load();
+  if (saved){ bookings = saved.bookings; nextId = saved.nextId; }
+  else { const s = seedData(); bookings = s.bookings; nextId = s.nextId; }
 })();
 
-// ===== コアロジック（Python版 available_slots / create_booking / change_status / reminder_text の移植） =====
+// ===== コアロジック =====
+function slotTaken(dateStr, time){
+  return bookings.some(b => b.date === dateStr && b.time === time && b.status !== "cancelled");
+}
 function availableSlots(dateStr){
-  const taken = new Set(bookings.filter(b => b.date === dateStr && b.status !== "cancelled").map(b => b.time));
-  return SLOTS.filter(s => !taken.has(s));
+  return SLOTS.filter(s => !slotTaken(dateStr, s));
 }
 function createBooking(menuId, dateStr, time, name, contact){
   if (!SLOTS.includes(time)) throw new Error("時間枠が不正です");
@@ -174,6 +242,7 @@ function createBooking(menuId, dateStr, time, name, contact){
   if (!availableSlots(dateStr).includes(time)) throw new Error("その時間枠はすでに予約が入っています");
   const b = {id: nextId++, menuId, date: dateStr, time, name: name.trim(), contact: contact.trim(), status: "pending"};
   bookings.push(b);
+  save();
   return b;
 }
 function changeStatus(id, newStatus){
@@ -183,6 +252,7 @@ function changeStatus(id, newStatus){
     throw new Error(STATUS_LABEL[b.status] + "から" + (STATUS_LABEL[newStatus] || newStatus) + "へは変更できません");
   }
   b.status = newStatus;
+  save();
 }
 function menuName(id){ const m = MENUS.find(x => x.id === id); return m ? m.name : ""; }
 function reminderText(b){
@@ -200,15 +270,30 @@ const $ = id => document.getElementById(id);
 function renderCustomer(){
   const dateStr = $("cust-date").value;
   $("cust-date-label").textContent = dateLabel(dateStr);
-  const slots = availableSlots(dateStr);
-  $("cust-slots").innerHTML = slots.length
-    ? slots.map(s => '<span class="slot">' + s + "</span>").join("")
-    : '<span class="slot none">空き枠はありません</span>';
+  // 枠ごとの状況：空きはボタン（タップで選択）、予約済みはグレー表示
+  const prev = $("book-time").value;
+  $("cust-slots").innerHTML = SLOTS.map(s => {
+    if (slotTaken(dateStr, s)){
+      return '<span class="slot full"><span class="tm">' + s + '</span> 済</span>';
+    }
+    return '<button type="button" class="slot open' + (s === prev ? " sel" : "") + '" onclick="onPickSlot(\'' + s + '\')">' + s + ' 空き</button>';
+  }).join("");
+  // 1日の埋まり具合バー
+  const takenCount = SLOTS.filter(s => slotTaken(dateStr, s)).length;
+  $("cust-daybar").innerHTML = SLOTS.map(s => '<i class="' + (slotTaken(dateStr, s) ? "on" : "") + '"></i>').join("");
+  $("cust-daysum").innerHTML = takenCount === SLOTS.length
+    ? "<b>この日は全枠うまっています。</b>別の日をご覧ください。"
+    : "8枠中 <b>" + takenCount + "枠</b> が予約済み ・ 残り <b>" + (SLOTS.length - takenCount) + "枠</b> 空いています";
   // 予約フォームの日付・時間も連動
   $("book-date").value = dateStr;
-  const prev = $("book-time").value;
+  const slots = availableSlots(dateStr);
   $("book-time").innerHTML = slots.map(s => '<option value="' + s + '">' + s + "</option>").join("");
   if (slots.includes(prev)) $("book-time").value = prev;
+}
+function onPickSlot(time){
+  $("book-time").value = time;
+  renderCustomer();
+  $("book-time").value = time;
 }
 function renderAdmin(){
   const dateStr = $("admin-date").value;
@@ -263,6 +348,17 @@ $("book-submit").addEventListener("click", () => {
   } catch (e) {
     showMsg("book-result", e.message, true);
   }
+});
+
+$("reset-sample").addEventListener("click", () => {
+  if (!window.confirm("予約データを最初のサンプル状態に戻します。よろしいですか？")) return;
+  const s = seedData();
+  bookings = s.bookings; nextId = s.nextId;
+  save();
+  $("admin-date").value = fmtDate(TODAY);
+  renderAdmin();
+  renderCustomer();
+  showMsg("admin-result", "サンプルデータに戻しました", false);
 });
 
 function onChangeStatus(id){

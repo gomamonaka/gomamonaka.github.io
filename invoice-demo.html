@@ -14,6 +14,10 @@
   .wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .draftbar{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#e8f4f5;border:1px solid var(--teal);color:var(--navy);border-radius:10px;padding:10px 14px;font-size:13.5px;margin:0 0 16px}
+  .draftbar[hidden]{display:none}
+  .draftbar button{flex:none;border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;font-size:13px}
+  @media (max-width:600px){.draftbar{flex-direction:column;align-items:flex-start}}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
   @media (max-width:900px){.cols{grid-template-columns:1fr}}
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 18px rgba(15,42,67,.06)}
@@ -74,7 +78,12 @@
 </header>
 <div class="wrap">
   <h1>見積書・請求書ジェネレータ（デモ）</h1>
-  <p class="lead">項目を入力すると、右側の帳票プレビューにその場で反映され、小計・消費税・合計が自動計算されます。「印刷／PDFで保存」ボタンで、帳票だけを印刷（PDF保存）できます。実際の業務では、この仕組みをスプレッドシートのデータとつないで、請求書の発行そのものを自動化することもできます。</p>
+  <p class="lead">明細を書き換えると、右側の帳票プレビューの金額もその場で変わります。書類番号は、見積書なら EST、請求書なら INV から始まる連番が自動で付きます（番号欄を直接書き換えることもできます）。入力した内容は下書きとしてこのブラウザに保存されるので、途中で閉じてしまっても、次に開いたときに続きから編集できます。まずはサンプルの単価や数量をいじって、合計がどう動くか試してみてください。</p>
+
+  <div class="draftbar" id="draftBar" hidden>
+    <span>下書きを復元しました。前回このブラウザで入力した内容が残っています。</span>
+    <button type="button" id="clearDraft">クリアして新規作成</button>
+  </div>
 
   <div class="cols">
     <div class="panel">
@@ -85,18 +94,18 @@
       </div>
       <div class="row2">
         <div><label>発行日</label><input type="date" id="fDate"></div>
-        <div><label>書類番号</label><input type="text" id="fNo" value="2026-001"></div>
+        <div><label>書類番号（自動採番・変更可）</label><input type="text" id="fNo" placeholder="自動で採番されます"></div>
       </div>
       <label>宛先（会社名・お名前）</label>
-      <input type="text" id="fTo" value="株式会社サンプル製作所">
+      <input type="text" id="fTo" value="株式会社青葉製作所 経理部">
       <label>件名</label>
-      <input type="text" id="fSubject" value="業務自動化ツールの開発について">
+      <input type="text" id="fSubject" value="請求書発行ツールの改修および11月分保守対応について">
       <div class="row2">
-        <div><label>自社名</label><input type="text" id="fCo" value="サンプル商事"></div>
-        <div><label>電話番号</label><input type="text" id="fTel" value="03-0000-0000"></div>
+        <div><label>自社名</label><input type="text" id="fCo" value="ウェブオートラボ"></div>
+        <div><label>電話番号</label><input type="text" id="fTel" value="045-000-2210"></div>
       </div>
       <label>自社住所</label>
-      <input type="text" id="fAddr" value="東京都サンプル区サンプル町1-2-3">
+      <input type="text" id="fAddr" value="神奈川県横浜市港北区新横浜3-18-7 サンライズ新横浜 402号室">
 
       <h2 style="margin-top:20px">明細</h2>
       <table class="items">
@@ -108,28 +117,90 @@
       <div class="totals" id="totals"></div>
 
       <label style="margin-top:14px">振込先</label>
-      <textarea id="fBank">サンプル銀行 サンプル支店 普通 0000000
-口座名義：サンプル商事</textarea>
+      <textarea id="fBank">横浜みらい銀行 新横浜支店 普通 3048217
+口座名義：ウェブオートラボ</textarea>
       <label>備考</label>
-      <textarea id="fMemo">お支払い期限：発行日から30日以内にお願いいたします。</textarea>
+      <textarea id="fMemo">お支払い期限：発行日から30日以内に、上記口座へお振込みください。
+振込手数料は貴社ご負担にてお願いいたします。</textarea>
 
       <button type="button" class="printbtn" id="printBtn">印刷／PDFで保存</button>
+      <p class="note">入力内容は下書きとして自動保存されます。保存先はお使いのブラウザの中（localStorage）だけで、外部に送信されることはありません。</p>
     </div>
 
     <div>
       <div class="sheet" id="sheet"></div>
-      <p class="note">※ このデモの会社名・住所・口座はすべて架空のサンプルです。入力した内容は外部に送信されません（ブラウザ内だけで処理しています）。</p>
+      <p class="note">※ このデモに登場する会社名・住所・口座はすべて架空のサンプルです。実在の企業・団体とは関係ありません。入力した内容は外部に送信されません（ブラウザ内だけで処理しています）。</p>
     </div>
   </div>
 </div>
 
 <script>
+const LS_DRAFT = 'walab_invoice_draft_v1';
+const LS_SEQ = 'walab_invoice_seq_v1';
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
+
 let docType = '見積書';
-let items = [
-  {name:'業務自動化ツール開発（一式）', qty:1, price:148000, rate:10},
-  {name:'操作マニュアル作成', qty:1, price:20000, rate:10},
-  {name:'コピー用紙 A4（10冊）', qty:10, price:480, rate:8}
+let noAuto = true; // 書類番号が自動採番のまま（手入力されていない）かどうか
+const DEFAULT_ITEMS = [
+  {name:'請求書発行ツール改修（工数：6.5h）', qty:6.5, price:8000, rate:10},
+  {name:'保守対応 11月分（問い合わせ対応・軽微な修正）', qty:1, price:30000, rate:10},
+  {name:'操作手順書の改訂（画面差し替え12点）', qty:1, price:15000, rate:10},
+  {name:'打合せ用飲料・菓子代（立替分）', qty:1, price:2480, rate:8}
 ];
+let items = DEFAULT_ITEMS.map(it => ({...it}));
+
+const FIELD_IDS = ['fDate','fNo','fTo','fSubject','fCo','fTel','fAddr','fBank','fMemo'];
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function defaultFields(){
+  return {
+    fDate: todayStr(),
+    fTo: '株式会社青葉製作所 経理部',
+    fSubject: '請求書発行ツールの改修および11月分保守対応について',
+    fCo: 'ウェブオートラボ',
+    fTel: '045-000-2210',
+    fAddr: '神奈川県横浜市港北区新横浜3-18-7 サンライズ新横浜 402号室',
+    fBank: '横浜みらい銀行 新横浜支店 普通 3048217\n口座名義：ウェブオートラボ',
+    fMemo: 'お支払い期限：発行日から30日以内に、上記口座へお振込みください。\n振込手数料は貴社ご負担にてお願いいたします。'
+  };
+}
+function applyFields(f){
+  FIELD_IDS.forEach(id => { if (typeof f[id] === 'string') $(id).value = f[id]; });
+}
+
+function docPrefix(){ return docType === '請求書' ? 'INV' : 'EST'; }
+function ymOf(dateStr){
+  const m = /^(\d{4})-(\d{2})/.exec(dateStr || '');
+  if (m) return m[1] + m[2];
+  const d = new Date();
+  return '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2,'0');
+}
+function nextDocNumber(){
+  const key = docPrefix() + '-' + ymOf($('fDate').value);
+  let store = {};
+  try { store = JSON.parse(lsGet(LS_SEQ) || '{}') || {}; } catch(e){ store = {}; }
+  const n = (Number(store[key]) || 0) + 1;
+  store[key] = n;
+  lsSet(LS_SEQ, JSON.stringify(store));
+  return key + '-' + String(n).padStart(3,'0');
+}
+
+function collectState(){
+  const fields = {};
+  FIELD_IDS.forEach(id => { fields[id] = $(id).value; });
+  return {docType: docType, noAuto: noAuto, fields: fields, items: items};
+}
+function saveDraft(){ lsSet(LS_DRAFT, JSON.stringify(collectState())); }
+function loadDraft(){
+  try {
+    const s = JSON.parse(lsGet(LS_DRAFT) || 'null');
+    return (s && s.fields && Array.isArray(s.items)) ? s : null;
+  } catch(e){ return null; }
+}
 
 function calcTotals(list){
   let sub10 = 0, sub8 = 0;
@@ -153,7 +224,7 @@ function renderItems(){
     const tr = document.createElement('tr');
     tr.innerHTML =
       '<td><input type="text" data-f="name" value="' + escapeHtml(it.name) + '"></td>' +
-      '<td><input type="number" data-f="qty" min="0" step="1" value="' + it.qty + '"></td>' +
+      '<td><input type="number" data-f="qty" min="0" step="0.5" value="' + it.qty + '"></td>' +
       '<td><input type="number" data-f="price" min="0" step="1" value="' + it.price + '"></td>' +
       '<td><select data-f="rate"><option value="10"' + (it.rate === 10 ? ' selected' : '') + '>10%</option><option value="8"' + (it.rate === 8 ? ' selected' : '') + '>8%</option></select></td>' +
       '<td class="amt">' + yen(lineAmt(it)) + '</td>' +
@@ -165,13 +236,13 @@ function renderItems(){
         else if (f === 'qty') items[i].qty = Number(el.value);
         else if (f === 'price') items[i].price = Number(el.value);
         else if (f === 'rate') items[i].rate = Number(el.value);
-        renderTotals(); renderSheet();
+        renderTotals(); renderSheet(); saveDraft();
         tr.querySelector('.amt').textContent = yen(lineAmt(items[i]));
       });
     });
     tr.querySelector('.del').addEventListener('click', () => {
       items.splice(i, 1);
-      renderItems(); renderTotals(); renderSheet();
+      renderItems(); renderTotals(); renderSheet(); saveDraft();
     });
     tb.appendChild(tr);
   });
@@ -221,25 +292,66 @@ function renderSheet(){
     '<div class="memo">' + escapeHtml($('fMemo').value) + '</div>';
 }
 function setType(t){
-  docType = t;
-  $('segQuote').classList.toggle('on', t === '見積書');
-  $('segInvoice').classList.toggle('on', t === '請求書');
-  renderSheet();
+  if (t !== docType){
+    docType = t;
+    if (noAuto) $('fNo').value = nextDocNumber();
+  }
+  $('segQuote').classList.toggle('on', docType === '見積書');
+  $('segInvoice').classList.toggle('on', docType === '請求書');
+  renderSheet(); saveDraft();
+}
+function startNew(){
+  lsDel(LS_DRAFT);
+  docType = '見積書';
+  items = DEFAULT_ITEMS.map(it => ({...it}));
+  applyFields(defaultFields());
+  noAuto = true;
+  $('fNo').value = nextDocNumber();
+  $('segQuote').classList.toggle('on', true);
+  $('segInvoice').classList.toggle('on', false);
+  $('draftBar').hidden = true;
+  renderItems(); renderTotals(); renderSheet(); saveDraft();
 }
 $('segQuote').addEventListener('click', () => setType('見積書'));
 $('segInvoice').addEventListener('click', () => setType('請求書'));
 $('addRow').addEventListener('click', () => {
   items.push({name:'', qty:1, price:0, rate:10});
-  renderItems(); renderTotals(); renderSheet();
+  renderItems(); renderTotals(); renderSheet(); saveDraft();
 });
 $('printBtn').addEventListener('click', () => window.print());
-['fDate','fNo','fTo','fSubject','fCo','fTel','fAddr','fBank','fMemo'].forEach(id => {
-  $(id).addEventListener('input', renderSheet);
+$('clearDraft').addEventListener('click', startNew);
+FIELD_IDS.forEach(id => {
+  $(id).addEventListener('input', () => {
+    if (id === 'fNo') noAuto = false;
+    if (id === 'fDate' && noAuto){
+      const m = /^(EST|INV)-(\d{6})-\d{3}$/.exec($('fNo').value);
+      if (m && m[2] !== ymOf($('fDate').value)) $('fNo').value = nextDocNumber();
+    }
+    renderSheet(); saveDraft();
+  });
 });
 (function init(){
-  const d = new Date();
-  $('fDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const draft = loadDraft();
+  if (draft){
+    docType = draft.docType === '請求書' ? '請求書' : '見積書';
+    noAuto = draft.noAuto !== false;
+    items = draft.items.map(it => ({
+      name: String(it.name || ''),
+      qty: Number(it.qty) || 0,
+      price: Number(it.price) || 0,
+      rate: Number(it.rate) === 8 ? 8 : 10
+    }));
+    applyFields(draft.fields);
+    $('draftBar').hidden = false;
+  } else {
+    applyFields(defaultFields());
+    noAuto = true;
+    $('fNo').value = nextDocNumber();
+  }
+  $('segQuote').classList.toggle('on', docType === '見積書');
+  $('segInvoice').classList.toggle('on', docType === '請求書');
   renderItems(); renderTotals(); renderSheet();
+  if (!draft) saveDraft();
 })();
 </script>
 </body>

@@ -201,12 +201,16 @@
   .how-sub li span{font-size:12px;color:var(--faint);font-weight:400}
 
   /* ---------- reclaimed (works) ---------- */
-  .work{padding:40px 0;border-top:1px solid var(--line)}
+  a.work{display:block;margin:0 -16px;padding:40px 16px;border-top:1px solid var(--line);color:var(--ink);transition:background .35s ease}
+  a.work:hover{background:rgba(10,92,99,.05)}
   .work:first-of-type{border-top:none;padding-top:8px}
   .work .en{display:block;margin-bottom:18px}
   .work h3{font-size:clamp(22px,3.4vw,30px);font-weight:700;line-height:1.55}
-  .work h3 a{color:var(--ink)}
-  .work h3 a:hover{color:var(--teal)}
+  .demo-chip{
+    display:inline-block;vertical-align:.28em;margin-left:12px;padding:3px 9px;
+    border:1px solid var(--teal);border-radius:999px;color:var(--teal);
+    font-size:10.5px;font-weight:700;letter-spacing:.16em;line-height:1.5;white-space:nowrap;
+  }
   .delta{
     display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin:20px 0 6px;
   }
@@ -223,17 +227,23 @@
   .bar.gray{background:var(--lost)}
   .bar.teal{background:var(--teal)}
   .work p{color:var(--ink-soft);font-size:14.5px;max-width:640px;margin-top:12px}
-  .work .try-link{display:inline-block;margin-top:14px;font-size:14px;font-weight:600;border-bottom:1px solid var(--teal);padding-bottom:2px;transition:color .35s ease,border-color .35s ease}
-  .work .try-link:hover{color:var(--teal-bright);border-color:var(--teal-bright)}
+  .work .try-link{display:inline-block;margin-top:14px;font-size:14px;font-weight:600;color:var(--teal);border-bottom:1px solid var(--teal);padding-bottom:2px;transition:color .35s ease,border-color .35s ease}
+  a.work:hover .try-link{color:var(--teal-bright);border-color:var(--teal-bright)}
+  .try-link .arr,.more-demos .arr{display:inline-block;transition:transform .35s ease}
+  a.work:hover .try-link .arr{transform:translateX(4px)}
   .more-demos{margin-top:40px;border-top:1px solid var(--line)}
   .more-demos .en{display:block;padding-top:24px;margin-bottom:8px}
   .more-demos a{
     display:flex;justify-content:space-between;align-items:baseline;gap:16px;
     padding:13px 4px;border-bottom:1px solid var(--line);color:var(--ink);
+    transition:background .35s ease;
   }
-  .more-demos a:hover{color:var(--teal)}
-  .more-demos .t{font-size:16px;font-weight:600}
-  .more-demos .d{font-size:12.5px;color:var(--faint);text-align:right}
+  .more-demos a:hover{background:rgba(10,92,99,.05)}
+  .more-demos a:hover .t{color:var(--teal)}
+  .more-demos .t{font-size:16px;font-weight:600;transition:color .35s ease}
+  .more-demos .d{font-size:12.5px;color:var(--faint);text-align:right;margin-left:auto}
+  .more-demos .arr{color:var(--teal);font-weight:700;flex:none}
+  .more-demos a:hover .arr{transform:translateX(4px)}
 
   /* ---------- pricing ---------- */
   .price-list{border-top:1px solid var(--line)}
@@ -457,9 +467,9 @@
       <p>公開しているデモと実測の数字です。体験デモは、ブラウザでそのまま触れます。</p>
     </div>
 
-    <div class="work">
+    <a class="work" href="sales-dashboard.html">
       <span class="en">Monthly report</span>
-      <h3><a href="sales-dashboard.html">月次レポートの自動生成</a></h3>
+      <h3>月次レポートの自動生成<span class="demo-chip">DEMO</span></h3>
       <div class="delta num">
         <span class="from">45<small>分</small></span>
         <span class="arrow">→</span>
@@ -470,12 +480,12 @@
         <div class="bar-row"><span class="blabel">ツール化後</span><div class="bar-track"><div class="bar teal" style="width:6.7%"></div></div></div>
       </div>
       <p>売上CSVを渡すと、月別グラフ・商品別ランキング・前月比まで自動で組み上がります。毎月の集計作業が、確認だけの時間になります。</p>
-      <a class="try-link" href="sales-dashboard.html">売上ダッシュボードの体験デモを開く</a>
-    </div>
+      <span class="try-link">売上ダッシュボードの体験デモを開く <span class="arr" aria-hidden="true">›</span></span>
+    </a>
 
-    <div class="work">
+    <a class="work" href="demo.html">
       <span class="en">CSV cleaning</span>
-      <h3><a href="demo.html">CSV 304行の整形</a></h3>
+      <h3>CSV 304行の整形<span class="demo-chip">DEMO</span></h3>
       <div class="delta num">
         <span class="from">3.5<small>時間分</small></span>
         <span class="arrow">→</span>
@@ -486,12 +496,12 @@
         <div class="bar-row"><span class="blabel">ツール化後</span><div class="bar-track"><div class="bar teal" style="width:2px"></div></div></div>
       </div>
       <p>表記ゆれ・日付のバラつき・重複だらけのCSV 304行を処理し、276行に整形。修正は800件超。手でやれば1件15秒として約3.5時間分の作業が、0.6秒で終わります。</p>
-      <a class="try-link" href="demo.html">CSVクリーニングの体験デモを開く</a>
-    </div>
+      <span class="try-link">CSVクリーニングの体験デモを開く <span class="arr" aria-hidden="true">›</span></span>
+    </a>
 
-    <div class="work">
+    <a class="work" href="https://github.com/gomamonaka/webautolab-portfolio">
       <span class="en">Inquiry triage</span>
-      <h3><a href="https://github.com/gomamonaka/webautolab-portfolio">問い合わせ100件の仕分け</a></h3>
+      <h3>問い合わせ100件の仕分け<span class="demo-chip">DEMO</span></h3>
       <div class="delta num">
         <span class="from">5<small>時間</small></span>
         <span class="arrow">→</span>
@@ -502,18 +512,18 @@
         <div class="bar-row"><span class="blabel">ツール化後</span><div class="bar-track"><div class="bar teal" style="width:3.3%"></div></div></div>
       </div>
       <p>問い合わせ100件を約10分で分類し、カテゴリ・要約・緊急度つきのExcelに。手作業なら1件3分として約5時間かかるところです。費用はAPI利用料として約161円でした。</p>
-      <a class="try-link" href="https://github.com/gomamonaka/webautolab-portfolio">業務自動化デモ集を見る</a>
-    </div>
+      <span class="try-link">業務自動化デモ集を見る <span class="arr" aria-hidden="true">›</span></span>
+    </a>
 
     <div class="more-demos">
       <span class="en">More demos — try in your browser</span>
-      <a href="booking-demo.html"><span class="t">予約・受付システム</span><span class="d">紙の予約台帳を、Web予約に</span></a>
-      <a href="equipment-demo.html"><span class="t">備品貸出管理アプリ</span><span class="d">紙とExcelの管理を、Webシステムに</span></a>
-      <a href="line-ai-demo.html"><span class="t">LINE×AI返信支援</span><span class="d">AIが下書き、人が確認して送信</span></a>
-      <a href="invoice-demo.html"><span class="t">見積・請求書ジェネレータ</span><span class="d">明細を入れると、帳票がその場で完成</span></a>
-      <a href="minutes-demo.html"><span class="t">議事録→タスク抽出</span><span class="d">メモを貼ると、決定事項とToDoに</span></a>
-      <a href="stock-demo.html"><span class="t">在庫アラート</span><span class="d">在庫が減ると、発注リストが自動で出る</span></a>
-      <a href="security-report.html"><span class="t">セキュリティ点検レポート</span><span class="d">納品形式のサンプルを公開中</span></a>
+      <a href="booking-demo.html"><span class="t">予約・受付システム</span><span class="d">紙の予約台帳を、Web予約に</span><span class="arr" aria-hidden="true">›</span></a>
+      <a href="equipment-demo.html"><span class="t">備品貸出管理アプリ</span><span class="d">紙とExcelの管理を、Webシステムに</span><span class="arr" aria-hidden="true">›</span></a>
+      <a href="line-ai-demo.html"><span class="t">LINE×AI返信支援</span><span class="d">AIが下書き、人が確認して送信</span><span class="arr" aria-hidden="true">›</span></a>
+      <a href="invoice-demo.html"><span class="t">見積・請求書ジェネレータ</span><span class="d">明細を入れると、帳票がその場で完成</span><span class="arr" aria-hidden="true">›</span></a>
+      <a href="minutes-demo.html"><span class="t">議事録→タスク抽出</span><span class="d">メモを貼ると、決定事項とToDoに</span><span class="arr" aria-hidden="true">›</span></a>
+      <a href="stock-demo.html"><span class="t">在庫アラート</span><span class="d">在庫が減ると、発注リストが自動で出る</span><span class="arr" aria-hidden="true">›</span></a>
+      <a href="security-report.html"><span class="t">セキュリティ点検レポート</span><span class="d">納品形式のサンプルを公開中</span><span class="arr" aria-hidden="true">›</span></a>
     </div>
   </div>
 </section>

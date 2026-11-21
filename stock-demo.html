@@ -5,18 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>在庫アラート（デモ）｜ウェブオートラボ</title>
 <style>
-  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a;--red:#c0392b;--redbg:#fdf0ee}
+  :root{--navy:#06333a;--teal:#0a5c63;--bg:#faf8f3;--card:#ffffff;--line:#e3ded1;--text:#211e1a;--muted:#57534b;--red:#c0392b;--redbg:#fdf0ee}
   *{box-sizing:border-box}
   body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
   header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
   header .name{font-weight:900;letter-spacing:.04em}
-  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  header .wa{display:inline-block;border:1.5px solid #f7f2e7;color:#f7f2e7;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.08em;padding:2px 5px;line-height:1;margin-right:9px;vertical-align:1px}
+  header .tag{font-weight:400;font-size:11.5px;color:#cfe0da;letter-spacing:.08em;margin-left:10px}
+  @media (max-width:640px){header .tag{display:none}}
+  header a{color:#d5e4de;text-decoration:none;font-size:13px}
   .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   h2{font-size:17px;margin:0 0 10px}
   h2 .count{font-size:13px;color:var(--muted);font-weight:400}
   .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px;box-shadow:0 4px 18px rgba(33,30,26,.05)}
   .card.alert{border-color:#eec5bf;background:#fffafa}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle}
@@ -39,6 +42,13 @@
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
   .note a{color:var(--teal)}
+  /* ブランドフッター帯 */
+  .brandfoot{background:var(--navy);color:#f7f2e7;padding:22px 16px;font-size:13px}
+  .brandfoot .bf-in{max-width:920px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .brandfoot .bf-brand{font-weight:700;letter-spacing:.05em}
+  .brandfoot .wa{display:inline-block;border:1.5px solid #f7f2e7;border-radius:4px;padding:1px 5px;margin-right:8px;font-size:11px;letter-spacing:.08em;line-height:1.2}
+  .brandfoot .bf-tag{font-weight:400;font-size:12px;color:#cfe0da;margin-left:8px}
+  .brandfoot a{color:#f7f2e7;text-decoration:none;border-bottom:1px solid rgba(247,242,231,.45);margin-left:16px}
   .print-head{display:none}
   @media(max-width:640px){.hide-sp{display:none}}
   @media print{
@@ -57,7 +67,7 @@
 </head>
 <body>
 <header>
-  <div class="name">ウェブオートラボ</div>
+  <div class="name"><span class="wa">WA</span>ウェブオートラボ<span class="tag">手作業の時間を、取り戻す。</span></div>
   <a href="index.html">← トップへ戻る</a>
 </header>
 <div class="wrap">
@@ -105,6 +115,13 @@
 
   <p class="note">※ サンプルの品名・品番・仕入先はすべて架空のものです。入力したデータはお使いのブラウザの中（localStorage）にだけ保存され、外部に送信されることはありません。「サンプルデータに戻す」を押すと最初の12品目に戻ります。実際の現場では、この一覧を販売管理ソフトやExcelの在庫表とつないで、朝の始業前に発注リストが届く形にすることもあります。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
 </div>
+
+<footer class="brandfoot">
+  <div class="bf-in">
+    <div class="bf-brand"><span class="wa">WA</span>ウェブオートラボ<span class="bf-tag">手作業の時間を、取り戻す。</span></div>
+    <div><a href="index.html">トップ</a><a href="shindan.html">自動化診断</a></div>
+  </div>
+</footer>
 
 <script>
 var SAMPLE = [

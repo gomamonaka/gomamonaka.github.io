@@ -5,22 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>売上ダッシュボード（デモ）｜ウェブオートラボ</title>
 <style>
-  :root{--navy:#0f2a43;--teal:#0e7c86;--teal-light:#e6f3f4;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a;--up:#1d8a4e;--down:#c0392b}
+  :root{--navy:#06333a;--teal:#0a5c63;--teal-light:#e9f2f1;--bg:#faf8f3;--card:#ffffff;--line:#e3ded1;--text:#211e1a;--muted:#57534b;--up:#1d8a4e;--down:#c0392b}
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
-  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-  header .name{font-weight:900;letter-spacing:.04em}
-  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#f7f2e7;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  header .bb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  header .bb-mark{background:#f7f2e7;color:var(--navy);font-weight:900;font-size:11px;letter-spacing:.05em;border-radius:5px;padding:3px 6px;line-height:1.2}
+  header .name{font-weight:800;letter-spacing:.06em;font-size:14.5px}
+  header .bb-tag{font-size:11.5px;color:rgba(247,242,231,.78);letter-spacing:.08em}
+  header a{color:#f7f2e7;text-decoration:none;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:1px}
   .wrap{max-width:1080px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
   .period-bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:14px}
-  .period-btns{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
+  .period-btns{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 4px 18px rgba(6,51,58,.06)}
   .period-btns button{background:transparent;color:var(--muted);border-radius:999px;padding:7px 18px;font-size:13px;box-shadow:none}
   .period-btns button.active{background:var(--navy);color:#fff}
   .period-note{font-size:12.5px;color:var(--muted)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 4px 18px rgba(6,51,58,.06)}
   .kpi .label{font-size:12px;color:var(--muted);margin-bottom:6px}
   .kpi .value{font-size:24px;font-weight:900;color:var(--navy)}
   .kpi .value .unit{font-size:13px;font-weight:700;color:var(--muted)}
@@ -28,7 +31,7 @@
   .up{color:var(--up);font-weight:700}.down{color:var(--down);font-weight:700}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:820px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 18px rgba(15,42,67,.05);margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 18px rgba(6,51,58,.06);margin-bottom:14px}
   .card h2{font-size:16px;margin:0 0 4px;color:var(--navy)}
   .card .hint{font-size:12px;color:var(--muted);margin:0 0 12px}
   .card svg{width:100%;height:auto;display:block}
@@ -46,11 +49,15 @@
   .status.err{color:var(--down)}
   .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
   .note a{color:var(--teal)}
+  .brandfoot{background:var(--navy);color:rgba(247,242,231,.82);padding:22px 20px;font-size:13px}
+  .brandfoot .bf-in{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;gap:10px 20px;flex-wrap:wrap;align-items:center}
+  .brandfoot b{color:#f7f2e7;letter-spacing:.05em}
+  .brandfoot a{color:#f7f2e7;text-decoration:none;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:1px;margin-left:16px}
 </style>
 </head>
 <body>
 <header>
-  <div class="name">ウェブオートラボ</div>
+  <div class="bb-left"><span class="bb-mark">WA</span><span class="name">ウェブオートラボ</span><span class="bb-tag">手作業の時間を、取り戻す。</span></div>
   <a href="index.html">← トップへ戻る</a>
 </header>
 <div class="wrap">
@@ -113,6 +120,13 @@
 
   <p class="note">※ 表示中の数字は、コーヒー豆の小さな販売店を想定して作った架空のサンプルです。水曜定休で週末に売上が寄る、水出しコーヒーは夏だけ伸びて秋には落ち着く、ギフトセットは年末に向けて跳ねる——といった偏りも入れてあります。月末の集計では、こういう偏りが見えるかどうかが案外大事だったりします。<br>実際の案件では、ECや販売管理サービスから書き出した売上CSV、スプレッドシートの台帳などを読み込ませて、毎月同じ形のレポートを自動で出す、という作り方が多いです。「月末の集計に半日かかっている」「商品ごと・月ごとの数字を分けて見たい」といった場合は、<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にご相談ください。自動化で削減できる時間の目安は<a href="shindan.html">自動化診断</a>でも確認できます。</p>
 </div>
+
+<footer class="brandfoot">
+  <div class="bf-in">
+    <div><b>ウェブオートラボ</b>｜手作業の時間を、取り戻す。</div>
+    <div><a href="index.html">トップ</a><a href="shindan.html">自動化診断</a><a href="security-shindan.html">セキュリティ簡易診断</a></div>
+  </div>
+</footer>
 
 <script>
 "use strict";
@@ -265,13 +279,13 @@ function barChartMonthly(monthly){
   const W = 640, H = 250, base = 205, top = 28, max = Math.max.apply(null, monthly.map(d => d.total).concat([1]));
   const bw = Math.min(64, (W - 80) / Math.max(1, monthly.length) * 0.55), step = (W - 80) / Math.max(1, monthly.length);
   let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="月別売上グラフ">';
-  s += '<line x1="50" y1="' + base + '" x2="' + (W - 20) + '" y2="' + base + '" stroke="#d9e2e8" stroke-width="2"/>';
+  s += '<line x1="50" y1="' + base + '" x2="' + (W - 20) + '" y2="' + base + '" stroke="#e3ded1" stroke-width="2"/>';
   monthly.forEach((d, i) => {
     const h = Math.max(2, (base - top) * d.total / max);
     const x = 60 + step * i + (step - bw) / 2, y = base - h;
-    s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="5" fill="#0e7c86"/>';
-    s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f2a43">' + esc(yen(d.total)) + '</text>';
-    s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" font-size="12.5" fill="#5c6d7a">' + esc(d.month.slice(2).replace("-", "/")) + '</text>';
+    s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="5" fill="#0a5c63"/>';
+    s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '</text>';
+    s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" font-size="12.5" fill="#57534b">' + esc(d.month.slice(2).replace("-", "/")) + '</text>';
   });
   return s + "</svg>";
 }
@@ -281,9 +295,9 @@ function barChartProducts(products, total){
   let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="商品別ランキンググラフ">';
   top.forEach((d, i) => {
     const y = 6 + i * rowH, w = Math.max(3, (W - 365) * d.total / max);
-    s += '<text x="0" y="' + (y + 19) + '" font-size="12.5" fill="#22303c">' + esc(d.name) + '</text>';
-    s += '<rect x="205" y="' + (y + 3) + '" width="' + w.toFixed(1) + '" height="17" rx="4" fill="#0f2a43"/>';
-    s += '<text x="' + (212 + w).toFixed(1) + '" y="' + (y + 17) + '" font-size="12.5" font-weight="700" fill="#0f2a43">' + esc(yen(d.total)) + '（' + (total ? (d.total / total * 100).toFixed(1) : "0.0") + '%）</text>';
+    s += '<text x="0" y="' + (y + 19) + '" font-size="12.5" fill="#211e1a">' + esc(d.name) + '</text>';
+    s += '<rect x="205" y="' + (y + 3) + '" width="' + w.toFixed(1) + '" height="17" rx="4" fill="#06333a"/>';
+    s += '<text x="' + (212 + w).toFixed(1) + '" y="' + (y + 17) + '" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '（' + (total ? (d.total / total * 100).toFixed(1) : "0.0") + '%）</text>';
   });
   return s + "</svg>";
 }

@@ -5,21 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>議事録→タスク抽出（デモ）｜ウェブオートラボ</title>
 <style>
-  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a}
+  :root{--navy:#06333a;--teal:#0a5c63;--bg:#faf8f3;--card:#ffffff;--line:#e3ded1;--text:#211e1a;--muted:#57534b}
   *{box-sizing:border-box}
   body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
-  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-  header .name{font-weight:900;letter-spacing:.04em}
-  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .brandbar{background:#06333a;color:#f7f2e7;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .brand-id{display:flex;align-items:center;gap:10px;color:#f7f2e7;text-decoration:none;min-width:0}
+  .brand-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1.5px solid #f7f2e7;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.05em;flex:none}
+  .brand-name{font-weight:900;letter-spacing:.04em;font-size:15px;white-space:nowrap}
+  .brand-tag{font-size:11px;color:#bcd2cb;letter-spacing:.1em;white-space:nowrap}
+  .brand-back{color:#f7f2e7;text-decoration:none;font-size:13px;border:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none}
+  .brandfoot{background:#06333a;color:#f7f2e7}
+  .brandfoot-in{max-width:860px;margin:0 auto;padding:26px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .brandfoot-name{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.05em}
+  .brandfoot-links{display:flex;gap:20px}
+  .brandfoot-links a{color:#f7f2e7;text-decoration:none;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:2px}
   .wrap{max-width:860px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   h2{font-size:17px;margin:26px 0 10px;color:var(--navy)}
   .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgba(15,42,67,.06);padding:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 4px 18px rgba(33,30,26,.07);padding:18px}
   textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;line-height:1.7;font-family:inherit;resize:vertical}
   textarea:focus{outline:2px solid var(--teal);outline-offset:-1px}
   .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  button{border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid var(--teal)}
+  button{border-radius:8px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid var(--teal)}
   .btn-main{background:var(--navy);border-color:var(--navy);color:#fff}
   .btn-sub{background:#fff;color:var(--teal)}
   .btn-sub:hover{background:var(--teal);color:#fff}
@@ -36,9 +44,9 @@
   .note a{color:var(--teal)}
   #result{display:none}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .summary{background:#eef6f7;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.85}
+  .summary{background:#f4efe3;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.85}
   @media (max-width:640px){
-    header{padding:12px 14px}
+    .brandbar{padding:10px 14px}.brand-tag{display:none}.brandfoot-in{padding:22px 14px}
     .wrap{padding:20px 10px 36px}
     h1{font-size:20px}
     h2{font-size:16px;margin:22px 0 8px}
@@ -53,9 +61,13 @@
 </style>
 </head>
 <body>
-<header>
-  <div class="name">ウェブオートラボ</div>
-  <a href="index.html">← トップへ戻る</a>
+<header class="brandbar">
+  <a class="brand-id" href="index.html">
+    <span class="brand-mark">WA</span>
+    <span class="brand-name">ウェブオートラボ</span>
+    <span class="brand-tag">手作業の時間を、取り戻す。</span>
+  </a>
+  <a class="brand-back" href="index.html">トップへ戻る</a>
 </header>
 <div class="wrap">
   <h1>議事録 → タスク抽出（デモ）</h1>
@@ -84,6 +96,15 @@
 
   <p class="note">※ 抽出と要約は、キーワードと文のパターンで判定する「ルールベース」方式で行っています（外部のAIには接続していません）。貼り付けたテキストはブラウザの中だけで処理され、外部に送信されることはありません。そのため、言い回しによっては拾いきれないものもあります。実際の業務で使う場合は、AI（LLM）と組み合わせて、あいまいな言い回しや前後の文脈も踏まえた抽出・要約に精度を上げる構成にできます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にどうぞ。</p>
 </div>
+<footer class="brandfoot">
+  <div class="brandfoot-in">
+    <p class="brandfoot-name">ウェブオートラボ｜手作業の時間を、取り戻す。</p>
+    <nav class="brandfoot-links">
+      <a href="index.html">トップ</a>
+      <a href="shindan.html">自動化診断</a>
+    </nav>
+  </div>
+</footer>
 
 <script>
 // === CORE LOGIC START ===

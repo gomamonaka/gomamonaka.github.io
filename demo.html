@@ -5,31 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>体験デモ｜CSVクリーニング（表記ゆれ・日付・重複を自動整形） - ウェブオートラボ</title>
 <meta name="description" content="表記ゆれ・日付のバラつき・重複だらけのCSVを、その場で整形する体験デモ。ブラウザ上で実際に動きます。サンプルデータ304行の整形結果と処理ログをご覧ください。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@600;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#0b2239; --navy2:#10314f; --teal:#0e7c86; --teal2:#12a5b0;
-    --ink:#182635; --muted:#5d7183; --line:#e3eaf0; --soft:#f4f8fa;
-    --card:#ffffff; --shadow:0 10px 30px rgba(11,34,57,.08); --shadow-lg:0 24px 60px rgba(11,34,57,.16);
+    --navy:#211e1a; --navy2:#0a5c63; --teal:#0a5c63; --teal2:#0e7c86;
+    --ink:#211e1a; --muted:#57534b; --line:#e3ded1; --soft:#f3f0e8;
+    --paper:#faf8f3; --paper2:#f3f0e8; --deep:#06333a; --ivory:#f7f2e7;
+    --card:#ffffff; --shadow:0 10px 30px rgba(33,30,26,.07); --shadow-lg:0 24px 60px rgba(33,30,26,.13);
     --radius:18px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);background:#fff;line-height:1.85;-webkit-font-smoothing:antialiased}
+  body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;color:var(--ink);background:#faf8f3;line-height:1.85;-webkit-font-smoothing:antialiased}
   a{color:var(--teal);text-decoration:none}
   .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
-  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--navy);letter-spacing:.04em}
-  .brand small{display:block;font-family:Inter,sans-serif;font-size:10px;letter-spacing:.28em;color:var(--teal);font-weight:800;line-height:1}
-  .nav-links{display:flex;gap:28px;align-items:center;font-size:14px;font-weight:500}
-  .nav-links a{color:var(--ink)}
-  .nav-cta{background:var(--navy);color:#fff !important;padding:9px 20px;border-radius:999px;font-weight:700}
-  @media (max-width:720px){ .nav-links a:not(.nav-cta){display:none} }
-  .page-head{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,#0d4a54 100%);color:#fff;padding:56px 0 48px}
+  .brand-bar{position:sticky;top:0;z-index:60;background:#06333a;color:#f7f2e7;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 20px}
+  .bb-brand{display:flex;align-items:center;gap:10px;color:#f7f2e7}
+  .bb-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1.5px solid #f7f2e7;border-radius:8px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;flex:none}
+  .bb-name{font-weight:700;font-size:15px;letter-spacing:.06em}
+  .bb-tag{font-size:11.5px;color:rgba(247,242,231,.72);letter-spacing:.08em}
+  .bb-back{color:#f7f2e7;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:2px;white-space:nowrap}
+  @media (max-width:640px){ .bb-tag{display:none} }
+  .brand-foot{background:#f3f0e8;border-top:1px solid var(--line);margin-top:72px;padding:34px 0 30px;font-size:13px;color:var(--muted)}
+  .brand-foot .wrap{display:flex;justify-content:space-between;gap:14px 28px;flex-wrap:wrap;align-items:center}
+  .bf-brand{font-weight:700;color:var(--ink);font-size:14.5px;letter-spacing:.05em}
+  .bf-tag{display:block;font-weight:400;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+  .bf-links{display:flex;gap:20px;flex-wrap:wrap}
+  .bf-links a{color:var(--teal)}
+  .page-head{background:var(--deep);color:var(--ivory);padding:56px 0 48px}
   .page-head h1{font-size:30px;font-weight:900;line-height:1.5}
-  .page-head p{margin-top:12px;color:rgba(255,255,255,.85);max-width:640px;font-size:15px}
+  .page-head p{margin-top:12px;color:rgba(247,242,231,.85);max-width:640px;font-size:15px}
   section{padding:56px 0}
   h2{font-size:22px;font-weight:900;color:var(--navy);margin-bottom:14px}
   .lead{color:var(--muted);font-size:14.5px}
@@ -37,16 +40,16 @@
   textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:12px;padding:14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--soft)}
   .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;align-items:center}
   .btn{display:inline-block;padding:12px 26px;border-radius:999px;font-weight:700;font-size:14.5px;transition:.2s;border:none;cursor:pointer}
-  .btn-primary{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;box-shadow:0 12px 28px rgba(14,124,134,.35)}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 12px 28px rgba(10,92,99,.28)}
   .btn-primary:hover{transform:translateY(-2px)}
   .btn-sub{background:#fff;color:var(--navy);border:1px solid var(--line)}
   .btn-sub:hover{border-color:var(--teal);color:var(--teal)}
   .file-label{font-size:13.5px;color:var(--muted)}
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:22px 0}
   .stat{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-  .stat b{display:block;font-family:Inter,"Noto Sans JP",sans-serif;font-size:24px;font-weight:800;color:var(--navy);line-height:1.3}
+  .stat b{display:block;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums;font-size:24px;font-weight:800;color:var(--navy);line-height:1.3}
   .stat span{font-size:12.5px;color:var(--muted)}
-  .stat.hot{background:linear-gradient(135deg,#e8f7f5,#eef8f8);border-color:#bfe6dd}
+  .stat.hot{background:#eaf1ee;border-color:#c9dcd6}
   .stat.hot b{color:var(--teal)}
   table.data{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
   table.data th{background:var(--navy);color:#fff;padding:8px 10px;text-align:left;white-space:nowrap}
@@ -55,34 +58,23 @@
   .table-scroll table.data{margin-top:0}
   .log-list{list-style:none;font-size:14px}
   .log-list li{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:7px 2px}
-  .log-list li b{font-family:Inter,sans-serif;color:var(--navy)}
+  .log-list li b{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--navy)}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   @media (max-width:860px){ .cols{grid-template-columns:1fr} }
   .note{font-size:13px;color:var(--muted);margin-top:14px}
-  .cta-band{background:linear-gradient(135deg,var(--navy),#0d4a54);border-radius:26px;padding:44px 40px;color:#fff;text-align:center;box-shadow:var(--shadow-lg)}
+  .cta-band{background:var(--deep);border-radius:18px;padding:44px 40px;color:var(--ivory);text-align:center;box-shadow:var(--shadow-lg)}
   .cta-band h2{color:#fff}
-  .cta-band p{color:rgba(255,255,255,.85);margin:10px auto 24px;max-width:520px;font-size:14.5px}
-  footer{background:var(--navy);color:rgba(255,255,255,.75);padding:40px 0;font-size:13.5px;margin-top:72px}
-  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
-  footer b{color:#fff}
-  footer a{color:#8fe3ea}
+  .cta-band p{color:rgba(247,242,231,.85);margin:10px auto 24px;max-width:520px;font-size:14.5px}
+
   #result-area{display:none}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="wrap">
-    <a class="brand" href="index.html"><svg width="34" height="34" viewBox="0 0 48 48" aria-label="ウェブオートラボ ロゴ"><rect width="48" height="48" rx="10" fill="#0b2239"/><text x="24" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="12" fill="#ffffff">WA</text></svg><span>ウェブオートラボ<small>WEBAUTOLAB</small></span></a>
-    <div class="nav-links">
-      <a href="index.html#services">対応領域</a>
-      <a href="index.html#pricing">料金</a>
-      <a href="demo.html">体験デモ</a>
-      <a href="shindan.html">自動化診断</a>
-      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
-    </div>
-  </div>
-</nav>
+<header class="brand-bar">
+  <a class="bb-brand" href="index.html"><span class="bb-mark">WA</span><span class="bb-name">ウェブオートラボ</span><span class="bb-tag">手作業の時間を、取り戻す。</span></a>
+  <a class="bb-back" href="index.html">トップへ戻る ›</a>
+</header>
 
 <div class="page-head">
   <div class="wrap">
@@ -151,10 +143,15 @@
   </div>
 </div>
 
-<footer>
+<footer class="brand-foot">
   <div class="wrap">
-    <div><b>ウェブオートラボ</b>　業務自動化・AIツール開発</div>
-    <div><a href="index.html">トップ</a>　／　<a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+    <div class="bf-brand">ウェブオートラボ<span class="bf-tag">手作業の時間を、取り戻す。</span></div>
+    <nav class="bf-links">
+      <a href="index.html">トップ</a>
+      <a href="demo.html">体験デモ</a>
+      <a href="shindan.html">自動化診断</a>
+      <a href="faq-chat.html">FAQチャット</a>
+    </nav>
   </div>
 </footer>
 

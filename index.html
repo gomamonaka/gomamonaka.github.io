@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウェブオートラボ｜手作業の繰り返し業務、1週間でツール化します</title>
+<meta name="description" content="Excel・CSV集計、問い合わせのAI分類、動かなくなったツールの復旧。業務自動化の納品型パッケージ。お試し自動化50,000円〜、ヒアリング後に固定価格でお見積もりします。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2239; --navy2:#10314f; --teal:#0e7c86; --teal2:#12a5b0;
+    --ink:#182635; --muted:#5d7183; --line:#e3eaf0; --soft:#f4f8fa;
+    --card:#ffffff; --shadow:0 10px 30px rgba(11,34,57,.08); --shadow-lg:0 24px 60px rgba(11,34,57,.16);
+    --radius:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);background:#fff;line-height:1.85;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  ::selection{background:var(--teal);color:#fff}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--navy);letter-spacing:.04em}
+  .brand img{width:34px;height:34px;border-radius:9px}
+  .brand small{display:block;font-family:Inter,sans-serif;font-size:10px;letter-spacing:.28em;color:var(--teal);font-weight:800;line-height:1}
+  .nav-links{display:flex;gap:28px;align-items:center;font-size:14px;font-weight:500}
+  .nav-links a{color:var(--ink)}
+  .nav-links a:hover{color:var(--teal)}
+  .nav-cta{background:var(--navy);color:#fff !important;padding:9px 20px;border-radius:999px;font-weight:700}
+  .nav-cta:hover{background:var(--teal)}
+  @media (max-width:720px){ .nav-links a:not(.nav-cta){display:none} }
+
+  /* hero */
+  header{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,#0d4a54 100%);color:#fff}
+  header::after{content:"";position:absolute;inset:0;background:
+    radial-gradient(640px 320px at 85% -10%,rgba(18,165,176,.35),transparent 60%),
+    radial-gradient(520px 300px at -10% 110%,rgba(14,124,134,.28),transparent 60%);pointer-events:none}
+  .hero{position:relative;z-index:1;padding:84px 0 76px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+  @media (max-width:860px){ .hero{grid-template-columns:1fr;padding:56px 0} }
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.14em;color:#8fe3ea;border:1px solid rgba(143,227,234,.4);padding:5px 14px;border-radius:999px;margin-bottom:22px}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:#2ee6a8;box-shadow:0 0 0 4px rgba(46,230,168,.18)}
+  header h1{font-size:42px;line-height:1.4;font-weight:900;letter-spacing:.01em}
+  header h1 .hl{background:linear-gradient(transparent 62%,rgba(18,165,176,.55) 62%);padding:0 2px}
+  @media (max-width:600px){ header h1{font-size:29px} }
+  header .sub{margin-top:20px;font-size:16px;color:rgba(255,255,255,.86);max-width:520px}
+  .cta-row{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap}
+  .btn{display:inline-block;padding:14px 30px;border-radius:999px;font-weight:700;font-size:15px;transition:.2s}
+  .btn-primary{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;box-shadow:0 12px 28px rgba(14,124,134,.4)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(14,124,134,.45)}
+  .btn-ghost{border:1px solid rgba(255,255,255,.55);color:#fff}
+  .btn-ghost:hover{background:rgba(255,255,255,.1)}
+  .hero-stats{display:flex;gap:36px;margin-top:40px;flex-wrap:wrap}
+  .hero-stats div b{display:block;font-family:Inter,sans-serif;font-size:24px;font-weight:800;line-height:1.2}
+  .hero-stats div span{font-size:12.5px;color:rgba(255,255,255,.72)}
+  .hero-visual img{width:100%;border-radius:20px;box-shadow:var(--shadow-lg);border:1px solid rgba(255,255,255,.25)}
+
+  /* sections */
+  section{padding:88px 0}
+  section.alt{background:var(--soft)}
+  @media (max-width:600px){ section{padding:56px 0} }
+  .sec-head{max-width:640px;margin-bottom:44px}
+  .sec-label{font-family:Inter,sans-serif;font-size:12px;font-weight:800;letter-spacing:.3em;color:var(--teal);margin-bottom:10px}
+  h2{font-size:29px;font-weight:900;color:var(--navy);line-height:1.5}
+  .lead{color:var(--muted);margin-top:10px}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);transition:.2s}
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+  .card .icon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--teal-light,#e2f3f4),#eef8f8);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .card h3{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card p{font-size:14px;color:var(--muted)}
+
+  /* pricing */
+  .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:20px;align-items:stretch}
+  .plan{background:#fff;border:1px solid var(--line);border-radius:22px;padding:34px 30px;box-shadow:var(--shadow);display:flex;flex-direction:column;position:relative}
+  .plan.featured{border:2px solid var(--teal);box-shadow:var(--shadow-lg)}
+  .plan .badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:999px;letter-spacing:.08em}
+  .plan h3{font-size:18px;color:var(--navy);font-weight:900}
+  .plan .desc{font-size:13.5px;color:var(--muted);margin:8px 0 18px}
+  .plan .price{font-family:Inter,"Noto Sans JP",sans-serif;font-size:34px;font-weight:800;color:var(--navy)}
+  .plan .price small{font-size:13px;color:var(--muted);font-weight:500}
+  .plan ul{list-style:none;margin:18px 0 0;font-size:14px}
+  .plan li{padding:7px 0 7px 28px;position:relative;border-top:1px dashed var(--line)}
+  .plan li::before{content:"";position:absolute;left:2px;top:14px;width:14px;height:8px;border-left:3px solid var(--teal);border-bottom:3px solid var(--teal);transform:rotate(-45deg)}
+  .price-note{margin-top:22px;font-size:13px;color:var(--muted);text-align:center}
+
+  /* demos */
+  .demo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .demo{background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow);transition:.2s}
+  .demo:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+  .demo img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+  .demo .body{padding:24px}
+  .tag{display:inline-block;background:#e2f3f4;color:var(--teal);font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 12px;margin-bottom:10px;letter-spacing:.06em}
+  .demo h3{font-size:16.5px;margin-bottom:6px}
+  .demo h3 a{color:var(--navy)}
+  .demo h3 a:hover{color:var(--teal)}
+  .demo p{font-size:13.5px;color:var(--muted)}
+
+  /* flow */
+  ol.flow{list-style:none;counter-reset:step;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+  ol.flow li{counter-increment:step;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+  ol.flow .num{font-family:Inter,sans-serif;font-size:30px;font-weight:800;color:transparent;-webkit-text-stroke:1.6px var(--teal);line-height:1}
+  ol.flow b{display:block;margin:10px 0 6px;color:var(--navy)}
+  ol.flow span{color:var(--muted);font-size:13.5px}
+
+  /* faq */
+  .faq{max-width:760px}
+  details{border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:12px;background:#fff}
+  summary{font-weight:700;color:var(--navy);cursor:pointer}
+  details p{margin-top:10px;font-size:14px;color:var(--muted)}
+
+  .cta-band{background:linear-gradient(135deg,var(--navy),#0d4a54);border-radius:26px;padding:52px 44px;color:#fff;text-align:center;box-shadow:var(--shadow-lg)}
+  .cta-band h2{color:#fff}
+  .cta-band p{color:rgba(255,255,255,.85);margin:12px auto 28px;max-width:520px}
+
+  footer{background:var(--navy);color:rgba(255,255,255,.75);padding:44px 0;font-size:13.5px;margin-top:88px}
+  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+  footer b{color:#fff}
+  footer a{color:#8fe3ea}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><svg width="34" height="34" viewBox="0 0 48 48" aria-label="ウェブオートラボ ロゴ"><rect width="48" height="48" rx="10" fill="#0b2239"/><path d="M24 10l2.2 4.6 5-1.4 1 5 5 1.2-1.6 4.9 3.4 3.9-4 3.3 1.2 5-5 1-2.2 4.6L24 37.6 21 42l-2.2-4.6-5-1 1.2-5-4-3.3 3.4-3.9L12.8 19.3l5-1.2 1-5 5 1.4z" fill="#0e7c86" transform="scale(0.82) translate(5 5)"/><text x="24" y="29" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="12" fill="#ffffff">WA</text></svg><span>ウェブオートラボ<small>WEBAUTOLAB</small></span></a>
+    <div class="nav-links">
+      <a href="#services">対応領域</a>
+      <a href="#pricing">料金</a>
+      <a href="#works">制作物</a>
+      <a href="#flow">進め方</a>
+      <a href="#about">事業概要</a>
+      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">業務自動化 ・ AIツール開発</span>
+      <h1>手作業の繰り返し業務、<br><span class="hl">1週間でツール化</span>します</h1>
+      <p class="sub">Excel・CSVの集計や転記、問い合わせの仕分け、止まってしまった社内ツール。「毎回手でやっている作業」を聞き取って、動くツールにして納品します。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://coconala.com/users/6294387">無料で相談する</a>
+        <a class="btn btn-ghost" href="#works">制作物を見る</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>3〜5日</b><span>お試しパッケージの納期</span></div>
+        <div><b>固定価格</b><span>着手前に見積確定</span></div>
+        <div><b>チャット完結</b><span>電話・会議なしで進行</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <svg viewBox="0 0 520 360" role="img" aria-label="手作業が自動化される流れの図" style="width:100%;border-radius:20px;box-shadow:var(--shadow-lg);background:linear-gradient(150deg,#ffffff,#eef6f7);border:1px solid rgba(255,255,255,.25)">
+        <text x="36" y="52" font-size="15" font-weight="700" fill="#5d7183">これまでの手作業</text>
+        <g>
+          <rect x="36" y="70" width="150" height="104" rx="12" fill="#ffffff" stroke="#e3eaf0" stroke-width="2"/>
+          <path d="M52 92h118M52 114h118M52 136h118M76 70v104M124 70v104" stroke="#d7e3ea" stroke-width="2"/>
+          <path d="M58 84h24M104 106h30M84 128h36" stroke="#b9c9d4" stroke-width="5" stroke-linecap="round"/>
+          <text x="36" y="204" font-size="13" fill="#5d7183">集計・転記・整形を毎回手作業</text>
+        </g>
+        <g>
+          <circle cx="260" cy="122" r="34" fill="#0e7c86"/>
+          <path d="M260 100v-8M260 152v-8M238 122h-8M290 122h-8M244 106l-6-6M282 144l-6-6M276 106l6-6M238 144l6-6" stroke="#0e7c86" stroke-width="5" stroke-linecap="round"/>
+          <path d="M246 122h20M256 112l10 10-10 10" stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="260" y="204" text-anchor="middle" font-size="13" font-weight="700" fill="#0b2239">ツール化</text>
+        </g>
+        <g>
+          <rect x="334" y="70" width="150" height="104" rx="12" fill="#0b2239"/>
+          <path d="M358 150v-24M386 150V104M414 150v-36M442 150V92" stroke="#12a5b0" stroke-width="9" stroke-linecap="round"/>
+          <path d="M352 84l30 14 30-10 34-16" stroke="#2ee6a8" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <text x="334" y="204" font-size="13" fill="#5d7183">レポートまで自動生成</text>
+        </g>
+        <g>
+          <rect x="36" y="248" width="448" height="76" rx="14" fill="#0b2239"/>
+          <text x="60" y="282" font-size="15" fill="#ffffff">手作業 45分 → <tspan font-weight="900" fill="#2ee6a8">自動実行 3分</tspan></text>
+          <text x="60" y="306" font-size="12.5" fill="rgba(255,255,255,.75)">処理ログ付きで、結果の確認もかんたんに</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<section id="services">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">SERVICES</div>
+      <h2>対応できること</h2>
+      <p class="lead">本業はITヘルプデスク。現場の手順を聞き取って、動くものにするのが仕事です。</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7c86" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></div>
+        <h3>Excel / CSV自動化</h3>
+        <p>表記ゆれ・重複・日付の整形から、月別集計とグラフ付きレポートの自動生成まで。何件どう直したかのログも残します。</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7c86" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg></div>
+        <h3>問い合わせのAI分類</h3>
+        <p>問い合わせをAIで分類し、カテゴリ・要約・緊急度・返信案の下書きつきExcelを出力。集計シートも自動で作ります。</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7c86" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 6L3 18l3 3 5.7-5.7a4.5 4.5 0 0 0 6-6L14 13l-3-3 3.7-3.7z"/></svg></div>
+        <h3>動かないツールの復旧</h3>
+        <p>GAS / Python / Node.js製ツールの診断・修理・再発防止。診断レポートと修正差分、実行ログをお渡しします。</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0e7c86" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20M6 6.5h.01M9 6.5h.01"/></svg></div>
+        <h3>Chrome拡張・業務アプリ</h3>
+        <p>定型作業を1クリックにするChrome拡張、配布できる形まで仕上げるWindowsデスクトップアプリの開発。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">PRICING</div>
+      <h2>料金パッケージ</h2>
+      <p class="lead">ヒアリング後に固定価格でお見積もりします。作業後に金額が増えることはありません。</p>
+    </div>
+    <div class="price-grid">
+      <div class="plan">
+        <h3>お試し自動化</h3>
+        <p class="desc">1つの繰り返し作業を自動化する、入門パッケージ。</p>
+        <div class="price">50,000円<small>〜</small></div>
+        <ul>
+          <li>Excel/CSVの整形・集計・転記の自動化</li>
+          <li>処理ログ付きで結果を確認できる</li>
+          <li>納期 3〜5日</li>
+        </ul>
+      </div>
+      <div class="plan featured">
+        <span class="badge">おすすめ</span>
+        <h3>標準パッケージ</h3>
+        <p class="desc">現場でそのまま使える形まで仕上げる、実務向けパッケージ。</p>
+        <div class="price">148,000円<small>〜</small></div>
+        <ul>
+          <li>お試し自動化の内容すべて</li>
+          <li>操作画面（UI）付き</li>
+          <li>使い方マニュアル付き</li>
+          <li>修正2回まで含む</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <h3>月額保守</h3>
+        <p class="desc">納品したツールを、業務の変化に合わせて使い続けるために。</p>
+        <div class="price">30,000円<small>〜 / 月</small></div>
+        <ul>
+          <li>軽微な修正・仕様変更への追随</li>
+          <li>トラブル時の一次対応</li>
+          <li>月次の改善提案</li>
+        </ul>
+      </div>
+    </div>
+    <p class="price-note">※ まずは「毎週この作業に◯時間かかっている」という一言からご相談ください。自動化できるかの判断も無料でお答えします。</p>
+  </div>
+</section>
+
+<section id="works">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">WORKS</div>
+      <h2>制作物・デモ</h2>
+      <p class="lead">実際に動くデモをGitHubで公開しています。</p>
+    </div>
+    <div class="demo-grid">
+      <div class="demo">
+        <div style="background:linear-gradient(135deg,#0b2239,#0d4a54);padding:30px 24px 22px">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2ee6a8" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          <div style="color:#fff;font-weight:900;font-size:18px;margin-top:12px">Excel・CSV集計を自動化</div>
+          <div style="color:rgba(255,255,255,.75);font-size:12.5px">整形・集計・レポート生成まで</div>
+        </div>
+        <div class="body">
+          <span class="tag">デモ集</span>
+          <h3><a href="https://github.com/gomamonaka/webautolab-portfolio">業務自動化デモ集</a></h3>
+          <p>AI分類、Excel自動化、Chrome自動化、ツール復旧のケーススタディ、AIエージェントの処理フローなど、業務自動化のデモをまとめたリポジトリ。</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div style="background:linear-gradient(135deg,#2b2350,#4a3a8c);padding:30px 24px 22px">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c9b8ff" stroke-width="1.8" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+          <div style="color:#fff;font-weight:900;font-size:18px;margin-top:12px">問い合わせをAIで分類</div>
+          <div style="color:rgba(255,255,255,.75);font-size:12.5px">カテゴリ・要約・緊急度つきExcel化</div>
+        </div>
+        <div class="body">
+          <span class="tag">AI活用</span>
+          <h3><a href="https://github.com/gomamonaka/webautolab-portfolio">問い合わせAI分類デモ</a></h3>
+          <p>表記ゆれに強い分類設計で、カテゴリ・要約・緊急度・返信案まで付けてExcel化するデモ。集計グラフと実行ログも自動生成します。</p>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="body" style="padding-top:28px">
+          <span class="tag">開発実績</span>
+          <h3><a href="https://github.com/gomamonaka/Yorisoi-ClickOnce">Chrome拡張＋C#ホスト＋インストーラー</a></h3>
+          <p>Chrome拡張（Manifest V3）とC#のネイティブメッセージングホストを、インストーラーで配布できる形まで仕上げた一式。設計・セキュリティ・運用のドキュメントとテスト付きです。Windowsアプリ（スクリーンショット支援、チャット集約、定型文IME辞書など）の開発実績もあります。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="flow">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">FLOW</div>
+      <h2>進め方</h2>
+      <p class="lead">やり取りはチャット（テキスト）のみで完結します。電話・オンライン会議は対応していません。</p>
+    </div>
+    <ol class="flow">
+      <li><span class="num">01</span><b>無料ヒアリング</b><span>現在の手順と困っている作業をチャットで教えてください。サンプルデータがあれば拝見します。</span></li>
+      <li><span class="num">02</span><b>固定見積もり</b><span>納品物・納期・価格を先に確定します。合わなければ、そのまま終了で構いません。</span></li>
+      <li><span class="num">03</span><b>開発</b><span>進捗は随時テキストで共有します。平日の朝・夜に作業し、日中のご連絡には夜に返信します。</span></li>
+      <li><span class="num">04</span><b>納品・説明</b><span>ツールと使い方マニュアルをお渡しします。標準パッケージは修正2回まで含みます。</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="alt" id="about">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">ABOUT</div>
+      <h2>事業概要</h2>
+      <p class="lead">個人事業として、業務委託（納品型）のみで対応しています。</p>
+    </div>
+    <div style="max-width:760px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:14.5px">
+        <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">屋号</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">ウェブオートラボ</td></tr>
+        <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">事業内容</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">業務自動化ツールの開発／問い合わせ分類などAI活用支援／既存ツールの診断・復旧／Chrome拡張・Windowsアプリ開発</td></tr>
+        <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">契約形態</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">業務委託（納品型）のみ ※雇用・常駐は対応していません</td></tr>
+        <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">対応時間</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">平日の朝・夜（日中のご連絡には夜に返信します）</td></tr>
+        <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px">連絡方法</th><td style="padding:16px 22px">チャット（テキスト）のみ ※電話・オンライン会議は対応していません</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">FAQ</div>
+      <h2>よくある質問</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>小さな作業でも頼めますか？</summary>
+        <p>はい。「毎週の集計に1時間かかっている」くらいの規模から対応しています。自動化する価値があるかどうかも含めて、ヒアリングで率直にお答えします。</p>
+      </details>
+      <details>
+        <summary>金額は後から増えませんか？</summary>
+        <p>ヒアリング後に固定価格でお見積もりし、範囲が変わらない限り作業後に増えることはありません。範囲が広がる場合は、着手前に必ず追加見積もりを提示します。</p>
+      </details>
+      <details>
+        <summary>電話やオンライン会議はできますか？</summary>
+        <p>対応していません。やり取りはすべてチャット（テキスト）で完結する形でお願いしています。その分、進捗や確認事項はこまめにテキストで共有します。</p>
+      </details>
+      <details>
+        <summary>納品後の修正や相談はできますか？</summary>
+        <p>標準パッケージには修正2回まで含まれます。継続的な対応をご希望の場合は、月額保守（30,000円〜/月）をご用意しています。</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="cta-band">
+    <h2>まずは、その手作業の話を聞かせてください</h2>
+    <p>「毎週この作業に◯時間かかっている」という一言からで大丈夫です。自動化できるかどうかも含めて、無料でお答えします。</p>
+    <a class="btn btn-primary" href="https://coconala.com/users/6294387">ココナラで相談する</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><b>ウェブオートラボ</b>　業務自動化・AIツール開発</div>
+    <div><a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

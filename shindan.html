@@ -56,6 +56,13 @@
   .btn-primary{background:var(--teal);color:#fff;box-shadow:0 12px 28px rgba(10,92,99,.28)}
   .btn-light{background:#fff;color:var(--navy)}
   .note{font-size:12.5px;color:var(--muted);margin-top:16px}
+  .bd-row{margin-top:10px}
+  .bd-top{display:flex;justify-content:space-between;gap:14px;font-size:13.5px;color:rgba(247,242,231,.92)}
+  .bd-top b{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bd-bar{height:6px;background:rgba(247,242,231,.18);border-radius:99px;margin-top:5px;overflow:hidden}
+  .bd-bar i{display:block;height:100%;background:var(--teal2);border-radius:99px}
+  .first-step{margin-top:14px;background:#eaf1ee;border:1px solid #c9dcd6;border-radius:12px;padding:12px 16px;font-size:13.5px;color:var(--ink)}
+  .first-step b{color:var(--teal)}
 
 </style>
 </head>
@@ -93,9 +100,14 @@
         </div>
       </div>
       <p id="r-value" style="margin-top:10px"></p>
+      <div id="r-breakdown-wrap" style="display:none">
+        <p style="margin-top:18px;font-weight:700;color:var(--ivory)">時間損失の内訳（月あたり）</p>
+        <div id="r-breakdown"></div>
+      </div>
       <div class="plan-box">
         <h3 id="r-plan">まずは作業を選んでください</h3>
         <p id="r-plan-desc">チェックを入れると、作業の数と時間に合わせておすすめのパッケージを表示します。</p>
+        <p id="r-first" class="first-step" style="display:none"></p>
         <a class="btn btn-primary" href="https://coconala.com/users/6294387">この内容で無料相談する</a>
         <a class="btn btn-primary" href="demo.html" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">体験デモを触ってみる</a>
       </div>
@@ -146,13 +158,13 @@
   });
 
   function calc(){
-    var totalMin = 0, count = 0;
+    var totalMin = 0, count = 0, items = [];
     TASKS.forEach(function(t, i){
       var cb = document.querySelector('input[type=checkbox][data-i="' + i + '"]');
       var f = parseFloat(document.querySelector('input[data-f="' + i + '"]').value) || 0;
       var m = parseFloat(document.querySelector('input[data-m="' + i + '"]').value) || 0;
       cb.closest(".task").classList.toggle("checked", cb.checked);
-      if(cb.checked){ totalMin += f * m; count++; }
+      if(cb.checked){ totalMin += f * m; count++; items.push({name: t.name, min: f * m, freq: f, mins: m}); }
     });
     var nowH = totalMin / 60;
     var saveH = nowH * 0.8;
@@ -163,13 +175,38 @@
     var valueEl = document.getElementById("r-value");
     var planEl = document.getElementById("r-plan");
     var descEl = document.getElementById("r-plan-desc");
+    var bdWrap = document.getElementById("r-breakdown-wrap");
+    var bdEl = document.getElementById("r-breakdown");
+    var firstEl = document.getElementById("r-first");
     if(count === 0){
       valueEl.textContent = "";
       planEl.textContent = "まずは作業を選んでください";
       descEl.textContent = "チェックを入れると、作業の数と時間に合わせておすすめのパッケージを表示します。";
+      bdWrap.style.display = "none";
+      bdEl.innerHTML = "";
+      firstEl.style.display = "none";
+      firstEl.innerHTML = "";
       return;
     }
     valueEl.textContent = "人件費に換算すると、月あたり約" + Math.round(saveH * 3000).toLocaleString("ja-JP") + "円分の時間が戻ってくる計算です。";
+    items.sort(function(a, b){ return b.min - a.min; });
+    var maxMin = items.length && items[0].min > 0 ? items[0].min : 1;
+    bdEl.innerHTML = items.map(function(it){
+      var h = it.min / 60;
+      return '<div class="bd-row"><div class="bd-top"><span>' + it.name + '</span><b>月 ' + fmt(h) + '時間（削減見込み ' + fmt(h * 0.8) + '時間）</b></div>' +
+        '<div class="bd-bar"><i style="width:' + Math.round(it.min / maxMin * 100) + '%"></i></div></div>';
+    }).join("");
+    bdWrap.style.display = "block";
+    var top = items[0], reason;
+    if(top.freq >= 8){
+      reason = "チェックした作業の中で月あたりの時間が最も大きく、しかも頻度が高い作業です。回数が多い分、1回あたりの短縮がそのまま月の削減に積み上がるので、最初に片付けると効果が一番大きく出ます。";
+    } else if(top.mins >= 60){
+      reason = "チェックした作業の中で月あたりの時間が最も大きく、1回あたりの作業そのものも長い項目です。自動化すると作業の山がそのまま消えるので、効果を実感しやすい順番になります。";
+    } else {
+      reason = "チェックした作業の中で月あたりの時間が最も大きい項目です。いちばん時間を取られているところから自動化すると削減効果が最大になり、残りの作業に手をつける余裕も生まれます。";
+    }
+    firstEl.innerHTML = "<b>最初の一手：" + top.name + "（月 " + fmt(top.min / 60) + "時間）</b><br>" + reason;
+    firstEl.style.display = "block";
     if(count === 1 && saveH <= 3){
       planEl.textContent = "おすすめ：お試し自動化（50,000円〜）";
       descEl.textContent = "1つの作業に絞った入門パッケージで十分まかなえる規模です。納期は3〜5日。削減できる時間で、数か月で元が取れる計算になります。";

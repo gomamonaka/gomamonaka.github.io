@@ -67,6 +67,10 @@
   .cta-band p{color:rgba(247,242,231,.85);margin:10px auto 24px;max-width:520px;font-size:14.5px}
 
   #result-area{display:none}
+  table.data td.chg{background:#f8ecd2;cursor:pointer}
+  table.data td.chg:hover{background:#f2ddab}
+  .cell-detail{display:none;margin-top:14px;background:var(--soft);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.7}
+  .cell-detail .rule{color:var(--teal);font-weight:700}
 </style>
 </head>
 <body>
@@ -126,11 +130,13 @@
       </div>
       <div class="panel" style="margin-top:20px">
         <h2>整形後（日付順・先頭8行）</h2>
+        <p class="note" style="margin:0 0 8px">色のついたセルは、整形で変わった箇所です。セルをタップ／クリックすると、変更前と適用したルールが分かります。</p>
         <div class="table-scroll"><table class="data" id="after-table"></table></div>
+        <div class="cell-detail" id="cell-detail"></div>
       </div>
     </div>
 
-    <p class="note" style="margin-top:26px">※ 整形ルールは、納品しているPython版ツールと同じものをブラウザ向けに組み直しています。やっていることは次のとおりです。①日付は「2026/4/3」「2026-4-3」「令和8年4月3日」「4/3」の4通りを、西暦のYYYY-MM-DDにそろえる（令和8年は2026年、年が無いものは2026年として補う）。②全角の英数字は半角に直す。③商品名は対応表に当ててそろえる（珈琲豆→コーヒー豆、杉材→木材(杉)、せっちゃくざい→接着剤、文具セット→文房具セットなど）。④単価は「円」「¥」「,」「（税別）」を外して数値だけにする。⑤各セルの前後の空白を取り、空白行と、整形した結果がまったく同じになった行は1行にまとめる。逆に、会社名の「（株）」の付け方や担当者名の漢字の違い（渡辺／渡邊など）は、このデモではそろえていません。実務では得意先マスタに合わせて対応表へ追加します。列の形が違うCSVでも、ご依頼時に合わせて調整します。</p>
+    <p class="note" style="margin-top:26px">※ 整形ルールは、納品しているPython版ツールと同じものをブラウザ向けに組み直しています。やっていることは次のとおりです。①日付は「2026/4/3」「2026-4-3」「令和8年4月3日」「4/3」の4通りを、西暦のYYYY-MM-DDにそろえる（令和8年は2026年、年が無いものは2026年として補う）。②全角の英数字は半角に直す。③商品名は対応表に当ててそろえる（珈琲豆→コーヒー豆、杉材→木材(杉)、せっちゃくざい→接着剤、文具セット→文房具セットなど）。④単価は「円」「¥」「,」「（税別）」を外して数値だけにする。⑤各セルの前後の空白を取り、空白行と、整形した結果がまったく同じになった行は1行にまとめる。⑥電話番号らしい数字の並び（0で始まる10〜11桁）は、090-1234-5678のようにハイフンで区切る。逆に、会社名の「（株）」の付け方や担当者名の漢字の違い（渡辺／渡邊など）は、このデモではそろえていません。実務では得意先マスタに合わせて対応表へ追加します。列の形が違うCSVでも、ご依頼時に合わせて調整します。</p>
   </div>
 </section>
 
@@ -481,7 +487,7 @@
     s = s.replace(/（/g,"(").replace(/）/g,")");
     return s;
   }
-  function hasFullwidthDigit(s){ return /[０-９]/.test(s); }
+  function hasFullwidthAlnum(s){ return /[０-９Ａ-Ｚａ-ｚ]/.test(s); }
 
   function normalizeDate(raw){
     var s = normalizeText(raw), m;
@@ -510,6 +516,25 @@
   function parseQty(raw){
     var n = parseInt(normalizeText(raw), 10);
     return isNaN(n) ? null : n;
+  }
+  function formatPhone(s){
+    if(!/^0\d{9,10}$/.test(s)){ return null; }
+    if(s.length === 11){ return s.slice(0, 3) + "-" + s.slice(3, 7) + "-" + s.slice(7); }
+    if(/^0[36]/.test(s)){ return s.slice(0, 2) + "-" + s.slice(2, 6) + "-" + s.slice(6); }
+    return s.slice(0, 3) + "-" + s.slice(3, 6) + "-" + s.slice(6);
+  }
+  function rulesFor(raw, specific){
+    var rules = [];
+    if(raw !== raw.trim()){ rules.push("前後の空白を除去"); }
+    if(/[０-９Ａ-Ｚａ-ｚ]/.test(raw)){ rules.push("全角英数字を半角に統一"); }
+    if(/[ｱ-ﾝﾞﾟ]/.test(raw)){ rules.push("半角カタカナを全角に統一"); }
+    if(/[（）]/.test(raw)){ rules.push("全角カッコを半角に統一"); }
+    if(specific){ rules.push(specific); }
+    return rules;
+  }
+  function addChange(changes, col, raw, canonicalAfter, displayAfter, specific){
+    if(raw === canonicalAfter){ return; }
+    changes.push({col: col, before: raw, after: displayAfter, rules: rulesFor(raw, specific)});
   }
 
   function parseCSV(text){
@@ -541,7 +566,7 @@
     COLUMNS.forEach(function(col){ idx[col] = header.indexOf(col); });
     if(idx["日付"] < 0){ return {error:"ヘッダーに「日付」列が見つかりませんでした。このデモは「日付・顧客名・商品名・数量・単価・担当者」の形式に対応しています。"}; }
     var rawRows = grid.slice(1);
-    var log = {input: rawRows.length, blank:0, dup:0, trimCells:0, fullwidth:0, dates:0, dSlash:0, dReiwa:0, dNoyear:0, unify:0, priceNum:0, output:0};
+    var log = {input: rawRows.length, blank:0, dup:0, trimCells:0, fullwidth:0, dates:0, dSlash:0, dReiwa:0, dNoyear:0, unify:0, priceNum:0, phone:0, output:0};
     var seen = {}, cleaned = [], i, j;
     for(i = 0; i < rawRows.length; i++){
       var cells = rawRows[i];
@@ -551,25 +576,42 @@
       for(j = 0; j < COLUMNS.length; j++){
         var rawVal = get(COLUMNS[j]) || "";
         if(rawVal !== rawVal.trim()){ log.trimCells++; }
-        if(hasFullwidthDigit(rawVal)){ log.fullwidth++; }
+        if(hasFullwidthAlnum(rawVal)){ log.fullwidth++; }
       }
-      var nd = normalizeDate(get("日付"));
+      var rawDate = get("日付"), rawCustomer = get("顧客名"), rawProduct = get("商品名"),
+          rawQty = get("数量"), rawPrice = get("単価"), rawStaff = get("担当者");
+      var nd = normalizeDate(rawDate);
       if(!nd.date){ continue; }
       log.dates++;
       if(nd.fmt === "slash"){ log.dSlash++; } else if(nd.fmt === "reiwa"){ log.dReiwa++; } else if(nd.fmt === "noyear"){ log.dNoyear++; }
-      var customer = normalizeText(get("顧客名"));
-      var productKey = normalizeText(get("商品名"));
+      var customer = normalizeText(rawCustomer);
+      var phC = formatPhone(customer); if(phC){ customer = phC; log.phone++; }
+      var productKey = normalizeText(rawProduct);
       var product = PRODUCT_NAME_MAP.hasOwnProperty(productKey) ? PRODUCT_NAME_MAP[productKey] : productKey;
-      if(productKey !== product){ log.unify++; }
-      var priceRaw = get("単価");
+      var productMapped = productKey !== product;
+      if(productMapped){ log.unify++; }
+      var phP = formatPhone(product); if(phP){ product = phP; log.phone++; }
+      var priceRaw = rawPrice;
       if(/[円¥,]/.test(priceRaw)){ log.priceNum++; }
-      var price = parsePrice(priceRaw), qty = parseQty(get("数量"));
+      var price = parsePrice(priceRaw), qty = parseQty(rawQty);
       if(price === null || qty === null){ continue; }
-      var staff = normalizeText(get("担当者"));
+      var staff = normalizeText(rawStaff);
+      var phS = formatPhone(staff); if(phS){ staff = phS; log.phone++; }
       var key = [fmtDate(nd.date), customer, product, qty, price, staff].join("|");
       if(seen[key]){ log.dup++; continue; }
       seen[key] = true;
-      cleaned.push({date: nd.date, dateStr: fmtDate(nd.date), customer: customer, product: product, qty: qty, price: price, sales: qty * price, staff: staff});
+      var changes = [];
+      addChange(changes, 0, rawDate, fmtDate(nd.date), fmtDate(nd.date),
+        nd.fmt === "reiwa" ? "和暦（令和）を西暦に変換" : (nd.fmt === "noyear" ? "年が無いため2026年として補った" : "日付の表記をYYYY-MM-DDに統一"));
+      addChange(changes, 1, rawCustomer, customer, customer, phC ? "電話番号のハイフン整形" : null);
+      addChange(changes, 2, rawProduct, product, product,
+        productMapped ? "商品名の表記ゆれを統一" : (phP ? "電話番号のハイフン整形" : null));
+      addChange(changes, 3, rawQty, String(qty), qty.toLocaleString("ja-JP"),
+        normalizeText(rawQty) !== String(qty) ? "数量を数値だけに整形" : null);
+      addChange(changes, 4, rawPrice, String(price), price.toLocaleString("ja-JP"),
+        /円|¥|,|税別/.test(rawPrice) ? "単価を数値化（円・¥・カンマ・（税別）を除去）" : null);
+      addChange(changes, 6, rawStaff, staff, staff, phS ? "電話番号のハイフン整形" : null);
+      cleaned.push({date: nd.date, dateStr: fmtDate(nd.date), customer: customer, product: product, qty: qty, price: price, sales: qty * price, staff: staff, changes: changes});
     }
     cleaned.sort(function(a, b){ return a.date - b.date; });
     log.output = cleaned.length;
@@ -584,6 +626,29 @@
     el.innerHTML = html;
   }
   var lastCleaned = null;
+  var afterChanges = {};
+  var AFTER_COLS = ["日付","顧客名","商品名","数量","単価","売上","担当者"];
+  function escHtml(s){ return String(s).replace(/</g,"&lt;"); }
+  function renderAfter(rows){
+    afterChanges = {};
+    var html = "<tr>" + AFTER_COLS.map(function(h){ return "<th>" + h + "</th>"; }).join("") + "</tr>";
+    rows.forEach(function(r, ri){
+      var cells = [r.dateStr, r.customer, r.product, r.qty.toLocaleString(), yen(r.price), yen(r.sales), r.staff];
+      var byCol = {};
+      (r.changes || []).forEach(function(ch){ byCol[ch.col] = ch; });
+      html += "<tr>" + cells.map(function(c, ci){
+        if(byCol[ci]){
+          afterChanges[ri + "-" + ci] = byCol[ci];
+          return '<td class="chg" data-k="' + ri + "-" + ci + '">' + escHtml(c) + "</td>";
+        }
+        return "<td>" + escHtml(c) + "</td>";
+      }).join("") + "</tr>";
+    });
+    document.getElementById("after-table").innerHTML = html;
+    var det = document.getElementById("cell-detail");
+    det.style.display = "none";
+    det.innerHTML = "";
+  }
 
   function run(csvText){
     var res = clean(csvText);
@@ -593,14 +658,15 @@
     var log = res.log;
     document.getElementById("st-in").textContent = log.input.toLocaleString() + "行";
     document.getElementById("st-out").textContent = log.output.toLocaleString() + "行";
-    var fixes = log.dates + log.priceNum + log.unify + log.fullwidth + log.trimCells;
+    var fixes = log.dates + log.priceNum + log.unify + log.fullwidth + log.trimCells + log.phone;
     document.getElementById("st-fix").textContent = fixes.toLocaleString() + "件";
     document.getElementById("st-time").textContent = res.elapsed < 1000 ? Math.round(res.elapsed) + "ミリ秒" : (res.elapsed / 1000).toFixed(2) + "秒";
     var items = [
       ["空白行を取り除いた", log.blank], ["重複行を取り除いた", log.dup],
-      ["前後の空白を取ったセル", log.trimCells], ["全角数字を半角にしたセル", log.fullwidth],
+      ["前後の空白を取ったセル", log.trimCells], ["全角英数字を半角にしたセル", log.fullwidth],
       ["日付を西暦（YYYY-MM-DD）にそろえた行", log.dates], ["　うち 令和表記から変換", log.dReiwa], ["　うち 年が無いものを2026年として補った", log.dNoyear],
-      ["商品名の表記ゆれをそろえた行", log.unify], ["単価の「円・¥・,」を外して数値にした行", log.priceNum]
+      ["商品名の表記ゆれをそろえた行", log.unify], ["単価の「円・¥・,」を外して数値にした行", log.priceNum],
+      ["電話番号のハイフンを整えたセル", log.phone]
     ];
     document.getElementById("log-list").innerHTML = items.map(function(it){ return "<li><span>" + it[0] + "</span><b>" + it[1].toLocaleString() + "件</b></li>"; }).join("");
     var monthly = {};
@@ -609,13 +675,21 @@
     renderTable(document.getElementById("monthly-table"), ["月","売上合計","件数"], mRows);
     renderTable(document.getElementById("before-table"), ["日付","顧客名","商品名","数量","単価","担当者"],
       res.rawHead.map(function(r){ return [r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", r[5]||""]; }));
-    renderTable(document.getElementById("after-table"), ["日付","顧客名","商品名","数量","単価","売上","担当者"],
-      res.cleaned.slice(0, 8).map(function(r){ return [r.dateStr, r.customer, r.product, r.qty.toLocaleString(), yen(r.price), yen(r.sales), r.staff]; }));
+    renderAfter(res.cleaned.slice(0, 8));
     lastCleaned = res.cleaned;
     area.style.display = "block";
     area.scrollIntoView({behavior:"smooth", block:"start"});
   }
 
+  document.getElementById("after-table").addEventListener("click", function(ev){
+    var td = ev.target && ev.target.closest ? ev.target.closest("td.chg") : null;
+    if(!td){ return; }
+    var ch = afterChanges[td.getAttribute("data-k")];
+    if(!ch){ return; }
+    var det = document.getElementById("cell-detail");
+    det.innerHTML = "<b>" + AFTER_COLS[ch.col] + "</b>：「" + escHtml(ch.before) + "」 → 「" + escHtml(ch.after) + "」<br>適用したルール：<span class=\"rule\">" + ch.rules.map(escHtml).join("／") + "</span>";
+    det.style.display = "block";
+  });
   document.getElementById("btn-sample").addEventListener("click", function(){
     var csv = document.getElementById("sample-csv").textContent.replace(/^\n+|\s+$/g, "");
     document.getElementById("csv-input").value = csv.split("\n").slice(0, 6).join("\n") + "\n…（サンプル全" + "304行を読み込みました）";

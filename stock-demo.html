@@ -7,14 +7,15 @@
 <style>
   :root{--navy:#06333a;--teal:#0a5c63;--bg:#faf8f3;--card:#ffffff;--line:#e3ded1;--text:#211e1a;--muted:#57534b;--red:#c0392b;--redbg:#fdf0ee}
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text);line-height:1.75}
+  h1,h2,h3{line-height:normal}
   header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
   header .name{font-weight:900;letter-spacing:.04em}
   header .wa{display:inline-block;border:1.5px solid #f7f2e7;color:#f7f2e7;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.08em;padding:2px 5px;line-height:1;margin-right:9px;vertical-align:1px}
   header .tag{font-weight:400;font-size:11.5px;color:#cfe0da;letter-spacing:.08em;margin-left:10px}
   @media (max-width:640px){header .tag{display:none}}
   header a{color:#d5e4de;text-decoration:none;font-size:13px}
-  header a.brand-back{color:#f7f2e7;font-size:13px;border:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none}
+  header a.brand-back{color:#f7f2e7;font-size:13px;border:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;line-height:normal}
   .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   h2{font-size:17px;margin:0 0 10px}
@@ -23,12 +24,12 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px;box-shadow:0 4px 18px rgba(33,30,26,.05)}
   .card.alert{border-color:#eec5bf;background:#fffafa}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
-  th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle}
+  th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle;line-height:1.6}
   th{color:var(--muted);font-weight:700;font-size:12.5px;white-space:nowrap}
   td.num,th.num{text-align:right}
   td.sku{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);white-space:nowrap}
   tr.low td{background:var(--redbg)}
-  .badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:6px;white-space:nowrap}
+  .badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:6px;white-space:nowrap;line-height:normal}
   .badge.ok{background:#e3f0ee;color:var(--teal)}
   td.state-cell{white-space:nowrap}
   .order-tbl td:nth-child(2){min-width:150px}

@@ -9,14 +9,15 @@
   :root{--navy:#06333a;--teal:#0a5c63;--bg:#faf8f3;--card:#ffffff;--line:#e3ded1;--text:#211e1a;--muted:#57534b;
     --hi:#b3261e;--hi-bg:#fdecea;--mid:#9a6a00;--mid-bg:#fdf3dd;--low:#3f6d1f;--low-bg:#eaf4e0}
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--text)}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--text);line-height:1.75}
+  h1,h2,h3,h4{line-height:normal}
   header{background:var(--navy);color:#f7f2e7;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   header .bb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   header .bb-mark{background:#f7f2e7;color:var(--navy);font-weight:900;font-size:11px;letter-spacing:.05em;border-radius:5px;padding:3px 6px;line-height:1.2}
   header .name{font-weight:800;letter-spacing:.06em;font-size:14.5px}
   header .bb-tag{font-size:11.5px;color:rgba(247,242,231,.78);letter-spacing:.08em}
   header a{color:#f7f2e7;text-decoration:none;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:1px}
-  header a.brand-back{color:#f7f2e7;font-size:13px;border:1px solid rgba(247,242,231,.45);border-bottom:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none}
+  header a.brand-back{color:#f7f2e7;font-size:13px;border:1px solid rgba(247,242,231,.45);border-bottom:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;line-height:normal}
   .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   h2{font-size:18px;margin:30px 0 10px;padding-left:10px;border-left:5px solid var(--teal)}
@@ -30,7 +31,7 @@
   .score{text-align:center;min-width:150px}
   .score .num{font-size:52px;font-weight:900;color:var(--navy);line-height:1}
   .score .num small{font-size:20px;color:var(--muted);font-weight:600}
-  .score .label{font-size:12px;color:var(--muted);margin-top:6px}
+  .score .label{font-size:12px;color:var(--muted);margin-top:6px;line-height:normal}
   .score .bar{height:10px;background:#e3ded1;border-radius:999px;overflow:hidden;margin-top:10px}
   .score .bar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--teal),#0e7c86);border-radius:999px}
   .summary{font-size:14px;line-height:1.8;margin:16px 0 0}
@@ -60,6 +61,7 @@
   .sb-table th{text-align:left;font-weight:600;color:var(--muted);padding:4px 10px 4px 0}
   .sb-table td{text-align:right;font-weight:700;color:var(--navy);padding:4px 0;white-space:nowrap}
   .sb-table tr.sb-total th,.sb-table tr.sb-total td{border-top:2px solid var(--line);padding-top:8px;color:var(--navy)}
+  .cover th,table.findings th,.sb-table th,.sb-table td{line-height:1.6}
   .road h3 .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px}
   .dot-hi{background:var(--hi)}
   .dot-mid{background:#d9930d}
@@ -85,7 +87,7 @@
   .cta h2{border:none;padding:0;margin:0 0 8px;color:#fff;font-size:19px}
   .cta p{font-size:13.5px;line-height:1.7;color:rgba(247,242,231,.85);margin:0 0 16px}
   .cta .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-  .cta a{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;font-size:14px;border-radius:999px;padding:11px 22px}
+  .cta a{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;font-size:14px;border-radius:999px;padding:11px 22px;line-height:normal}
   .cta a.sub{background:#fff;color:var(--navy)}
   .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
   .brandfoot{background:var(--navy);color:rgba(247,242,231,.82);padding:22px 20px;font-size:13px}

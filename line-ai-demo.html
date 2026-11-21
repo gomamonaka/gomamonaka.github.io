@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINE×AI返信デモ（シミュレーター）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a;--linegreen:#06c755}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .demo{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  /* スマホ枠（LINE画面） */
+  .phone{width:330px;max-width:100%;background:#8cabd9;border-radius:26px;padding:12px;box-shadow:0 4px 14px rgba(15,42,67,.18)}
+  .phone .screen{background:#8cabd9;border-radius:16px;display:flex;flex-direction:column;height:520px}
+  .phone .bar{background:var(--linegreen);color:#fff;padding:10px 12px;border-radius:12px 12px 0 0;font-weight:700;font-size:14px}
+  .chat{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+  .msg{max-width:78%;padding:8px 11px;border-radius:14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap}
+  .msg.customer{align-self:flex-end;background:#a9e493;border-bottom-right-radius:4px}
+  .msg.shop{align-self:flex-start;background:#fff;border-bottom-left-radius:4px}
+  .msg .time{display:block;font-size:10px;color:#335;text-align:right;margin-top:2px}
+  .inputrow{display:flex;gap:6px;padding:10px;background:#f4f6f8;border-radius:0 0 12px 12px}
+  .inputrow input{flex:1;padding:9px;border:1px solid #ccc;border-radius:18px;font-size:13.5px;min-width:0}
+  .inputrow button{background:var(--linegreen);color:#fff;border:none;border-radius:18px;padding:9px 14px;font-weight:700;cursor:pointer}
+  .samples{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;width:330px;max-width:100%}
+  .samples button{background:#fff;border:1px solid var(--linegreen);color:#04963f;border-radius:16px;padding:6px 10px;font-size:12.5px;cursor:pointer}
+  /* 管理者画面 */
+  .admin{flex:1;min-width:340px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 4px 18px rgba(15,42,67,.06)}
+  .admin h2{font-size:16px;margin:4px 0 10px;color:var(--navy)}
+  .draft{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+  .draft .meta{font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.6}
+  .draft textarea{width:100%;box-sizing:border-box;min-height:74px;font-size:13.5px;padding:8px;border:1px solid #ccc;border-radius:8px;font-family:inherit}
+  .draft button{background:var(--linegreen);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;margin-top:8px}
+  .badge{display:inline-block;background:#ffefc2;border:1px solid #e3c964;border-radius:10px;padding:1px 8px;font-size:11px;color:#5a4a00}
+  .badge.sent{background:#e2f5e6;border-color:#9ed3a8;color:#245c2e}
+  .log{background:#f7f8f9;border-radius:10px;padding:10px 12px;font-size:12.5px;max-height:150px;overflow-y:auto}
+  .log div{padding:2px 0;border-bottom:1px dotted #ddd}
+  .empty{color:#888;font-size:13px}
+  .note{font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.8}
+  .note a{color:var(--teal)}
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>LINE×AI返信デモ（シミュレーター）</h1>
+  <p class="lead">LINE公式アカウントの問い合わせ対応を、ブラウザだけで再現した体験デモです。左のお客様画面からメッセージを送ると、疑似AIが返信の「下書き」を作り、右の管理者画面に届きます。管理者が内容を確認（編集も可能）して「このまま送信」を押すと、お客様の画面に返信が届きます。ポイントは <strong>「AIが下書きまで、送信は人が確認してから」</strong> という設計です。</p>
+
+  <div class="demo">
+    <div>
+      <div class="phone"><div class="screen">
+        <div class="bar">サンプルサロン（公式アカウント）</div>
+        <div class="chat" id="chat"></div>
+        <div class="inputrow">
+          <input id="input" type="text" placeholder="メッセージを入力">
+          <button id="sendBtn">送信</button>
+        </div>
+      </div></div>
+      <div class="samples">
+        <button type="button" class="sample">営業時間を教えてください</button>
+        <button type="button" class="sample">予約したいのですが空いていますか</button>
+        <button type="button" class="sample">カットの料金はいくらですか</button>
+        <button type="button" class="sample">お店の場所と行き方を教えてください</button>
+      </div>
+    </div>
+    <div class="admin">
+      <h2>管理者画面（返信の下書きを確認して送信）</h2>
+      <div id="drafts"></div>
+      <h2>通知ログ</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <p class="note">※ これはデモです。実LINE・実LLM（ChatGPT等）には接続しておらず、返信の下書きはキーワード判定によるルールベースの疑似AIが生成します。店舗名・営業時間・料金はすべて架空のサンプル（サンプルサロン）です。状態はこのページのメモリ上だけに保持され、保存はされません（リロードするとリセットされます）。<br>
+  実案件では、LINE Messaging APIでメッセージを受け取り、LLMが店舗情報を根拠に下書きを生成し、送信前に人の確認を挟む構成にします。導入のご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+</div>
+
+<script>
+const SHOP_NAME = "サンプルサロン";
+
+// --- 疑似AI（ルールベース）: Python版 app.py と同じ判定・文面 ---
+const CATEGORY_RULES = [
+  ["営業時間", ["営業時間", "何時", "開店", "閉店", "休み", "定休日"]],
+  ["料金", ["料金", "いくら", "値段", "価格", "費用", "円"]],
+  ["予約", ["予約", "空き", "空いて", "行きたい", "お願いしたい"]],
+  ["アクセス", ["アクセス", "場所", "行き方", "住所", "駅", "駐車場"]]
+];
+const DRAFT_TEMPLATES = {
+  "営業時間": "お問い合わせありがとうございます。" + SHOP_NAME + "の営業時間は、平日10:00〜20:00、土日祝10:00〜18:00です（定休日：火曜日）。ご来店をお待ちしております。",
+  "料金": "お問い合わせありがとうございます。" + SHOP_NAME + "の料金は、カット 4,400円〜、カラー 6,600円〜、パーマ 7,700円〜です。詳しいメニューはお気軽にお尋ねください。",
+  "予約": "ご予約ありがとうございます。空き状況を確認いたしますので、ご希望の日時とメニューを教えていただけますか？",
+  "アクセス": "お問い合わせありがとうございます。" + SHOP_NAME + "は最寄り駅から徒歩5分の場所にあります。専用駐車場はございませんので、近隣のコインパーキングをご利用ください。",
+  "その他": "お問い合わせありがとうございます。内容を確認のうえ、担当者より改めてご連絡いたします。少々お待ちくださいませ。"
+};
+function classify(text){
+  for (const [category, keywords] of CATEGORY_RULES){
+    if (keywords.some(k => text.includes(k))) return category;
+  }
+  return "その他";
+}
+function makeDraft(text){
+  const category = classify(text);
+  return [category, DRAFT_TEMPLATES[category]];
+}
+
+// --- デモの状態（メモリ上のみ。リロードでリセット） ---
+const state = { customerMessages: [], drafts: [], log: [] };
+let nextId = 1;
+function now(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+}
+function escapeHtml(t){
+  const d = document.createElement("div");
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+// --- 描画 ---
+function render(){
+  const chat = document.getElementById("chat");
+  chat.innerHTML = state.customerMessages.map(m =>
+    '<div class="msg ' + m.from + '">' + escapeHtml(m.text) + '<span class="time">' + m.time + "</span></div>"
+  ).join("");
+  chat.scrollTop = chat.scrollHeight;
+
+  const dr = document.getElementById("drafts");
+  if (!state.drafts.length){
+    dr.innerHTML = '<p class="empty">まだ問い合わせはありません。左の画面からメッセージを送ってみてください。</p>';
+  } else {
+    dr.innerHTML = state.drafts.slice().reverse().map(d => {
+      const sent = d.status === "送信済み";
+      return '<div class="draft">' +
+        '<div class="meta">お客様：' + escapeHtml(d.question) + " ／ 分類：" + d.category +
+        ' ／ <span class="badge' + (sent ? " sent" : "") + '">' + d.status + "</span></div>" +
+        '<textarea id="draft-' + d.id + '"' + (sent ? " disabled" : "") + ">" + escapeHtml(d.draft) + "</textarea>" +
+        (sent ? "" : '<button type="button" data-approve="' + d.id + '">このまま送信</button>') +
+        "</div>";
+    }).join("");
+    dr.querySelectorAll("[data-approve]").forEach(btn => {
+      btn.addEventListener("click", () => approve(Number(btn.getAttribute("data-approve"))));
+    });
+  }
+
+  const logEl = document.getElementById("log");
+  logEl.innerHTML = state.log.length
+    ? state.log.slice().reverse().map(l => "<div>" + escapeHtml(l) + "</div>").join("")
+    : '<div class="empty">まだ通知はありません。</div>';
+}
+
+// --- 操作 ---
+function customerSend(text){
+  text = (text || "").trim();
+  if (!text) return;
+  state.customerMessages.push({ from: "customer", text: text, time: now() });
+  const [category, draftText] = makeDraft(text);
+  state.drafts.push({ id: nextId, question: text, category: category, draft: draftText, status: "下書き（未送信）" });
+  state.log.push(now() + " 新しい問い合わせ（" + category + "）の下書きを作成しました");
+  nextId++;
+  render();
+}
+function approve(id){
+  const d = state.drafts.find(x => x.id === id);
+  if (!d) return;
+  if (d.status !== "下書き（未送信）") return; // 二重送信防止
+  const edited = document.getElementById("draft-" + id).value.trim();
+  const sendText = edited || d.draft;
+  d.status = "送信済み";
+  d.draft = sendText;
+  state.customerMessages.push({ from: "shop", text: sendText, time: now() });
+  state.log.push(now() + " 下書き#" + id + " を送信しました");
+  render();
+}
+function sendFromInput(){
+  const i = document.getElementById("input");
+  customerSend(i.value);
+  i.value = "";
+  i.focus();
+}
+document.getElementById("sendBtn").addEventListener("click", sendFromInput);
+document.getElementById("input").addEventListener("keydown", e => { if (e.key === "Enter") sendFromInput(); });
+document.querySelectorAll(".sample").forEach(btn => {
+  btn.addEventListener("click", () => customerSend(btn.textContent));
+});
+render();
+</script>
+</body>
+</html>

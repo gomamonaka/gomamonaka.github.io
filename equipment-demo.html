@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>備品貸出管理アプリ（体験デモ）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a;--red:#b3261e;--redbg:#fdecec}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  h2{font-size:17px;border-left:4px solid var(--teal);padding-left:9px;margin:30px 0 12px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 6px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .toolbar input[type="search"]{flex:1;min-width:200px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px;background:#fff}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(15,42,67,.05)}
+  th,td{padding:9px 12px;text-align:left;font-size:13.5px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{background:#eef4f6;font-size:12px;color:var(--muted)}
+  tr:last-child td{border-bottom:none}
+  tr.overdue td{background:var(--redbg)}
+  .badge{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;white-space:nowrap}
+  .badge.ok{background:#e2f4e5;color:#1d7a35}
+  .badge.none{background:var(--redbg);color:var(--red)}
+  .badge.lent{background:#fff3d6;color:#8a6d00}
+  .badge.over{background:var(--red);color:#fff}
+  button,.btn{display:inline-block;padding:7px 14px;border:none;border-radius:8px;background:var(--teal);color:#fff;font-size:13px;cursor:pointer;text-decoration:none}
+  button.navy{background:var(--navy);font-weight:700}
+  button.sub,.btn.sub{background:#829ab1}
+  button:disabled{background:#c3ced6;cursor:not-allowed}
+  .panel{background:var(--card);border:1px solid var(--teal);border-radius:12px;padding:16px 18px;margin:0 0 16px;box-shadow:0 4px 18px rgba(15,42,67,.08)}
+  .panel h3{margin:0 0 8px;font-size:15px}
+  .panel label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  .panel input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px}
+  .panel .row{display:flex;gap:8px;margin-top:16px}
+  .flash{background:#e2f4e5;border:1px solid #1d7a35;color:#1d7a35;padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
+  .error{background:var(--redbg);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
+  .muted{color:var(--muted);font-size:12.5px}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.7}
+  @media (max-width:640px){ th,td{padding:8px 7px;font-size:12.5px} .hideS{display:none} }
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>備品貸出管理アプリ（体験デモ）</h1>
+  <p class="lead">社内の備品（PC・会議機材・工具など）の貸出と返却を管理する、小規模Webアプリの体験デモです。「貸出する」から貸出の記録、「返却する」で返却まで、その場で操作できます。返却期限を過ぎた貸出は赤く強調表示されます。</p>
+  <p class="lead">※ 備品名・人名・日付はすべて架空のサンプルデータです。入力した内容はこのページの中だけに保持され、ページを再読み込みすると最初の状態に戻ります（サーバーには送信されません）。実案件ではデータベースに保存し、複数人で共有できる形で構築します。</p>
+
+  <div id="flash"></div>
+
+  <div class="panel" id="loanPanel" style="display:none">
+    <h3>貸出の登録</h3>
+    <p style="margin:0">備品：<strong id="loanItemName"></strong>（貸出可能 <span id="loanItemAvail"></span> 点）</p>
+    <label>借りた人</label>
+    <input id="loanBorrower" type="text" placeholder="例：山田 花子">
+    <label>返却期限</label>
+    <input id="loanDue" type="date">
+    <div class="row">
+      <button class="navy" id="loanSubmit">貸出を記録する</button>
+      <button class="sub" id="loanCancel">キャンセル</button>
+    </div>
+  </div>
+
+  <h2>備品一覧</h2>
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="キーワード検索（備品名・分類・メモ）">
+    <button class="sub" id="csvBtn">貸出一覧をCSVで出す</button>
+  </div>
+  <div id="itemsArea"></div>
+
+  <h2>貸出中の一覧</h2>
+  <div id="loansArea"></div>
+
+  <p class="note">このような社内ツールを、要件を聞き取って短期間で構築できます。「Excelや紙で管理していて限界を感じている」「貸出状況を共有したい」といったご相談の、たたき台としてご覧ください。実案件では、利用者ごとの権限管理・返却期限前のメール通知・複数拠点対応などの追加も可能です。</p>
+</div>
+
+<script>
+// ---- サンプルデータ（すべて架空） ----
+function iso(offset){
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  const m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+const items = [
+  {id:1,  name:"ノートPC（会議用）",           category:"PC・周辺機器", total:3, note:"Windowsノート、貸出用ケース付き"},
+  {id:2,  name:"プロジェクター",               category:"会議機材",     total:1, note:"HDMIケーブル同梱"},
+  {id:3,  name:"ワイヤレスマイク",             category:"会議機材",     total:2, note:""},
+  {id:4,  name:"デジタルカメラ",               category:"撮影機材",     total:1, note:"SDカードは各自で用意"},
+  {id:5,  name:"脚立（大）",                   category:"工具・備品",   total:1, note:"倉庫保管"},
+  {id:6,  name:"脚立（小）",                   category:"工具・備品",   total:2, note:""},
+  {id:7,  name:"モバイルモニター",             category:"PC・周辺機器", total:2, note:"USB-C接続"},
+  {id:8,  name:"ICレコーダー",                 category:"会議機材",     total:2, note:"議事録作成用"},
+  {id:9,  name:"延長コード（5m）",             category:"工具・備品",   total:4, note:""},
+  {id:10, name:"ホワイトボードマーカーセット", category:"事務用品",     total:5, note:"補充は総務まで"}
+];
+// loan: {id, itemId, borrower, loanDate, dueDate, returnDate(null=貸出中)}
+let loans = [
+  {id:1,  itemId:1, borrower:"山田 花子",   loanDate:iso(-10), dueDate:iso(-3),  returnDate:null},        // 期限切れ
+  {id:2,  itemId:2, borrower:"佐藤 健",     loanDate:iso(-2),  dueDate:iso(5),   returnDate:null},
+  {id:3,  itemId:3, borrower:"鈴木 美咲",   loanDate:iso(-1),  dueDate:iso(1),   returnDate:null},
+  {id:4,  itemId:4, borrower:"高橋 翔",     loanDate:iso(-14), dueDate:iso(-7),  returnDate:iso(-6)},     // 返却済み
+  {id:5,  itemId:7, borrower:"伊藤 葵",     loanDate:iso(-5),  dueDate:iso(2),   returnDate:null},
+  {id:6,  itemId:5, borrower:"渡辺 大輔",   loanDate:iso(-3),  dueDate:iso(-1),  returnDate:null},        // 期限切れ
+  {id:7,  itemId:1, borrower:"中村 さくら", loanDate:iso(-20), dueDate:iso(-13), returnDate:iso(-12)},    // 返却済み
+  {id:8,  itemId:8, borrower:"小林 蓮",     loanDate:iso(0),   dueDate:iso(7),   returnDate:null},
+  {id:9,  itemId:9, borrower:"加藤 結衣",   loanDate:iso(-7),  dueDate:iso(0),   returnDate:null},        // 本日が期限
+  {id:10, itemId:6, borrower:"吉田 悠真",   loanDate:iso(-30), dueDate:iso(-23), returnDate:iso(-25)}     // 返却済み
+];
+let nextLoanId = 11;
+let checkoutItemId = null;
+
+// ---- 業務ロジック ----
+function todayStr(){ return iso(0); }
+function loanedCount(itemId){ return loans.filter(l => l.itemId === itemId && !l.returnDate).length; }
+function available(item){ return item.total - loanedCount(item.id); }
+function isOverdue(loan){ return !loan.returnDate && loan.dueDate < todayStr(); }
+function itemName(id){ const it = items.find(i => i.id === id); return it ? it.name : ""; }
+function loanStatus(loan){ return loan.returnDate ? "返却済み" : (isOverdue(loan) ? "期限切れ" : "貸出中"); }
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function showFlash(text, isError){
+  const f = document.getElementById('flash');
+  f.innerHTML = text ? '<p class="' + (isError ? 'error' : 'flash') + '">' + esc(text) + '</p>' : '';
+}
+
+// ---- 描画 ----
+function render(){
+  const kw = document.getElementById('q').value.trim();
+  // 備品一覧
+  const list = items.filter(it => !kw || it.name.includes(kw) || it.category.includes(kw) || it.note.includes(kw));
+  let h = '';
+  if (list.length){
+    h = '<table><tr><th>備品名</th><th>分類</th><th>貸出中 / 総数</th><th>状態</th><th class="hideS">メモ</th><th>操作</th></tr>';
+    for (const it of list){
+      const av = available(it), loaned = loanedCount(it.id);
+      const badge = av > 0
+        ? '<span class="badge ok">貸出可 あと' + av + '点</span>'
+        : '<span class="badge none">貸出中（在庫なし）</span>';
+      const btn = av > 0
+        ? '<button data-checkout="' + it.id + '">貸出する</button>'
+        : '<button disabled>貸出する</button>';
+      h += '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.category) + '</td><td>' + loaned + ' / ' + it.total +
+           '</td><td>' + badge + '</td><td class="hideS">' + esc(it.note) + '</td><td>' + btn + '</td></tr>';
+    }
+    h += '</table>';
+  } else {
+    h = '<p class="muted">条件に合う備品がありません。</p>';
+  }
+  document.getElementById('itemsArea').innerHTML = h;
+
+  // 貸出中の一覧（期限が近い順）
+  const active = loans.filter(l => !l.returnDate)
+    .sort((a,b) => a.dueDate < b.dueDate ? -1 : (a.dueDate > b.dueDate ? 1 : a.id - b.id));
+  let lh = '';
+  if (active.length){
+    lh = '<table><tr><th>備品名</th><th>借りた人</th><th>貸出日</th><th>返却期限</th><th>状態</th><th>操作</th></tr>';
+    for (const l of active){
+      const over = isOverdue(l);
+      lh += '<tr' + (over ? ' class="overdue"' : '') + '><td>' + esc(itemName(l.itemId)) + '</td><td>' + esc(l.borrower) +
+            '</td><td>' + l.loanDate + '</td><td>' + l.dueDate + '</td><td>' +
+            (over ? '<span class="badge over">期限切れ</span>' : '<span class="badge lent">貸出中</span>') +
+            '</td><td><button data-return="' + l.id + '">返却する</button></td></tr>';
+    }
+    lh += '</table>';
+  } else {
+    lh = '<p class="muted">現在貸出中の備品はありません。</p>';
+  }
+  document.getElementById('loansArea').innerHTML = lh;
+}
+
+// ---- 貸出 ----
+function openCheckout(itemId){
+  const it = items.find(i => i.id === itemId);
+  if (!it || available(it) <= 0) return;
+  checkoutItemId = itemId;
+  document.getElementById('loanItemName').textContent = it.name;
+  document.getElementById('loanItemAvail').textContent = available(it);
+  document.getElementById('loanBorrower').value = '';
+  document.getElementById('loanDue').value = iso(7); // 初期値は1週間後
+  document.getElementById('loanPanel').style.display = 'block';
+  document.getElementById('loanBorrower').focus();
+}
+function closeCheckout(){
+  checkoutItemId = null;
+  document.getElementById('loanPanel').style.display = 'none';
+}
+function submitCheckout(){
+  const borrower = document.getElementById('loanBorrower').value.trim();
+  const due = document.getElementById('loanDue').value;
+  const it = items.find(i => i.id === checkoutItemId);
+  if (!it){ closeCheckout(); return; }
+  if (available(it) <= 0){ showFlash('貸出可能な在庫がありません', true); closeCheckout(); render(); return; }
+  if (!borrower){ showFlash('借りた人の名前を入力してください', true); return; }
+  if (!due){ showFlash('返却期限を選んでください', true); return; }
+  loans.push({id: nextLoanId++, itemId: it.id, borrower: borrower, loanDate: todayStr(), dueDate: due, returnDate: null});
+  closeCheckout();
+  showFlash('貸出を記録しました：' + it.name + '（' + borrower + 'さん、返却期限 ' + due + '）', false);
+  render();
+}
+
+// ---- 返却 ----
+function submitReturn(loanId){
+  const l = loans.find(x => x.id === loanId);
+  if (!l || l.returnDate) return;
+  l.returnDate = todayStr();
+  showFlash('返却を記録しました：' + itemName(l.itemId) + '（' + l.borrower + 'さん）', false);
+  render();
+}
+
+// ---- CSVエクスポート ----
+function exportCsv(){
+  const rows = [["備品名","借りた人","貸出日","返却期限","返却日","状態"]];
+  const sorted = [...loans].sort((a,b) => (a.returnDate ? 1 : 0) - (b.returnDate ? 1 : 0) || (a.dueDate < b.dueDate ? -1 : 1) || a.id - b.id);
+  for (const l of sorted){
+    rows.push([itemName(l.itemId), l.borrower, l.loanDate, l.dueDate, l.returnDate || "", loanStatus(l)]);
+  }
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\r\n');
+  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'}); // Excel向けBOM付きUTF-8
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'loans.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ---- イベント配線 ----
+document.getElementById('q').addEventListener('input', render);
+document.getElementById('csvBtn').addEventListener('click', exportCsv);
+document.getElementById('loanSubmit').addEventListener('click', submitCheckout);
+document.getElementById('loanCancel').addEventListener('click', () => { closeCheckout(); showFlash('', false); });
+document.addEventListener('click', e => {
+  const co = e.target.closest('[data-checkout]');
+  if (co){ openCheckout(Number(co.dataset.checkout)); return; }
+  const rt = e.target.closest('[data-return]');
+  if (rt){ submitReturn(Number(rt.dataset.return)); }
+});
+render();
+</script>
+</body>
+</html>

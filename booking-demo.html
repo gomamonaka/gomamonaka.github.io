@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>予約・受付システム（デモ）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  h2{font-size:17px;margin:0 0 12px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:10px;padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 4px 18px rgba(15,42,67,.06)}
+  label{display:block;font-size:13px;margin:12px 0 4px;color:var(--muted)}
+  input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;color:var(--text)}
+  button.primary{background:var(--teal);color:#fff;border:none;padding:11px 24px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700}
+  button.sub{background:#fff;color:var(--teal);border:1px solid var(--teal);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+  button.small{background:var(--navy);color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12.5px}
+  .slots{margin:8px 0 2px}
+  .slot{display:inline-block;border:1px solid var(--teal);color:var(--teal);border-radius:8px;padding:4px 12px;margin:2px;font-size:13px}
+  .slot.none{border-color:var(--line);color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{color:var(--muted);font-weight:700}
+  .badge{padding:2px 10px;border-radius:999px;font-size:12px;color:#fff;white-space:nowrap}
+  .st-pending{background:#b7791f}.st-confirmed{background:#0e7c86}.st-cancelled{background:#9aa3a7}.st-visited{background:#0f2a43}
+  .status-form{display:flex;gap:6px;align-items:center}
+  .status-form select{width:auto;padding:6px;font-size:13px}
+  textarea{width:100%;height:210px;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:14px;line-height:1.7;font-family:inherit;background:#fbfdfe}
+  .msg{background:#e7f6ec;border:1px solid #9fd3ae;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:14px}
+  .err{background:#fdecec;border:1px solid #e5a3a3;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:14px}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+  .note a{color:var(--teal)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>予約・受付システム（デモ）</h1>
+  <p class="lead">紙の予約台帳や電話受付で回している予約業務をWeb化するイメージの体験デモです。実際に予約を入れて、管理画面でステータスを変えたり、リマインド文面が自動で作られる様子まで触れます。</p>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-customer" type="button">お客様画面（予約する）</button>
+    <button class="tab" id="tab-admin" type="button">管理画面</button>
+  </div>
+
+  <!-- お客様画面 -->
+  <div id="view-customer">
+    <div id="book-result"></div>
+    <div class="card">
+      <h2>空き枠の確認</h2>
+      <label>日付</label>
+      <input type="date" id="cust-date">
+      <p style="margin:12px 0 4px;font-size:13.5px"><span id="cust-date-label"></span> の空き枠：</p>
+      <div class="slots" id="cust-slots"></div>
+    </div>
+    <div class="card">
+      <h2>予約フォーム</h2>
+      <label>メニュー</label>
+      <select id="book-menu"></select>
+      <label>日付</label>
+      <input type="date" id="book-date">
+      <label>時間</label>
+      <select id="book-time"></select>
+      <label>お名前</label>
+      <input type="text" id="book-name" placeholder="例：山田 花子">
+      <label>連絡先（電話番号など）</label>
+      <input type="text" id="book-contact" placeholder="例：090-0000-0000">
+      <p style="margin-top:16px"><button class="primary" id="book-submit" type="button">予約する</button></p>
+    </div>
+  </div>
+
+  <!-- 管理画面 -->
+  <div id="view-admin" class="hidden">
+    <div id="admin-result"></div>
+    <div class="card">
+      <h2>予約一覧（管理画面）</h2>
+      <label>日付</label>
+      <input type="date" id="admin-date">
+      <div style="overflow-x:auto;margin-top:14px">
+      <table>
+        <thead><tr><th>時間</th><th>お名前</th><th>メニュー</th><th>連絡先</th><th>状態</th><th>操作</th></tr></thead>
+        <tbody id="admin-rows"></tbody>
+      </table>
+      </div>
+    </div>
+    <div class="card hidden" id="reminder-card">
+      <h2>リマインドメール文面（下書き）</h2>
+      <p style="font-size:13.5px;color:var(--muted)" id="reminder-desc"></p>
+      <textarea id="reminder-text" readonly></textarea>
+      <p style="margin-top:12px"><button class="sub" id="reminder-copy" type="button">文面をコピー</button>
+      <span id="reminder-copied" style="font-size:13px;color:var(--teal);margin-left:8px"></span></p>
+    </div>
+  </div>
+
+  <p class="note">※ これは体験用のデモです。店舗・メニュー・予約データはすべて架空のサンプルで、実在の店舗ではありません。予約データはブラウザのメモリ上だけに保持され、ページを再読み込みすると最初の状態にリセットされます（外部に送信されることはありません）。実際のシステムでは、ログイン認証・メール送信・決済連携などを要件に合わせて追加します。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+</div>
+
+<script>
+// ===== 元デモ（Python版）と同じ仕様 =====
+const SLOTS = ["10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
+const MENUS = [
+  {id:1, name:"カット", duration:60, price:5000},
+  {id:2, name:"カット＋カラー", duration:120, price:12000},
+  {id:3, name:"パーマ", duration:120, price:11000},
+  {id:4, name:"ヘッドスパ", duration:45, price:4000}
+];
+const STATUS_LABEL = {pending:"仮予約", confirmed:"確定", cancelled:"キャンセル", visited:"来店済み"};
+const TRANSITIONS = {
+  pending:["confirmed","cancelled"],
+  confirmed:["visited","cancelled"],
+  cancelled:[],
+  visited:[]
+};
+
+// ===== 日付ユーティリティ（ローカル日付で処理） =====
+function fmtDate(d){
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,"0"), dd = String(d.getDate()).padStart(2,"0");
+  return y + "-" + m + "-" + dd;
+}
+function addDays(base, n){ const d = new Date(base.getFullYear(), base.getMonth(), base.getDate()+n); return d; }
+function dateLabel(iso){
+  const d = new Date(iso + "T00:00:00");
+  const w = ["日","月","火","水","木","金","土"][d.getDay()];
+  return iso + "（" + w + "）";
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// ===== サンプルデータ（起動日基準の相対日付。メモリ上のみ） =====
+const TODAY = new Date();
+let nextId = 1;
+let bookings = [];
+(function seed(){
+  const samples = [
+    // [menu_id, 日付オフセット, 時間, 名前, 連絡先, ステータス]
+    [1, -1, "10:00", "サンプル花子", "090-0000-0001", "visited"],
+    [2,  0, "11:00", "サンプル太郎", "090-0000-0002", "confirmed"],
+    [1,  0, "13:00", "サンプル美咲", "090-0000-0003", "pending"],
+    [4,  0, "15:00", "サンプル健",   "090-0000-0004", "cancelled"],
+    [3,  1, "10:00", "サンプル直子", "090-0000-0005", "confirmed"],
+    [1,  1, "12:00", "サンプル翔太", "090-0000-0006", "pending"],
+    [2,  2, "14:00", "サンプル結衣", "090-0000-0007", "pending"],
+    [1,  3, "10:00", "サンプル大輔", "090-0000-0008", "pending"],
+    [4,  3, "16:00", "サンプル真由", "090-0000-0009", "confirmed"],
+    [1,  5, "11:00", "サンプル蓮",   "090-0000-0010", "pending"]
+  ];
+  for (const [menuId, off, time, name, contact, status] of samples){
+    bookings.push({id: nextId++, menuId, date: fmtDate(addDays(TODAY, off)), time, name, contact, status});
+  }
+})();
+
+// ===== コアロジック（Python版 available_slots / create_booking / change_status / reminder_text の移植） =====
+function availableSlots(dateStr){
+  const taken = new Set(bookings.filter(b => b.date === dateStr && b.status !== "cancelled").map(b => b.time));
+  return SLOTS.filter(s => !taken.has(s));
+}
+function createBooking(menuId, dateStr, time, name, contact){
+  if (!SLOTS.includes(time)) throw new Error("時間枠が不正です");
+  if (!name.trim()) throw new Error("お名前を入力してください");
+  if (!availableSlots(dateStr).includes(time)) throw new Error("その時間枠はすでに予約が入っています");
+  const b = {id: nextId++, menuId, date: dateStr, time, name: name.trim(), contact: contact.trim(), status: "pending"};
+  bookings.push(b);
+  return b;
+}
+function changeStatus(id, newStatus){
+  const b = bookings.find(x => x.id === id);
+  if (!b) throw new Error("予約が見つかりません");
+  if (!TRANSITIONS[b.status].includes(newStatus)){
+    throw new Error(STATUS_LABEL[b.status] + "から" + (STATUS_LABEL[newStatus] || newStatus) + "へは変更できません");
+  }
+  b.status = newStatus;
+}
+function menuName(id){ const m = MENUS.find(x => x.id === id); return m ? m.name : ""; }
+function reminderText(b){
+  return b.name + " 様\n\n" +
+    "いつもご利用ありがとうございます。ご予約のリマインドです。\n\n" +
+    "日時：" + b.date + " " + b.time + "〜\n" +
+    "メニュー：" + menuName(b.menuId) + "\n\n" +
+    "ご都合が悪くなった場合は、お早めにご連絡ください。\n" +
+    "ご来店を心よりお待ちしております。";
+}
+
+// ===== 画面描画 =====
+const $ = id => document.getElementById(id);
+
+function renderCustomer(){
+  const dateStr = $("cust-date").value;
+  $("cust-date-label").textContent = dateLabel(dateStr);
+  const slots = availableSlots(dateStr);
+  $("cust-slots").innerHTML = slots.length
+    ? slots.map(s => '<span class="slot">' + s + "</span>").join("")
+    : '<span class="slot none">空き枠はありません</span>';
+  // 予約フォームの日付・時間も連動
+  $("book-date").value = dateStr;
+  const prev = $("book-time").value;
+  $("book-time").innerHTML = slots.map(s => '<option value="' + s + '">' + s + "</option>").join("");
+  if (slots.includes(prev)) $("book-time").value = prev;
+}
+function renderAdmin(){
+  const dateStr = $("admin-date").value;
+  const rows = bookings.filter(b => b.date === dateStr).slice().sort((a,b) => a.time.localeCompare(b.time));
+  if (!rows.length){
+    $("admin-rows").innerHTML = '<tr><td colspan="6">この日の予約はありません</td></tr>';
+    return;
+  }
+  $("admin-rows").innerHTML = rows.map(b => {
+    const nexts = TRANSITIONS[b.status];
+    const action = nexts.length
+      ? '<span class="status-form"><select id="st-' + b.id + '">' +
+        nexts.map(s => '<option value="' + s + '">' + STATUS_LABEL[s] + "</option>").join("") +
+        '</select><button class="small" type="button" onclick="onChangeStatus(' + b.id + ')">変更</button></span>'
+      : "（終了）";
+    return "<tr><td>" + b.time + "</td><td>" + esc(b.name) + "</td><td>" + esc(menuName(b.menuId)) +
+      "</td><td>" + esc(b.contact) + "</td>" +
+      '<td><span class="badge st-' + b.status + '">' + STATUS_LABEL[b.status] + "</span></td>" +
+      "<td>" + action + ' <button class="sub" type="button" onclick="onShowReminder(' + b.id + ')">リマインド文面</button></td></tr>';
+  }).join("");
+}
+function showMsg(elId, text, isErr){
+  $(elId).innerHTML = '<div class="' + (isErr ? "err" : "msg") + '">' + esc(text) + "</div>";
+}
+
+// ===== イベント配線 =====
+function switchTab(admin){
+  $("tab-customer").classList.toggle("active", !admin);
+  $("tab-admin").classList.toggle("active", admin);
+  $("view-customer").classList.toggle("hidden", admin);
+  $("view-admin").classList.toggle("hidden", !admin);
+  if (admin) renderAdmin();
+}
+$("tab-customer").addEventListener("click", () => switchTab(false));
+$("tab-admin").addEventListener("click", () => switchTab(true));
+$("cust-date").addEventListener("change", renderCustomer);
+$("book-date").addEventListener("change", () => { $("cust-date").value = $("book-date").value; renderCustomer(); });
+$("admin-date").addEventListener("change", renderAdmin);
+
+$("book-submit").addEventListener("click", () => {
+  try {
+    const b = createBooking(
+      parseInt($("book-menu").value, 10),
+      $("book-date").value,
+      $("book-time").value,
+      $("book-name").value,
+      $("book-contact").value
+    );
+    showMsg("book-result", "ご予約を受け付けました（受付番号：" + b.id + "／日時：" + b.date + " " + b.time + "〜）。店舗からの確定連絡をお待ちください。（このデモではメール送信は行いません）管理画面タブで予約が追加されている様子を確認できます。", false);
+    $("book-name").value = ""; $("book-contact").value = "";
+    renderCustomer();
+  } catch (e) {
+    showMsg("book-result", e.message, true);
+  }
+});
+
+function onChangeStatus(id){
+  try {
+    changeStatus(id, $("st-" + id).value);
+    showMsg("admin-result", "ステータスを変更しました", false);
+  } catch (e) {
+    showMsg("admin-result", e.message, true);
+  }
+  renderAdmin();
+  renderCustomer();
+}
+function onShowReminder(id){
+  const b = bookings.find(x => x.id === id);
+  if (!b) return;
+  $("reminder-card").classList.remove("hidden");
+  $("reminder-desc").textContent = "予約 #" + b.id + "（" + b.name + " 様）向けの自動生成文面です。実際には送信されません。コピーしてメールやLINEに貼って使えます。";
+  $("reminder-text").value = reminderText(b);
+  $("reminder-copied").textContent = "";
+  $("reminder-card").scrollIntoView({behavior:"smooth", block:"start"});
+}
+$("reminder-copy").addEventListener("click", async () => {
+  const t = $("reminder-text");
+  t.select();
+  try { await navigator.clipboard.writeText(t.value); }
+  catch (e) { document.execCommand("copy"); }
+  $("reminder-copied").textContent = "コピーしました";
+});
+
+// ===== 初期化 =====
+(function init(){
+  $("book-menu").innerHTML = MENUS.map(m =>
+    '<option value="' + m.id + '">' + esc(m.name) + "（" + m.duration + "分／" + m.price.toLocaleString() + "円）</option>"
+  ).join("");
+  const todayStr = fmtDate(TODAY);
+  $("cust-date").value = todayStr;
+  $("admin-date").value = todayStr;
+  renderCustomer();
+  renderAdmin();
+})();
+</script>
+</body>
+</html>

@@ -31,6 +31,8 @@
   .badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:6px;white-space:nowrap}
   .badge.ok{background:#e3f0ee;color:var(--teal)}
   td.state-cell{white-space:nowrap}
+  .order-tbl td:nth-child(2){min-width:150px}
+  .order-tbl td.num{white-space:nowrap}
   .stock-tbl td:nth-child(2){min-width:150px}
   .stock-tbl td:nth-child(3),.stock-tbl th:nth-child(3){min-width:60px}
   .stock-tbl td:nth-child(8),.stock-tbl th:nth-child(8){min-width:132px}
@@ -354,7 +356,7 @@ if (typeof document !== "undefined"){
     }
     var total = alerts.reduce(function(s,a){ return s + a.amount; }, 0);
     alertSummary.innerHTML = "発注が必要な品目は <strong>" + alerts.length + " 件</strong>（金額目安の合計：" + yen(total) + "）";
-    var html = "<table><thead><tr><th>品番</th><th>品名</th><th class=\"num\">現在庫</th><th class=\"num\">発注点</th><th class=\"num\">不足数</th><th class=\"num\">発注推奨数</th><th class=\"num\">金額目安</th><th class=\"hide-sp\">仕入先</th></tr></thead><tbody>";
+    var html = "<table class=\"order-tbl\"><thead><tr><th>品番</th><th>品名</th><th class=\"num\">現在庫</th><th class=\"num\">発注点</th><th class=\"num\">不足数</th><th class=\"num\">発注推奨数</th><th class=\"num\">金額目安</th><th class=\"hide-sp\">仕入先</th></tr></thead><tbody>";
     alerts.forEach(function(a){
       html += "<tr><td class=\"sku\">" + escHtml(a.sku) + "</td><td>" + escHtml(a.name) + "<span class=\"basis\">根拠：発注点 " + a.reorder + " − 現在庫 " + a.stock + " ＝ 不足 " + a.shortage + "。発注推奨数は発注点の2倍まで補充する計算です</span></td><td class=\"num\">" + a.stock + "</td><td class=\"num\">" + a.reorder + "</td><td class=\"num\">" + a.shortage + "</td><td class=\"num\">" + a.qty + escHtml(a.unit || "") + "</td><td class=\"num\">" + yen(a.amount) + "</td><td class=\"hide-sp\">" + escHtml(a.supplier) + "</td></tr>";
     });

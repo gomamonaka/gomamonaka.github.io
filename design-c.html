@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウェブオートラボ｜手作業の繰り返し業務を、1週間でツール化します</title>
+<style>
+  :root{
+    --navy:#16283f;
+    --navy-deep:#101e31;
+    --ink:#2b3440;
+    --muted:#5d6874;
+    --teal:#3f6d6a;
+    --line:#d5dbe1;
+    --line-dark:#b9c2cb;
+    --soft:#f5f6f7;
+    --soft2:#eef1f3;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","YuGothic","Noto Sans JP",sans-serif;
+    color:var(--ink);background:#fff;line-height:1.9;font-size:15.5px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{
+    font-family:"Hiragino Mincho ProN","Hiragino Mincho Pro","Yu Mincho","YuMincho","MS PMincho",serif;
+    font-weight:600;color:var(--navy);letter-spacing:.04em;
+  }
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 24px}
+
+  /* nav */
+  nav{border-bottom:2px solid var(--navy);background:#fff}
+  nav .wrap{display:flex;justify-content:space-between;align-items:center;padding-top:14px;padding-bottom:14px}
+  .brand{display:flex;align-items:center;gap:12px;color:var(--navy)}
+  .brand:hover{text-decoration:none}
+  .brand .mark{width:40px;height:40px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:15px;font-weight:600;letter-spacing:.06em;flex:none}
+  .brand .name{font-size:17px;font-weight:700;letter-spacing:.08em;line-height:1.3}
+  .brand .name small{display:block;font-size:9.5px;font-weight:400;letter-spacing:.32em;color:var(--muted)}
+  .nav-links{display:flex;gap:26px;align-items:center;font-size:13.5px}
+  .nav-links a{color:var(--ink)}
+  .nav-cta{background:var(--navy);color:#fff !important;padding:8px 20px;font-size:13.5px}
+  .nav-cta:hover{text-decoration:none;background:var(--navy-deep)}
+  @media (max-width:760px){ .nav-links a:not(.nav-cta){display:none} }
+
+  /* hero */
+  header{padding:72px 0 0}
+  .eyebrow{font-size:12.5px;letter-spacing:.28em;color:var(--teal);border-bottom:1px solid var(--teal);display:inline-block;padding-bottom:6px;margin-bottom:28px}
+  header h1{font-size:37px;line-height:1.55;font-weight:600}
+  header h1 .u{border-bottom:3px solid var(--teal);padding-bottom:2px}
+  header .sub{margin-top:26px;color:var(--muted);max-width:640px;font-size:15.5px}
+  .hero-actions{margin-top:34px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-block;background:var(--navy);color:#fff;padding:13px 34px;font-size:14.5px;letter-spacing:.06em;border:1px solid var(--navy)}
+  .btn:hover{text-decoration:none;background:var(--navy-deep)}
+  .btn-sub{background:#fff;color:var(--navy);border:1px solid var(--line-dark)}
+  .btn-sub:hover{background:var(--soft)}
+  .hero-diag{font-size:13.5px;color:var(--muted)}
+  /* trust strip: early, calm presentation */
+  .trust{margin-top:52px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .trust .wrap{display:grid;grid-template-columns:repeat(3,1fr);padding-top:0;padding-bottom:0}
+  .trust div{padding:20px 26px 20px 0}
+  .trust div + div{border-left:1px solid var(--line);padding-left:26px}
+  .trust b{display:block;color:var(--navy);font-size:15px;letter-spacing:.06em;margin-bottom:4px}
+  .trust span{font-size:13px;color:var(--muted);line-height:1.7;display:block}
+
+  /* sections */
+  section{padding:76px 0}
+  section.alt{background:var(--soft)}
+  .sec-head{margin-bottom:40px}
+  .sec-label{font-size:11.5px;font-weight:700;letter-spacing:.34em;color:var(--teal);margin-bottom:12px}
+  h2{font-size:26px;line-height:1.5}
+  .lead{color:var(--muted);margin-top:12px;max-width:640px}
+
+  /* services: ruled list, not cards */
+  .svc-list{border-top:1px solid var(--line-dark)}
+  .svc-row{display:grid;grid-template-columns:250px 1fr;gap:28px;padding:24px 4px;border-bottom:1px solid var(--line)}
+  .svc-row h3{font-size:17.5px}
+  .svc-row p{color:var(--muted);font-size:14.5px}
+  .svc-sub{margin-top:34px}
+  .svc-sub .svc-row{padding:16px 4px}
+  .svc-sub h3{font-size:15.5px;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-weight:700}
+  .svc-sub-label{font-size:12.5px;font-weight:700;letter-spacing:.2em;color:var(--muted);margin-bottom:6px}
+
+  /* works: tidy table-like list */
+  .works{width:100%;border-collapse:collapse;font-size:14.5px}
+  .works th,.works td{border-bottom:1px solid var(--line);padding:16px 12px;text-align:left;vertical-align:top}
+  .works tr:first-child th,.works tr:first-child td{border-top:1px solid var(--line-dark)}
+  .works .cat{white-space:nowrap;color:var(--teal);font-size:12.5px;font-weight:700;letter-spacing:.08em;width:120px}
+  .works .ttl{font-weight:700;color:var(--navy);white-space:nowrap}
+  .works .ttl a{color:var(--navy)}
+  .works .dsc{color:var(--muted)}
+
+  /* pricing: proper table */
+  .price-scroll{overflow-x:auto}
+  table.price{width:100%;min-width:640px;border-collapse:collapse;font-size:14.5px;background:#fff}
+  table.price th,table.price td{border:1px solid var(--line);padding:18px 20px;text-align:left;vertical-align:top}
+  table.price thead th{background:var(--navy);color:#fff;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-weight:600;font-size:16.5px;letter-spacing:.05em}
+  table.price thead th .amt{display:block;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-size:21px;font-weight:700;margin-top:6px;letter-spacing:0}
+  table.price thead th .amt small{font-size:12px;font-weight:400}
+  table.price td ul{list-style:none}
+  table.price td li{padding:5px 0 5px 18px;position:relative;color:var(--ink)}
+  table.price td li::before{content:"";position:absolute;left:0;top:15px;width:8px;height:1.5px;background:var(--teal)}
+  .price-note{margin-top:18px;font-size:13px;color:var(--muted)}
+
+  /* flow */
+  ol.flow{list-style:none;counter-reset:step;border-top:1px solid var(--line-dark)}
+  ol.flow li{counter-increment:step;display:grid;grid-template-columns:64px 190px 1fr;gap:24px;padding:22px 4px;border-bottom:1px solid var(--line);align-items:baseline}
+  ol.flow .num{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:22px;color:var(--teal)}
+  ol.flow .num::before{content:"0" counter(step)}
+  ol.flow b{color:var(--navy);font-size:15.5px;letter-spacing:.05em}
+  ol.flow span{color:var(--muted);font-size:14.5px}
+
+  /* about table */
+  table.about{width:100%;border-collapse:collapse;font-size:14.5px}
+  table.about th,table.about td{border-bottom:1px solid var(--line);padding:15px 18px;text-align:left;vertical-align:top}
+  table.about tr:first-child th,table.about tr:first-child td{border-top:1px solid var(--line-dark)}
+  table.about th{background:var(--soft2);color:var(--navy);width:170px;font-weight:700;white-space:nowrap}
+
+  /* cta */
+  .cta{border:1px solid var(--line-dark);padding:52px 40px;text-align:center;background:#fff}
+  .cta h2{font-size:24px}
+  .cta p{color:var(--muted);margin:14px auto 30px;max-width:540px;font-size:14.5px}
+
+  footer{background:var(--navy-deep);color:rgba(255,255,255,.72);padding:46px 0;font-size:13px;margin-top:76px}
+  footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  footer b{color:#fff;letter-spacing:.08em}
+  footer a{color:#bcd3d1}
+  footer .cols{display:flex;flex-direction:column;gap:6px}
+
+  @media (max-width:760px){
+    header{padding:48px 0 0}
+    header h1{font-size:27px}
+    section{padding:54px 0}
+    h2{font-size:22px}
+    .trust .wrap{grid-template-columns:1fr}
+    .trust div{padding:16px 0}
+    .trust div + div{border-left:none;border-top:1px solid var(--line);padding-left:0}
+    .svc-row{grid-template-columns:1fr;gap:6px}
+    .works .ttl{white-space:normal}
+    ol.flow li{grid-template-columns:44px 1fr}
+    ol.flow span{grid-column:2}
+    table.about th{width:110px;white-space:normal}
+    .cta{padding:38px 22px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#">
+      <span class="mark">WA</span>
+      <span class="name">ウェブオートラボ<small>WEBAUTOLAB</small></span>
+    </a>
+    <div class="nav-links">
+      <a href="#services">対応領域</a>
+      <a href="#works">制作物</a>
+      <a href="#pricing">料金</a>
+      <a href="#flow">進め方</a>
+      <a href="#about">事業概要</a>
+      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">業務自動化 ・ AIツール開発</span>
+    <h1>手作業の繰り返し業務、<br><span class="u">1週間でツール化</span>します</h1>
+    <p class="sub">Excel・CSVの集計や転記、問い合わせの仕分け、止まってしまった社内ツール。「毎回手でやっている作業」を聞き取って、動くツールにして納品します。</p>
+    <div class="hero-actions">
+      <a class="btn" href="https://coconala.com/users/6294387">無料で相談する</a>
+      <a class="btn btn-sub" href="#works">制作物を見る</a>
+      <span class="hero-diag">削減できる時間の目安は <a href="shindan.html">自動化診断（無料）</a> でご確認いただけます。</span>
+    </div>
+  </div>
+  <div class="trust">
+    <div class="wrap">
+      <div><b>固定価格・事前見積</b><span>納品物・納期・価格を着手前に確定します。追加費用は発生しません。</span></div>
+      <div><b>納期 3〜5日（お試し）</b><span>小さな自動化から始められます。標準パッケージには修正2回までを含みます。</span></div>
+      <div><b>チャットのみで完結</b><span>電話・会議は不要です。やり取りはすべてテキストで、記録が残ります。</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="services">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">SERVICES</div>
+      <h2>対応できること</h2>
+      <p class="lead">本業はITヘルプデスク。現場の手順を聞き取って、動くものにするのが仕事です。</p>
+    </div>
+    <div class="svc-list">
+      <div class="svc-row">
+        <h3>Excel / CSV自動化</h3>
+        <p>集計・整形・転記といった繰り返し作業を、ボタンひとつで終わる形にします。処理ログ付きで、結果を確認しながら使えます。</p>
+      </div>
+      <div class="svc-row">
+        <h3>問い合わせのAI分類</h3>
+        <p>メールやフォームの問い合わせをAIで仕分けし、緊急度つきでExcelにまとめます。分類の基準は御社の言い回しに合わせて調整します。</p>
+      </div>
+      <div class="svc-row">
+        <h3>動かないツールの復旧</h3>
+        <p>作った人がいなくなったGAS・Python・Nodeのツールを診断し、動く状態に戻します。原因と直した箇所は文書でお渡しします。</p>
+      </div>
+    </div>
+    <div class="svc-sub">
+      <div class="svc-sub-label">そのほかの対応領域</div>
+      <div class="svc-row">
+        <h3>Chrome拡張・業務アプリ</h3>
+        <p>ブラウザ上の定型操作を自動化する拡張機能や、現場向けの小さな業務アプリを開発します。</p>
+      </div>
+      <div class="svc-row">
+        <h3>AI連携・フロー自動化</h3>
+        <p>LINE・ChatGPT・Makeなどを既存業務につなぎ、転記や通知の流れを自動化します。</p>
+      </div>
+      <div class="svc-row">
+        <h3>小規模Webアプリ・業務システム</h3>
+        <p>台帳・貸出・受付などの社内向け小規模システムを、要件を聞き取って構築します。</p>
+      </div>
+      <div class="svc-row">
+        <h3>セキュリティ点検レポート</h3>
+        <p>サイトの公開設定、アカウント運用、クラウドの共有設定を点検し、重要度つきのレポートで納品します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="works">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">WORKS</div>
+      <h2>制作物・デモ</h2>
+      <p class="lead">ブラウザで触れる体験デモ、開発したアプリ、納品物のサンプルを公開しています。</p>
+    </div>
+    <table class="works">
+      <tr>
+        <td class="cat">体験デモ</td>
+        <td class="ttl"><a href="equipment-demo.html">備品貸出管理</a></td>
+        <td class="dsc">紙とExcelの管理をWebシステムに。貸出・返却・履歴までブラウザで操作できます。</td>
+      </tr>
+      <tr>
+        <td class="cat">体験デモ</td>
+        <td class="ttl"><a href="booking-demo.html">予約・受付システム</a></td>
+        <td class="dsc">紙の予約台帳をWeb予約に。空き枠の確認と二重予約の防止を実装しています。</td>
+      </tr>
+      <tr>
+        <td class="cat">体験デモ</td>
+        <td class="ttl"><a href="invoice-demo.html">見積・請求書ジェネレータ</a></td>
+        <td class="dsc">明細を入れると帳票がその場で完成します。印刷・PDF保存まで対応。</td>
+      </tr>
+      <tr>
+        <td class="cat">開発実績</td>
+        <td class="ttl"><a href="https://github.com/gomamonaka/PetaPin">PetaPin（ぺたピン）</a></td>
+        <td class="dsc">画面を切り取ってピン留めし、注釈を付けられるWindowsアプリ。ソースを公開しています。</td>
+      </tr>
+      <tr>
+        <td class="cat">開発実績</td>
+        <td class="ttl"><a href="https://github.com/gomamonaka/ChatHub">ChatHub</a></td>
+        <td class="dsc">Teams・Slackなどのチャットサービスをタブで一元管理するWindowsアプリ。</td>
+      </tr>
+      <tr>
+        <td class="cat">サンプル</td>
+        <td class="ttl"><a href="security-report.html">セキュリティ点検レポート</a></td>
+        <td class="dsc">架空の企業を点検した想定のサンプルレポート。実際の納品と同じ形式です。</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">PRICING</div>
+      <h2>料金パッケージ</h2>
+      <p class="lead">料金はすべて固定価格です。着手前に見積を確定し、それ以上の請求はいたしません。</p>
+    </div>
+    <div class="price-scroll">
+      <table class="price">
+        <thead>
+          <tr>
+            <th>お試し自動化<span class="amt">50,000円<small>（税込）</small></span></th>
+            <th>標準パッケージ<span class="amt">148,000円<small>（税込）</small></span></th>
+            <th>月額保守<span class="amt">30,000円<small>（税込）／月</small></span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><ul>
+              <li>Excel/CSVの整形・集計・転記の自動化</li>
+              <li>処理ログ付きで結果を確認できる</li>
+              <li>納期 3〜5日</li>
+            </ul></td>
+            <td><ul>
+              <li>お試し自動化の内容すべて</li>
+              <li>操作画面（UI）付き</li>
+              <li>使い方マニュアル付き</li>
+              <li>修正2回まで含む</li>
+            </ul></td>
+            <td><ul>
+              <li>軽微な修正・仕様変更への追随</li>
+              <li>トラブル時の一次対応</li>
+              <li>月次の改善提案</li>
+            </ul></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="price-note">セキュリティ点検は、お試し点検 49,800円／標準点検 148,000円／月次点検 月額30,000円〜 で承ります。いずれも契約形態は業務委託（納品型）のみです。</p>
+  </div>
+</section>
+
+<section class="alt" id="flow">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">FLOW</div>
+      <h2>進め方</h2>
+    </div>
+    <ol class="flow">
+      <li><span class="num"></span><b>無料ヒアリング</b><span>現在の手順と困っている作業をチャットで教えてください。サンプルデータがあれば拝見します。</span></li>
+      <li><span class="num"></span><b>固定見積もり</b><span>納品物・納期・価格を先に確定します。合わなければ、そのまま終了で構いません。</span></li>
+      <li><span class="num"></span><b>開発</b><span>進捗は随時テキストで共有します。平日の朝・夜に作業し、日中のご連絡には夜に返信します。</span></li>
+      <li><span class="num"></span><b>納品・説明</b><span>ツールと使い方マニュアルをお渡しします。標準パッケージは修正2回まで含みます。</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">ABOUT</div>
+      <h2>事業概要</h2>
+      <p class="lead">個人事業として、業務委託（納品型）のみで対応しています。</p>
+    </div>
+    <table class="about">
+      <tr><th>屋号</th><td>ウェブオートラボ</td></tr>
+      <tr><th>事業内容</th><td>業務自動化ツールの開発／問い合わせ分類などAI活用支援／既存ツールの診断・復旧／Chrome拡張・Windowsアプリ開発</td></tr>
+      <tr><th>契約形態</th><td>業務委託（納品型）のみ ※雇用・常駐は対応していません</td></tr>
+      <tr><th>対応時間</th><td>平日の朝・夜（日中のご連絡には夜に返信します）</td></tr>
+      <tr><th>連絡方法</th><td>チャット（テキスト）のみ ※電話・オンライン会議は対応していません</td></tr>
+    </table>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="cta">
+      <h2>まずは、その手作業の話を聞かせてください</h2>
+      <p>「毎週この作業に◯時間かかっている」という一言からで大丈夫です。自動化できるかどうかも含めて、無料でお答えします。</p>
+      <a class="btn" href="https://coconala.com/users/6294387">ココナラで相談する</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><b>ウェブオートラボ</b>　業務自動化・AIツール開発</div>
+    <div class="cols">
+      <div><a href="#services">対応領域</a>　／　<a href="#pricing">料金</a>　／　<a href="#works">制作物</a>　／　<a href="#flow">進め方</a>　／　<a href="#about">事業概要</a></div>
+      <div><a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウェブオートラボ — 手作業の繰り返し業務、1週間でツール化します（デザイン試作B）</title>
+<style>
+  :root{
+    --ink:#0a0f14; --ink2:#111a21; --paper:#ffffff; --off:#f6f8f9;
+    --accent:#00b8c4; --accent-deep:#0e7c86;
+    --text:#10161b; --muted:#5a6a75; --line:#e2e8ec; --line-dark:#26313a;
+    --font:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,"Noto Sans JP",sans-serif;
+    --mono:"SF Mono","Cascadia Mono",Consolas,"Courier New",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);color:var(--text);background:var(--paper);line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+  /* nav */
+  nav{position:absolute;top:0;left:0;right:0;z-index:10}
+  nav .wrap{display:flex;justify-content:space-between;align-items:center;padding-top:26px;padding-bottom:26px}
+  .wordmark{color:#fff;line-height:1.15}
+  .wordmark b{display:block;font-size:19px;font-weight:900;letter-spacing:.06em}
+  .wordmark span{font-family:var(--mono);font-size:10px;letter-spacing:.42em;color:var(--accent)}
+  .nav-links{display:flex;gap:34px;align-items:center}
+  .nav-links a{color:rgba(255,255,255,.82);font-size:13.5px;font-weight:600;letter-spacing:.05em}
+  .nav-links a:hover{color:#fff}
+  .nav-links a.nav-cta{border:1px solid rgba(255,255,255,.5);padding:9px 20px;border-radius:999px;color:#fff}
+  .nav-links a.nav-cta:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+
+  /* hero */
+  header{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+  header::after{content:"";position:absolute;right:-140px;top:-140px;width:560px;height:560px;border:1px solid var(--line-dark);border-radius:50%;pointer-events:none}
+  header::before{content:"";position:absolute;right:40px;top:60px;width:300px;height:300px;border:1px solid var(--line-dark);border-radius:50%;pointer-events:none}
+  .hero{position:relative;z-index:1;padding:190px 0 120px}
+  .hero .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.4em;color:var(--accent);margin-bottom:34px}
+  .hero h1{font-size:64px;line-height:1.28;font-weight:900;letter-spacing:.01em;max-width:900px}
+  .hero h1 .hl{color:var(--accent)}
+  .hero .sub{margin-top:30px;font-size:17px;color:rgba(255,255,255,.72);max-width:600px;line-height:2}
+  .cta-row{margin-top:46px;display:flex;gap:16px;flex-wrap:wrap}
+  .btn{display:inline-block;padding:17px 38px;border-radius:999px;font-weight:700;font-size:15.5px;letter-spacing:.03em;transition:.2s}
+  .btn-fill{background:var(--accent);color:#04262b}
+  .btn-fill:hover{background:#22ccd8}
+  .btn-line{border:1px solid rgba(255,255,255,.55);color:#fff}
+  .btn-line:hover{border-color:#fff;background:rgba(255,255,255,.07)}
+  .btn-dark{background:var(--ink);color:#fff}
+  .btn-dark:hover{background:var(--ink2)}
+  .btn-outline{border:1px solid var(--ink);color:var(--ink)}
+  .btn-outline:hover{background:var(--ink);color:#fff}
+  .hero-stats{margin-top:84px;padding-top:36px;border-top:1px solid var(--line-dark);display:flex;gap:64px;flex-wrap:wrap}
+  .hero-stats div b{display:block;font-size:30px;font-weight:900;line-height:1.25}
+  .hero-stats div span{font-size:12.5px;color:rgba(255,255,255,.55);letter-spacing:.06em}
+
+  /* sections */
+  section{padding:120px 0}
+  section.off{background:var(--off)}
+  .sec-head{margin-bottom:64px}
+  .sec-label{font-family:var(--mono);font-size:11.5px;letter-spacing:.42em;color:var(--accent-deep);margin-bottom:18px}
+  h2{font-size:38px;font-weight:900;line-height:1.45;letter-spacing:.01em}
+  .lead{color:var(--muted);margin-top:14px;max-width:620px}
+
+  /* services: border-divided list */
+  .svc-list{border-top:1px solid var(--line)}
+  .svc-row{display:grid;grid-template-columns:76px 1fr 1.4fr;gap:28px;align-items:baseline;padding:34px 6px;border-bottom:1px solid var(--line)}
+  .svc-row .no{font-family:var(--mono);font-size:13px;color:var(--accent-deep);letter-spacing:.1em}
+  .svc-row h3{font-size:20px;font-weight:800}
+  .svc-row h3 .main-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.14em;color:#fff;background:var(--ink);border-radius:3px;padding:2px 8px;margin-left:10px;vertical-align:3px}
+  .svc-row p{color:var(--muted);font-size:14.5px}
+
+  /* works */
+  .works-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+  .work{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:38px 34px 42px;display:flex;flex-direction:column;min-height:250px}
+  .work .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;color:var(--accent-deep);margin-bottom:16px}
+  .work h3{font-size:19px;font-weight:800;line-height:1.55;margin-bottom:10px}
+  .work p{color:var(--muted);font-size:14px;flex:1}
+  .work .go{margin-top:22px;font-size:13.5px;font-weight:700}
+  .work .go::after{content:" →";color:var(--accent-deep)}
+  .work:hover{background:var(--off)}
+
+  /* pricing */
+  .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  .plan{border:1px solid var(--line);padding:44px 38px;display:flex;flex-direction:column}
+  .plan.featured{border:2px solid var(--ink)}
+  .plan .p-label{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--muted);margin-bottom:20px}
+  .plan.featured .p-label{color:var(--accent-deep)}
+  .plan h3{font-size:19px;font-weight:800;margin-bottom:8px}
+  .plan .desc{font-size:13.5px;color:var(--muted);min-height:66px}
+  .plan .price{font-size:46px;font-weight:900;line-height:1.15;margin:22px 0 4px;letter-spacing:-.01em}
+  .plan .price small{font-size:14px;font-weight:600;color:var(--muted)}
+  .plan ul{list-style:none;margin:24px 0 34px;border-top:1px solid var(--line)}
+  .plan li{padding:11px 2px;border-bottom:1px solid var(--line);font-size:14px;color:#2a363f}
+  .plan .btn{margin-top:auto;text-align:center}
+  .price-note{margin-top:28px;font-size:13px;color:var(--muted)}
+
+  /* cta */
+  .cta-band{background:var(--ink);color:#fff;padding:96px 0;text-align:left;position:relative;overflow:hidden}
+  .cta-band::after{content:"";position:absolute;left:-120px;bottom:-180px;width:440px;height:440px;border:1px solid var(--line-dark);border-radius:50%}
+  .cta-band h2{color:#fff;font-size:40px;max-width:640px;position:relative;z-index:1}
+  .cta-band p{color:rgba(255,255,255,.7);margin:18px 0 38px;max-width:540px;position:relative;z-index:1}
+  .cta-band .cta-row{margin-top:0;position:relative;z-index:1}
+
+  footer{background:var(--ink);color:rgba(255,255,255,.6);border-top:1px solid var(--line-dark);padding:54px 0;font-size:13px}
+  footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  footer .wordmark{margin-bottom:8px}
+  footer a{color:#9fd8dd}
+  footer a:hover{color:#fff}
+
+  @media (max-width:900px){
+    .works-grid{grid-template-columns:1fr 1fr}
+    .price-grid{grid-template-columns:1fr;max-width:520px}
+    .svc-row{grid-template-columns:52px 1fr}
+    .svc-row p{grid-column:2}
+  }
+  @media (max-width:640px){
+    .wrap{padding:0 20px}
+    .nav-links a:not(.nav-cta){display:none}
+    .hero{padding:140px 0 84px}
+    .hero h1{font-size:37px;line-height:1.4}
+    .hero .sub{font-size:15.5px}
+    .hero-stats{gap:30px;margin-top:56px}
+    .hero-stats div b{font-size:23px}
+    section{padding:76px 0}
+    h2{font-size:27px}
+    .sec-head{margin-bottom:40px}
+    .works-grid{grid-template-columns:1fr}
+    .work{min-height:0;padding:30px 24px 34px}
+    .svc-row{padding:26px 2px;gap:14px}
+    .plan{padding:34px 26px}
+    .plan .price{font-size:38px}
+    .cta-band{padding:64px 0}
+    .cta-band h2{font-size:28px}
+    .btn{padding:15px 30px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="wordmark" href="#"><b>ウェブオートラボ</b><span>WEBAUTOLAB</span></a>
+    <div class="nav-links">
+      <a href="#services">対応領域</a>
+      <a href="#works">制作物</a>
+      <a href="#pricing">料金</a>
+      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="hero">
+      <div class="kicker">AUTOMATION STUDIO — 業務自動化・AIツール開発</div>
+      <h1>手作業の繰り返し業務、<br><span class="hl">1週間でツール化</span>します。</h1>
+      <p class="sub">Excel・CSVの集計や転記、問い合わせの仕分け、止まってしまった社内ツール。「毎回手でやっている作業」を聞き取って、動くツールにして納品します。</p>
+      <div class="cta-row">
+        <a class="btn btn-fill" href="https://coconala.com/users/6294387">無料で相談する</a>
+        <a class="btn btn-line" href="#works">制作物を見る</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>3〜5日</b><span>お試しパッケージの納期</span></div>
+        <div><b>固定価格</b><span>着手前に見積確定</span></div>
+        <div><b>チャット完結</b><span>電話・会議なしで進行</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="services">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">SERVICES</div>
+      <h2>対応できること</h2>
+      <p class="lead">本業はITヘルプデスク。現場の手順を聞き取って、動くものにするのが仕事です。</p>
+    </div>
+    <div class="svc-list">
+      <div class="svc-row">
+        <div class="no">01</div>
+        <h3>Excel・CSV業務の自動化<span class="main-badge">主力</span></h3>
+        <p>集計・転記・整形・レポート生成をワンクリック化。304行の表を0.6秒で処理した実績があります。</p>
+      </div>
+      <div class="svc-row">
+        <div class="no">02</div>
+        <h3>問い合わせのAI分類<span class="main-badge">主力</span></h3>
+        <p>メールやフォームの内容をAIで仕分けし、緊急度つきでExcel化。100件を約10分で処理できます。</p>
+      </div>
+      <div class="svc-row">
+        <div class="no">03</div>
+        <h3>動かないツールの復旧<span class="main-badge">主力</span></h3>
+        <p>GAS・Python・Nodeで作られた既存ツールの診断と修理。作った人がいなくなったツールも対応します。</p>
+      </div>
+      <div class="svc-row">
+        <div class="no">04</div>
+        <h3>AI連携・フロー自動化</h3>
+        <p>LINEやチャットツール、各種APIをつなぎ、通知・返信・投稿の流れを自動化します。</p>
+      </div>
+      <div class="svc-row">
+        <div class="no">05</div>
+        <h3>小規模Webアプリ・業務システム</h3>
+        <p>台帳・貸出・受付などの社内向け小規模システムを構築。紙やExcelで回している業務の置き換えに。</p>
+      </div>
+      <div class="svc-row">
+        <div class="no">06</div>
+        <h3>セキュリティ点検レポート</h3>
+        <p>サイトの公開設定、アカウント運用、クラウドの共有設定を点検し、重要度つきのレポートで納品します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="off" id="works">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">WORKS</div>
+      <h2>制作物・デモ</h2>
+      <p class="lead">ブラウザで触れる体験デモと、開発したアプリケーションを公開しています。</p>
+    </div>
+    <div class="works-grid">
+      <div class="work">
+        <div class="tag">LIVE DEMO</div>
+        <h3>予約・受付システム</h3>
+        <p>紙の予約台帳をWeb予約に。空き枠の確認、二重予約の防止、管理画面まで触れます。</p>
+        <a class="go" href="https://gomamonaka.github.io/booking-demo.html">体験デモを開く</a>
+      </div>
+      <div class="work">
+        <div class="tag">LIVE DEMO</div>
+        <h3>見積・請求書ジェネレータ</h3>
+        <p>明細を入れると帳票がその場で完成。下書き保存と連番採番つきで、印刷・PDF保存まで。</p>
+        <a class="go" href="https://gomamonaka.github.io/invoice-demo.html">体験デモを開く</a>
+      </div>
+      <div class="work">
+        <div class="tag">LIVE DEMO</div>
+        <h3>売上ダッシュボード</h3>
+        <p>売上CSVから月別グラフと商品ランキングを自動生成。期間の切り替えにも対応。</p>
+        <a class="go" href="https://gomamonaka.github.io/sales-dashboard.html">体験デモを開く</a>
+      </div>
+      <div class="work">
+        <div class="tag">APPLICATION</div>
+        <h3>PetaPin</h3>
+        <p>画面を切り取ってデスクトップに貼り付け、注釈を加えられるWindowsアプリ。</p>
+        <a class="go" href="https://github.com/gomamonaka/PetaPin">GitHubで見る</a>
+      </div>
+      <div class="work">
+        <div class="tag">APPLICATION</div>
+        <h3>ChatHub</h3>
+        <p>Teams・Slackなどのチャットサービスをタブで一元管理するWindowsアプリ。</p>
+        <a class="go" href="https://github.com/gomamonaka/ChatHub">GitHubで見る</a>
+      </div>
+      <div class="work">
+        <div class="tag">SAMPLE</div>
+        <h3>セキュリティ点検レポート</h3>
+        <p>架空の企業を点検した想定のサンプルレポート。検出項目14件と対応ロードマップを公開。</p>
+        <a class="go" href="https://gomamonaka.github.io/security-report.html">サンプルを見る</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-label">PRICING</div>
+      <h2>料金</h2>
+      <p class="lead">着手前に見積を確定します。パッケージ外のご相談も、まず1件の小さな納品から。</p>
+    </div>
+    <div class="price-grid">
+      <div class="plan">
+        <div class="p-label">TRIAL</div>
+        <h3>お試しパッケージ</h3>
+        <p class="desc">1つの繰り返し作業をツール化。まず効果を確かめたい方に。</p>
+        <div class="price">¥49,800<small>〜</small></div>
+        <ul>
+          <li>納期 3〜5日</li>
+          <li>ツール本体＋使い方メモ</li>
+          <li>修正1回まで</li>
+        </ul>
+        <a class="btn btn-outline" href="https://coconala.com/users/6294387">この内容で相談</a>
+      </div>
+      <div class="plan featured">
+        <div class="p-label">STANDARD</div>
+        <h3>標準パッケージ</h3>
+        <p class="desc">ツール＋画面（UI）＋操作マニュアルまで。現場に定着させたい方に。</p>
+        <div class="price">¥148,000<small>〜</small></div>
+        <ul>
+          <li>納期 1〜2週間</li>
+          <li>ツール本体＋UI＋マニュアル</li>
+          <li>修正2回まで</li>
+        </ul>
+        <a class="btn btn-dark" href="https://coconala.com/users/6294387">この内容で相談</a>
+      </div>
+      <div class="plan">
+        <div class="p-label">SUPPORT</div>
+        <h3>月額保守</h3>
+        <p class="desc">納品後の微調整と、月次の定期チェック。小さな改善を積み重ねます。</p>
+        <div class="price">¥30,000<small>〜／月</small></div>
+        <ul>
+          <li>軽微な改修・相談対応</li>
+          <li>月次レポート</li>
+          <li>チャットで随時連絡可</li>
+        </ul>
+        <a class="btn btn-outline" href="https://coconala.com/users/6294387">この内容で相談</a>
+      </div>
+    </div>
+    <p class="price-note">表示は税込の目安です。セキュリティ点検も同じ価格帯（お試し点検 ¥49,800〜）で対応します。</p>
+  </div>
+</section>
+
+<div class="cta-band">
+  <div class="wrap">
+    <h2>まずは、その手作業の話を聞かせてください</h2>
+    <p>「毎週この作業に◯時間かかっている」という一言からで大丈夫です。自動化できるかどうかも含めて、無料でお答えします。</p>
+    <div class="cta-row">
+      <a class="btn btn-fill" href="https://coconala.com/users/6294387">ココナラで相談する</a>
+      <a class="btn btn-line" href="https://www.lancers.jp/profile/webautolab">ランサーズで相談する</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="wordmark"><b>ウェブオートラボ</b><span>WEBAUTOLAB</span></div>
+      <div>業務自動化・AIツール開発</div>
+    </div>
+    <div><a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

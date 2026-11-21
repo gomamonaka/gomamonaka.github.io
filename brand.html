@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウェブオートラボ｜手作業の時間を、取り戻す。</title>
+<meta name="description" content="Excel・CSVの集計、問い合わせの仕分け、請求書づくり。毎回手でやっている作業をツール化して、時間を取り戻す。業務自動化の納品型パッケージ。">
+<style>
+  :root{
+    --paper:#faf8f3;
+    --paper2:#f3f0e8;
+    --ink:#211e1a;
+    --ink-soft:#57534b;
+    --faint:#8a857a;
+    --line:#e3ded1;
+    --lost:#c9c3b4;
+    --lost-deep:#a8a191;
+    --teal:#0a5c63;
+    --teal-bright:#0e7c86;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:2;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  ::selection{background:var(--teal);color:#fff}
+  a{color:var(--teal);text-decoration:none}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 28px}
+  .narrow{max-width:760px}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  .en{
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--faint);font-weight:600;
+  }
+  section{padding:150px 0}
+  section[id]{scroll-margin-top:80px}
+  @media (max-width:760px){ section{padding:96px 0} }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(250,248,243,.82);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{color:var(--ink);font-weight:700;letter-spacing:.06em;font-size:15px;display:flex;align-items:baseline;gap:10px}
+  .brand .en{font-size:9.5px;color:var(--faint)}
+  .nav-links{display:flex;gap:30px;align-items:center;font-size:13px}
+  .nav-links a{color:var(--ink-soft)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{
+    border:1px solid var(--ink);color:var(--ink) !important;
+    padding:6px 18px;border-radius:999px;font-weight:600;
+  }
+  .nav-cta:hover{background:var(--ink);color:var(--paper) !important}
+  @media (max-width:760px){ .nav-links a:not(.nav-cta){display:none} }
+
+  /* ---------- hero ---------- */
+  .hero{padding:130px 0 120px}
+  @media (max-width:760px){ .hero{padding:84px 0 88px} }
+  .hero .en{display:block;margin-bottom:34px;color:var(--teal)}
+  .hero h1{
+    font-size:clamp(42px,8.2vw,92px);
+    line-height:1.32;font-weight:700;letter-spacing:.02em;
+  }
+  .hero h1 .back{color:var(--teal)}
+  .hero .sub{
+    margin-top:40px;font-size:clamp(15px,2vw,17.5px);
+    color:var(--ink-soft);max-width:620px;line-height:2.1;
+  }
+  .hero .cta-row{margin-top:52px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .btn{
+    display:inline-block;background:var(--ink);color:var(--paper);
+    padding:15px 38px;border-radius:999px;font-size:15px;font-weight:600;letter-spacing:.04em;
+  }
+  .btn:hover{background:var(--teal)}
+  .btn-quiet{font-size:14px;color:var(--ink-soft);border-bottom:1px solid var(--lost-deep);padding-bottom:2px}
+  .btn-quiet:hover{color:var(--teal);border-color:var(--teal)}
+
+  /* ---------- time ruler ---------- */
+  .ruler{margin-top:96px;border-top:1px solid var(--line);padding-top:44px}
+  @media (max-width:760px){ .ruler{margin-top:64px} }
+  .ruler .cap{font-size:13px;color:var(--faint);letter-spacing:.08em;margin-bottom:26px}
+  .ruler svg{width:100%;height:auto;display:block}
+  .ruler .after-note{margin-top:22px;font-size:14px;color:var(--ink-soft)}
+  .ruler .after-note b{color:var(--teal);font-weight:700}
+
+  /* ---------- section heads ---------- */
+  .sec-head{margin-bottom:72px}
+  .sec-head .en{display:block;margin-bottom:22px}
+  .sec-head h2{
+    font-size:clamp(30px,4.6vw,46px);
+    line-height:1.5;font-weight:700;letter-spacing:.02em;
+  }
+  .sec-head p{margin-top:22px;color:var(--ink-soft);font-size:15.5px;max-width:640px}
+
+  /* ---------- lost time ---------- */
+  .lost-list{border-top:1px solid var(--line)}
+  .lost-row{
+    display:grid;grid-template-columns:1fr auto auto;gap:12px 40px;align-items:baseline;
+    padding:30px 4px;border-bottom:1px solid var(--line);
+  }
+  .lost-row .task{font-size:16.5px;font-weight:600}
+  .lost-row .task small{display:block;font-weight:400;font-size:13px;color:var(--faint);margin-top:2px}
+  .lost-row .freq{font-size:13.5px;color:var(--ink-soft);white-space:nowrap}
+  .lost-row .loss{font-size:15px;color:var(--ink-soft);white-space:nowrap}
+  .lost-row .loss b{font-size:30px;font-weight:700;color:var(--ink);margin-right:2px}
+  @media (max-width:760px){
+    .lost-row{grid-template-columns:1fr auto}
+    .lost-row .freq{display:none}
+    .lost-row .loss b{font-size:24px}
+  }
+  .lost-total{
+    margin-top:56px;display:flex;align-items:baseline;gap:28px;flex-wrap:wrap;
+  }
+  .lost-total .big{font-size:clamp(56px,9vw,104px);line-height:1;font-weight:700;letter-spacing:.01em}
+  .lost-total .big small{font-size:.38em;font-weight:600;margin-left:4px}
+  .lost-total p{color:var(--ink-soft);font-size:15px;max-width:420px}
+  .lost-total p b{color:var(--ink)}
+
+  /* ---------- how (services) ---------- */
+  .how-main{border-top:1px solid var(--line)}
+  .how-row{
+    display:grid;grid-template-columns:88px 1fr;gap:8px 32px;
+    padding:40px 4px;border-bottom:1px solid var(--line);align-items:baseline;
+  }
+  .how-row .no{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:13px;letter-spacing:.14em;color:var(--teal);font-weight:600;padding-top:6px}
+  .how-row h3{font-size:clamp(20px,2.8vw,26px);font-weight:700;line-height:1.6}
+  .how-row p{grid-column:2;color:var(--ink-soft);font-size:14.5px;max-width:640px}
+  @media (max-width:760px){
+    .how-row{grid-template-columns:1fr}
+    .how-row p{grid-column:1}
+  }
+  .how-sub{margin-top:64px}
+  .how-sub .en{display:block;margin-bottom:20px}
+  .how-sub ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:0 48px}
+  .how-sub li{
+    padding:18px 4px;border-top:1px solid var(--line);
+    font-size:15px;font-weight:600;display:flex;justify-content:space-between;gap:16px;align-items:baseline;
+  }
+  .how-sub li span{font-size:12.5px;color:var(--faint);font-weight:400;text-align:right}
+  @media (max-width:760px){ .how-sub ul{grid-template-columns:1fr} }
+
+  /* ---------- reclaimed (works) ---------- */
+  .work{padding:72px 0;border-top:1px solid var(--line)}
+  .work:first-of-type{border-top:none;padding-top:8px}
+  .work .en{display:block;margin-bottom:18px}
+  .work h3{font-size:clamp(22px,3.4vw,30px);font-weight:700;line-height:1.55}
+  .work h3 a{color:var(--ink)}
+  .work h3 a:hover{color:var(--teal)}
+  .delta{
+    display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin:30px 0 8px;
+  }
+  .delta .from{font-size:clamp(30px,5vw,52px);font-weight:700;color:var(--lost-deep);line-height:1}
+  .delta .from small{font-size:.42em;font-weight:600}
+  .delta .arrow{font-size:clamp(20px,3vw,30px);color:var(--faint)}
+  .delta .to{font-size:clamp(44px,7.5vw,76px);font-weight:700;color:var(--teal);line-height:1}
+  .delta .to small{font-size:.34em;font-weight:600}
+  .bars{margin:22px 0 6px;max-width:680px}
+  .bar-row{display:flex;align-items:center;gap:14px;margin-top:8px}
+  .bar-row .blabel{width:86px;flex:none;font-size:11.5px;color:var(--faint);letter-spacing:.06em;text-align:right}
+  .bar-track{flex:1;height:10px;position:relative}
+  .bar{position:absolute;left:0;top:0;height:10px}
+  .bar.gray{background:var(--lost)}
+  .bar.teal{background:var(--teal)}
+  .work p{color:var(--ink-soft);font-size:14.5px;max-width:640px;margin-top:16px}
+  .work .try-link{display:inline-block;margin-top:20px;font-size:14px;font-weight:600;border-bottom:1px solid var(--teal);padding-bottom:2px}
+  .more-demos{margin-top:72px;border-top:1px solid var(--line)}
+  .more-demos .en{display:block;padding-top:40px;margin-bottom:8px}
+  .more-demos a{
+    display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+    padding:20px 4px;border-bottom:1px solid var(--line);color:var(--ink);
+  }
+  .more-demos a:hover{color:var(--teal)}
+  .more-demos .t{font-size:16px;font-weight:600}
+  .more-demos .d{font-size:12.5px;color:var(--faint);text-align:right}
+
+  /* ---------- pricing ---------- */
+  .price-list{border-top:1px solid var(--line)}
+  .price-row{
+    display:grid;grid-template-columns:1fr auto;gap:6px 40px;align-items:baseline;
+    padding:44px 4px;border-bottom:1px solid var(--line);
+  }
+  .price-row h3{font-size:clamp(19px,2.6vw,24px);font-weight:700}
+  .price-row h3 .en{display:inline-block;margin-left:16px;letter-spacing:.18em}
+  .price-row .desc{grid-column:1;color:var(--ink-soft);font-size:14px;max-width:560px}
+  .price-row .amount{font-size:clamp(34px,5.4vw,54px);font-weight:700;line-height:1;white-space:nowrap}
+  .price-row .amount small{font-size:.36em;font-weight:600;color:var(--ink-soft);margin-left:2px}
+  @media (max-width:760px){
+    .price-row{grid-template-columns:1fr}
+    .price-row .amount{margin-top:10px}
+  }
+  .price-note{margin-top:30px;font-size:13.5px;color:var(--faint);max-width:640px}
+
+  /* ---------- flow & about ---------- */
+  .flow-list{border-top:1px solid var(--line)}
+  .flow-row{
+    display:grid;grid-template-columns:88px 220px 1fr;gap:6px 32px;align-items:baseline;
+    padding:28px 4px;border-bottom:1px solid var(--line);
+  }
+  .flow-row .no{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:13px;letter-spacing:.14em;color:var(--teal);font-weight:600}
+  .flow-row b{font-size:16.5px}
+  .flow-row span{color:var(--ink-soft);font-size:14px}
+  @media (max-width:760px){ .flow-row{grid-template-columns:52px 1fr} .flow-row span{grid-column:2} }
+  .about-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:64px}
+  .about-table th,.about-table td{padding:16px 8px;border-top:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.9}
+  .about-table th{width:150px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
+  .about-table td{color:var(--ink-soft)}
+  @media (max-width:760px){ .about-table th{width:104px;white-space:normal} }
+
+  /* ---------- final cta ---------- */
+  .final{padding:170px 0 150px;text-align:left}
+  @media (max-width:760px){ .final{padding:110px 0 100px} }
+  .final .en{display:block;margin-bottom:30px;color:var(--teal)}
+  .final h2{font-size:clamp(30px,5.4vw,54px);line-height:1.55;font-weight:700;letter-spacing:.02em}
+  .final p{margin-top:30px;color:var(--ink-soft);font-size:15.5px;max-width:560px}
+  .final .cta-row{margin-top:48px;display:flex;gap:16px;flex-wrap:wrap}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);background:var(--paper2);padding:72px 0 44px;font-size:13px;color:var(--ink-soft)}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px}
+  @media (max-width:760px){ .foot-grid{grid-template-columns:1fr 1fr} }
+  .foot-grid h4{font-size:12px;letter-spacing:.14em;color:var(--faint);font-weight:600;margin-bottom:16px}
+  .foot-grid ul{list-style:none}
+  .foot-grid li{margin-bottom:9px;line-height:1.7}
+  .foot-grid a{color:var(--ink-soft)}
+  .foot-grid a:hover{color:var(--teal)}
+  .foot-brand{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:.05em}
+  .foot-brand .en{display:block;margin-top:6px}
+  .foot-bottom{
+    margin-top:56px;padding-top:24px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--faint);font-size:12px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#">ウェブオートラボ<span class="en">Webautolab</span></a>
+    <div class="nav-links">
+      <a href="#lost">奪われている時間</a>
+      <a href="#how">取り戻し方</a>
+      <a href="#reclaimed">取り戻した例</a>
+      <a href="#pricing">料金</a>
+      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <div class="wrap">
+    <span class="en">Take back your time — Webautolab</span>
+    <h1>手作業の時間を、<br><span class="back">取り戻す。</span></h1>
+    <p class="sub">Excelの集計、問い合わせの仕分け、請求書づくり。<br>
+    毎回手でやっている作業を聞き取って、動くツールにして納品します。</p>
+    <div class="cta-row">
+      <a class="btn" href="https://coconala.com/users/6294387">無料で相談する</a>
+      <a class="btn-quiet" href="shindan.html">自動化診断で、消えている時間を見る</a>
+    </div>
+
+    <div class="ruler">
+      <p class="cap">時間の物差し ／ 月次レポート作成の場合</p>
+      <svg viewBox="0 0 680 168" role="img" aria-label="手作業45分とツール化後3分の時間の対比">
+        <!-- before -->
+        <text x="0" y="18" font-size="13" fill="#57534b" letter-spacing="1">これまでの手作業</text>
+        <text x="640" y="18" font-size="15" font-weight="700" fill="#211e1a" text-anchor="end" font-variant-numeric="tabular-nums">45分</text>
+        <rect x="0" y="28" width="540" height="15" fill="#c9c3b4"/>
+        <!-- after -->
+        <text x="0" y="76" font-size="13" fill="#0a5c63" letter-spacing="1">ツール化したあと</text>
+        <text x="640" y="76" font-size="15" font-weight="700" fill="#0a5c63" text-anchor="end" font-variant-numeric="tabular-nums">3分</text>
+        <rect x="0" y="86" width="36" height="15" fill="#0a5c63"/>
+        <!-- axis -->
+        <line x1="0" y1="126" x2="540" y2="126" stroke="#e3ded1" stroke-width="1"/>
+        <line x1="0" y1="121" x2="0" y2="131" stroke="#a8a191" stroke-width="1"/>
+        <line x1="180" y1="121" x2="180" y2="131" stroke="#a8a191" stroke-width="1"/>
+        <line x1="360" y1="121" x2="360" y2="131" stroke="#a8a191" stroke-width="1"/>
+        <line x1="540" y1="121" x2="540" y2="131" stroke="#a8a191" stroke-width="1"/>
+        <text x="0" y="152" font-size="11" fill="#8a857a" font-variant-numeric="tabular-nums">0分</text>
+        <text x="180" y="152" font-size="11" fill="#8a857a" text-anchor="middle" font-variant-numeric="tabular-nums">15分</text>
+        <text x="360" y="152" font-size="11" fill="#8a857a" text-anchor="middle" font-variant-numeric="tabular-nums">30分</text>
+        <text x="540" y="152" font-size="11" fill="#8a857a" text-anchor="end" font-variant-numeric="tabular-nums">45分</text>
+      </svg>
+      <p class="after-note">同じレポートが、<b>45分から3分</b>に。浮いた42分は、本来の仕事に使えます。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LOST ============ -->
+<section id="lost" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="en">The time you lose</span>
+      <h2>まず、消えている時間を<br>数えてみます。</h2>
+      <p>よくある手作業を、時間の損失として並べました。どれも「大したことない」作業です。でも、積み重なると、こうなります。</p>
+    </div>
+    <div class="lost-list">
+      <div class="lost-row">
+        <div class="task">売上CSVの整形と月次集計<small>日付や表記のゆれを直して、月別・商品別に集計する</small></div>
+        <div class="freq">1回 45分 × 月4回</div>
+        <div class="loss num">月 <b>3</b>時間</div>
+      </div>
+      <div class="lost-row">
+        <div class="task">請求書のコピペ作成<small>スプレッドシートから1件ずつ転記して、PDFにする</small></div>
+        <div class="freq">1件 10分 × 月30件</div>
+        <div class="loss num">月 <b>5</b>時間</div>
+      </div>
+      <div class="lost-row">
+        <div class="task">問い合わせの振り分けと一覧化<small>内容を読んで、担当と緊急度を判断して表にまとめる</small></div>
+        <div class="freq">1日 15分 × 20日</div>
+        <div class="loss num">月 <b>5</b>時間</div>
+      </div>
+      <div class="lost-row">
+        <div class="task">ファイルの名前付けと振り分け<small>決まったルールで、数百ファイルを仕分けする</small></div>
+        <div class="freq">1回 30分 × 週2回</div>
+        <div class="loss num">月 <b>4</b>時間</div>
+      </div>
+    </div>
+    <div class="lost-total">
+      <div class="big num">204<small>時間 / 年</small></div>
+      <p>4つの作業で、月に17時間、年に<b>204時間</b>。営業日にして、およそ<b>25日分</b>です。これは目安ですが、あなたの現場にも、似た並びがあるはずです。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW ============ -->
+<section id="how" style="background:var(--paper2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="en">How we take it back</span>
+      <h2>取り戻し方。</h2>
+      <p>方法は、作業ごとにひとつだけ。その作業を、手からツールへ渡します。本業はITヘルプデスク。現場の手順を聞き取って、動くものにするのが仕事です。</p>
+    </div>
+    <div class="how-main">
+      <div class="how-row">
+        <div class="no">01</div>
+        <h3>Excel / CSV自動化</h3>
+        <p>表記ゆれ・重複・日付の整形から、月別集計とグラフ付きレポートの自動生成まで。何件どう直したかの処理ログも残すので、結果の確認にかかる時間も減ります。</p>
+      </div>
+      <div class="how-row">
+        <div class="no">02</div>
+        <h3>問い合わせのAI分類</h3>
+        <p>問い合わせをAIで分類し、カテゴリ・要約・緊急度・返信案の下書きつきでExcelに出力。読んで、振り分けて、一覧にする時間をまとめて取り戻します。</p>
+      </div>
+      <div class="how-row">
+        <div class="no">03</div>
+        <h3>動かないツールの復旧</h3>
+        <p>止まってしまったGAS / Python / Node.js製ツールを診断・修理し、再発防止まで。手作業に戻ってしまった時間を取り返します。診断レポートと修正差分、実行ログをお渡しします。</p>
+      </div>
+    </div>
+    <div class="how-sub">
+      <span class="en">Also available</span>
+      <ul>
+        <li>Chrome拡張・業務アプリ<span>定型作業を1クリックに</span></li>
+        <li>AI連携・フロー自動化<span>通知や下書き生成を自動で</span></li>
+        <li>小規模Webアプリ・業務システム<span>台帳・貸出・受付の置き換え</span></li>
+        <li>セキュリティ点検レポート<span>公開設定や共有設定の点検</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECLAIMED ============ -->
+<section id="reclaimed">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="en">Time reclaimed</span>
+      <h2>取り戻した例。</h2>
+      <p>公開しているデモと実測の数字です。体験デモは、ブラウザでそのまま触れます。</p>
+    </div>
+
+    <div class="work">
+      <span class="en">Monthly report</span>
+      <h3><a href="sales-dashboard.html">月次レポートの自動生成</a></h3>
+      <div class="delta num">
+        <span class="from">45<small>分</small></span>
+        <span class="arrow">→</span>
+        <span class="to">3<small>分</small></span>
+      </div>
+      <div class="bars" aria-hidden="true">
+        <div class="bar-row"><span class="blabel">手作業</span><div class="bar-track"><div class="bar gray" style="width:100%"></div></div></div>
+        <div class="bar-row"><span class="blabel">ツール化後</span><div class="bar-track"><div class="bar teal" style="width:6.7%"></div></div></div>
+      </div>
+      <p>売上CSVを渡すと、月別グラフ・商品別ランキング・前月比まで自動で組み上がります。毎月の集計作業が、確認だけの時間になります。</p>
+      <a class="try-link" href="sales-dashboard.html">売上ダッシュボードの体験デモを開く</a>
+    </div>
+
+    <div class="work">
+      <span class="en">CSV cleaning</span>
+      <h3><a href="demo.html">CSV 304行の整形</a></h3>
+      <div class="delta num">
+        <span class="from">3.5<small>時間分</small></span>
+        <span class="arrow">→</span>
+        <span class="to">0.6<small>秒</small></span>
+      </div>
+      <div class="bars" aria-hidden="true">
+        <div class="bar-row"><span class="blabel">手作業</span><div class="bar-track"><div class="bar gray" style="width:100%"></div></div></div>
+        <div class="bar-row"><span class="blabel">ツール化後</span><div class="bar-track"><div class="bar teal" style="width:2px"></div></div></div>
+      </div>
+      <p>表記ゆれ・日付のバラつき・重複だらけのCSV 304行を処理し、276行に整形。修正は800件超。手でやれば1件15秒として約3.5時間分の作業が、0.6秒で終わります。</p>
+      <a class="try-link" href="demo.html">CSVクリーニングの体験デモを開く</a>
+    </div>
+
+    <div class="work">
+      <span class="en">Inquiry triage</span>
+      <h3><a href="https://github.com/gomamonaka/webautolab-portfolio">問い合わせ100件の仕分け</a></h3>
+      <div class="delta num">
+        <span class="from">5<small>時間</small></span>
+        <span class="arrow">→</span>
+        <span class="to">10<small>分</small></span>
+      </div>
+      <div class="bars" aria-hidden="true">
+        <div class="bar-row"><span class="blabel">手作業</span><div class="bar-track"><div class="bar gray" style="width:100%"></div></div></div>
+        <div class="bar-row"><span class="blabel">ツール化後</span><div class="bar-track"><div class="bar teal" style="width:3.3%"></div></div></div>
+      </div>
+      <p>問い合わせ100件を約10分で分類し、カテゴリ・要約・緊急度つきのExcelに。手作業なら1件3分として約5時間かかるところです。費用はAPI利用料として約161円でした。</p>
+      <a class="try-link" href="https://github.com/gomamonaka/webautolab-portfolio">業務自動化デモ集を見る</a>
+    </div>
+
+    <div class="more-demos">
+      <span class="en">More demos — try in your browser</span>
+      <a href="booking-demo.html"><span class="t">予約・受付システム</span><span class="d">紙の予約台帳を、Web予約に</span></a>
+      <a href="equipment-demo.html"><span class="t">備品貸出管理アプリ</span><span class="d">紙とExcelの管理を、Webシステムに</span></a>
+      <a href="line-ai-demo.html"><span class="t">LINE×AI返信支援</span><span class="d">AIが下書き、人が確認して送信</span></a>
+      <a href="invoice-demo.html"><span class="t">見積・請求書ジェネレータ</span><span class="d">明細を入れると、帳票がその場で完成</span></a>
+      <a href="minutes-demo.html"><span class="t">議事録→タスク抽出</span><span class="d">メモを貼ると、決定事項とToDoに</span></a>
+      <a href="stock-demo.html"><span class="t">在庫アラート</span><span class="d">在庫が減ると、発注リストが自動で出る</span></a>
+      <a href="security-report.html"><span class="t">セキュリティ点検レポート</span><span class="d">納品形式のサンプルを公開中</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section id="pricing" style="background:var(--paper2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="en">Pricing</span>
+      <h2>時間を取り戻すための、価格。</h2>
+      <p>ヒアリングのあと、着手前に固定価格でお見積もりします。作業後に金額が増えることはありません。</p>
+    </div>
+    <div class="price-list">
+      <div class="price-row">
+        <h3>お試し自動化<span class="en">Trial</span></h3>
+        <div class="amount num">49,800<small>円〜</small></div>
+        <p class="desc">1つの繰り返し作業を自動化する入門パッケージ。Excel / CSVの整形・集計・転記の自動化、処理ログ付き。納期 3〜5日。</p>
+      </div>
+      <div class="price-row">
+        <h3>標準パッケージ<span class="en">Standard</span></h3>
+        <div class="amount num">148,000<small>円〜</small></div>
+        <p class="desc">現場でそのまま使える形まで仕上げる実務向け。お試しの内容すべてに、操作画面（UI）と使い方マニュアル、修正2回までを含みます。</p>
+      </div>
+      <div class="price-row">
+        <h3>月額保守<span class="en">Support</span></h3>
+        <div class="amount num">30,000<small>円〜 / 月</small></div>
+        <p class="desc">納品したツールを使い続けるために。軽微な修正・仕様変更への追随、トラブル時の一次対応、月次の改善提案。</p>
+      </div>
+    </div>
+    <p class="price-note">月に17時間の手作業があるなら、時給換算でお試しパッケージは数か月で元が取れる計算です。まずは、自動化できるかどうかの判断だけでも無料でお答えします。</p>
+  </div>
+</section>
+
+<!-- ============ FLOW & ABOUT ============ -->
+<section id="flow">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="en">Process</span>
+      <h2>進め方。</h2>
+      <p>やり取りはチャット（テキスト）のみで完結します。電話・オンライン会議は対応していません。その分、あなたの時間も使いません。</p>
+    </div>
+    <div class="flow-list">
+      <div class="flow-row"><div class="no">01</div><b>無料ヒアリング</b><span>いまの手順と、困っている作業をチャットで教えてください。</span></div>
+      <div class="flow-row"><div class="no">02</div><b>固定見積もり</b><span>納品物・納期・価格を先に確定します。合わなければ、そのまま終了で構いません。</span></div>
+      <div class="flow-row"><div class="no">03</div><b>開発</b><span>進捗は随時テキストで共有します。作業は平日の朝・夜に行います。</span></div>
+      <div class="flow-row"><div class="no">04</div><b>納品・説明</b><span>ツールと使い方マニュアルをお渡しします。</span></div>
+    </div>
+
+    <table class="about-table">
+      <tr><th>屋号</th><td>ウェブオートラボ</td></tr>
+      <tr><th>事業内容</th><td>業務自動化ツールの開発／問い合わせ分類などAI活用支援／既存ツールの診断・復旧／Chrome拡張・Windowsアプリ開発</td></tr>
+      <tr><th>契約形態</th><td>業務委託（納品型）のみ ※雇用・常駐は対応していません</td></tr>
+      <tr><th>対応時間</th><td>平日の朝・夜（日中のご連絡には夜に返信します）</td></tr>
+      <tr><th>連絡方法</th><td>チャット（テキスト）のみ ※電話・オンライン会議は対応していません</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<div class="final">
+  <div class="wrap">
+    <span class="en">Start here</span>
+    <h2>まずは、どの作業に<br>時間を使っているか<br>教えてください。</h2>
+    <p>「毎週この作業に◯時間かかっている」という一言からで大丈夫です。自動化できるかどうかも含めて、無料でお答えします。</p>
+    <div class="cta-row">
+      <a class="btn" href="https://coconala.com/users/6294387">ココナラで相談する</a>
+      <a class="btn-quiet" href="https://www.lancers.jp/profile/webautolab">ランサーズで相談する</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">ウェブオートラボ<span class="en">Webautolab</span></div>
+        <p style="margin-top:16px;line-height:1.9">手作業の時間を、取り戻す。<br>業務自動化・AIツール開発（個人事業／業務委託・納品型）</p>
+      </div>
+      <div>
+        <h4>このページ</h4>
+        <ul>
+          <li><a href="#lost">奪われている時間</a></li>
+          <li><a href="#how">取り戻し方</a></li>
+          <li><a href="#reclaimed">取り戻した例</a></li>
+          <li><a href="#pricing">料金</a></li>
+          <li><a href="#flow">進め方・事業概要</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>体験デモ・診断</h4>
+        <ul>
+          <li><a href="demo.html">CSVクリーニング</a></li>
+          <li><a href="sales-dashboard.html">売上ダッシュボード</a></li>
+          <li><a href="booking-demo.html">予約・受付システム</a></li>
+          <li><a href="shindan.html">自動化診断</a></li>
+          <li><a href="security-shindan.html">セキュリティ簡易診断</a></li>
+          <li><a href="faq-chat.html">FAQチャット</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>相談・外部リンク</h4>
+        <ul>
+          <li><a href="https://coconala.com/users/6294387">ココナラ</a></li>
+          <li><a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></li>
+          <li><a href="https://github.com/gomamonaka">GitHub</a></li>
+          <li><a href="index.html">通常版トップページ</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© ウェブオートラボ</span>
+      <span>やり取りはチャットのみ ／ 対応は平日の朝・夜</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

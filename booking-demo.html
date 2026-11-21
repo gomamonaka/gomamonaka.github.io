@@ -52,6 +52,10 @@
   .st-pending{background:#b7791f}.st-confirmed{background:#0a5c63}.st-cancelled{background:#9aa3a7}.st-visited{background:#06333a}
   .status-form{display:flex;gap:6px;align-items:center}
   .status-form select{width:auto;padding:6px;font-size:13px}
+  .row-actions{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+  .row-actions .status-form{flex-wrap:nowrap;gap:8px}
+  .row-actions .status-form select{flex:1;height:36px;min-height:36px}
+  .row-actions .tblact{display:inline-flex;align-items:center;justify-content:center;height:36px;min-height:36px;min-width:76px;padding:0 16px;font-size:13px;white-space:nowrap;border-radius:999px}
   textarea{width:100%;height:210px;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:14px;line-height:1.7;font-family:inherit;background:#fdfcf8}
   .msg{background:#e7f6ec;border:1px solid #9fd3ae;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:14px}
   .err{background:#fdecec;border:1px solid #e5a3a3;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:14px}
@@ -544,15 +548,15 @@ function renderAdmin(){
     const action = nexts.length
       ? '<span class="status-form"><select id="st-' + b.id + '">' +
         nexts.map(s => '<option value="' + s + '">' + STATUS_LABEL[s] + "</option>").join("") +
-        '</select><button class="small" type="button" onclick="onChangeStatus(' + b.id + ')">変更</button></span>'
+        '</select><button class="small tblact" type="button" onclick="onChangeStatus(' + b.id + ')">変更</button></span>'
       : "（終了）";
     // リマインド文面は、未実施（仮予約・確定）で日付が今日以降の予約にだけ出す
     const canRemind = (b.status === "pending" || b.status === "confirmed") && b.date >= fmtDate(TODAY);
-    const remindBtn = canRemind ? ' <button class="sub" type="button" onclick="onShowReminder(' + b.id + ')">リマインド文面</button>' : "";
+    const remindBtn = canRemind ? '<button class="sub tblact" type="button" onclick="onShowReminder(' + b.id + ')">リマインド文面</button>' : "";
     return "<tr><td>" + b.time + "</td><td>" + esc(b.name) + "</td><td>" + esc(menuName(b.menuId)) +
       "</td><td>" + esc(staffName(b.staffId)) + "</td><td>" + esc(b.contact) + "</td>" +
       '<td><span class="badge st-' + b.status + '">' + STATUS_LABEL[b.status] + "</span></td>" +
-      "<td>" + action + remindBtn + "</td></tr>";
+      '<td><div class="row-actions">' + action + remindBtn + "</div></td></tr>";
   }).join("");
 }
 function showMsg(elId, text, isErr){

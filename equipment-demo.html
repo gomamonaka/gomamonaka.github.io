@@ -36,6 +36,7 @@
   .nowrap{white-space:nowrap}
   .sub2{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
   button,.btn{display:inline-block;padding:7px 18px;border:none;border-radius:999px;background:var(--teal);color:#fff;font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+  button.tblact{display:inline-flex;align-items:center;justify-content:center;height:36px;min-height:36px;min-width:76px;padding:0 16px;font-size:13px;white-space:nowrap;border-radius:999px}
   th.opcol{min-width:96px}
   button.navy{background:var(--navy);font-weight:700}
   button.sub,.btn.sub{background:#8a857a}
@@ -282,8 +283,8 @@ function render(){
         ? '<span class="badge ok">貸出可 あと' + av + '点</span>'
         : '<span class="badge none">貸出中（在庫なし）</span>';
       const btn = av > 0
-        ? '<button data-checkout="' + it.id + '">貸出する</button>'
-        : '<button disabled>貸出する</button>';
+        ? '<button class="tblact" data-checkout="' + it.id + '">貸出する</button>'
+        : '<button class="tblact" disabled>貸出する</button>';
       h += '<tr><td class="nowrap">' + esc(it.code) + '</td><td>' + esc(it.name) + '<span class="sub2">' + esc(it.model) + '</span></td><td>' + esc(it.category) + '</td><td>' + loaned + ' / ' + it.total +
            '</td><td>' + badge + '</td><td class="hideS">' + esc(it.location) + '</td><td class="hideS">' + esc(it.note) + '</td><td>' + btn + '</td></tr>';
     }
@@ -304,7 +305,7 @@ function render(){
       lh += '<tr' + (over ? ' class="overdue"' : '') + '><td>' + esc(itemName(l.itemId)) + '<span class="sub2">' + esc(it ? it.code : '') + '</span></td><td>' + esc(borrowerLabel(l)) +
             '</td><td class="nowrap">' + l.loanDate + '</td><td class="nowrap">' + l.dueDate + '</td><td>' +
             (over ? '<span class="badge over">期限切れ</span>' : '<span class="badge lent">貸出中</span>') +
-            '</td><td><button data-return="' + l.id + '">返却する</button></td></tr>';
+            '</td><td><button class="tblact" data-return="' + l.id + '">返却する</button></td></tr>';
     }
     lh += '</table></div>';
   } else {
@@ -322,7 +323,7 @@ function render(){
       const it = itemById(l.itemId);
       hh += '<tr><td class="nowrap">' + l.loanDate + '</td><td>' + esc(itemName(l.itemId)) + '<span class="sub2">' + esc(it ? it.code : '') + '</span></td><td>' + esc(borrowerLabel(l)) +
             '</td><td class="nowrap">' + l.dueDate + '</td><td class="nowrap">' + l.returnDate + '</td><td><span class="badge done">返却済み</span></td>' +
-            '<td><button class="sub" data-unreturn="' + l.id + '">返却を取り消す</button></td></tr>';
+            '<td><button class="sub tblact" data-unreturn="' + l.id + '">返却を取り消す</button></td></tr>';
     }
     hh += '</table></div>';
     if (hist.length > 30) hh += '<p class="muted">直近30件を表示しています（返却済み全 ' + hist.length + ' 件）。全件はCSVで出力できます。</p>';

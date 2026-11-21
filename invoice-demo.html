@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>見積書・請求書ジェネレータ（デモ）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  @media (max-width:900px){.cols{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 18px rgba(15,42,67,.06)}
+  .panel h2{font-size:16px;margin:0 0 12px;color:var(--navy)}
+  label{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 4px}
+  input[type=text],input[type=number],input[type=date],select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--text)}
+  textarea{resize:vertical;min-height:52px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .seg{display:flex;gap:8px;margin-bottom:6px}
+  .seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--teal);background:#fff;color:var(--teal);font-weight:700;cursor:pointer;font-size:14px}
+  .seg button.on{background:var(--teal);color:#fff}
+  table.items{width:100%;border-collapse:collapse;margin-top:6px}
+  table.items th{font-size:12px;color:var(--muted);text-align:left;padding:4px 4px;border-bottom:1px solid var(--line)}
+  table.items td{padding:5px 4px;border-bottom:1px solid #eef2f5;vertical-align:top}
+  table.items input,table.items select{padding:6px 7px;font-size:13px}
+  .amt{text-align:right;font-size:13.5px;white-space:nowrap;padding-top:10px !important}
+  .del{border:1px solid #d66;background:#fff;color:#c33;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12.5px}
+  .addbtn{margin-top:12px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;font-size:13.5px}
+  .printbtn{margin-top:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer;font-size:14px;width:100%}
+  .totals{margin-top:14px;font-size:13.5px;line-height:1.9;border-top:2px solid var(--line);padding-top:10px}
+  .totals .grand{font-size:17px;font-weight:900;color:var(--navy)}
+  .totals span{float:right;font-variant-numeric:tabular-nums}
+  /* 帳票プレビュー */
+  .sheet{background:#fff;border:1px solid var(--line);padding:34px 34px 30px;box-shadow:0 4px 18px rgba(15,42,67,.08);font-size:13.5px;line-height:1.6}
+  .sheet .doc-title{text-align:center;font-size:24px;font-weight:900;letter-spacing:.35em;margin:0 0 18px;color:#111}
+  .sheet .meta{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .sheet .to-name{font-size:16.5px;font-weight:700;border-bottom:1.5px solid #111;padding-bottom:3px}
+  .sheet .subject{margin-top:12px;font-size:13.5px}
+  .sheet .from{text-align:right;font-size:12.5px;color:#333;white-space:pre-line}
+  .sheet .from .co{font-size:14.5px;font-weight:700;color:#111}
+  .sheet .issue{text-align:right;font-size:12.5px;color:#333;margin-bottom:8px}
+  table.doc{width:100%;border-collapse:collapse;margin-top:16px}
+  table.doc th{background:#eef2f5;border:1px solid #b9c6cf;padding:6px 8px;font-size:12.5px;text-align:left}
+  table.doc td{border:1px solid #b9c6cf;padding:6px 8px;font-size:13px}
+  table.doc td.r,table.doc th.r{text-align:right;font-variant-numeric:tabular-nums}
+  .sheet .sumbox{margin-top:14px;margin-left:auto;width:280px}
+  table.sum{width:100%;border-collapse:collapse}
+  table.sum td{border:1px solid #b9c6cf;padding:6px 8px;font-size:13px}
+  table.sum td.r{text-align:right;font-variant-numeric:tabular-nums}
+  table.sum tr.grand td{background:#eef2f5;font-weight:900}
+  .sheet .bank{margin-top:18px;border:1px solid #b9c6cf;padding:10px 12px;font-size:12.5px;white-space:pre-line}
+  .sheet .bank b{display:block;margin-bottom:2px}
+  .sheet .memo{margin-top:12px;font-size:12.5px;color:#333;white-space:pre-line}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.7}
+  @media print{
+    body{background:#fff}
+    body *{visibility:hidden}
+    #sheet,#sheet *{visibility:visible}
+    #sheet{position:absolute;top:0;left:0;width:100%;border:none;box-shadow:none;padding:6mm 4mm}
+    @page{margin:12mm}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>見積書・請求書ジェネレータ（デモ）</h1>
+  <p class="lead">項目を入力すると、右側の帳票プレビューにその場で反映され、小計・消費税・合計が自動計算されます。「印刷／PDFで保存」ボタンで、帳票だけを印刷（PDF保存）できます。実際の業務では、この仕組みをスプレッドシートのデータとつないで、請求書の発行そのものを自動化することもできます。</p>
+
+  <div class="cols">
+    <div class="panel">
+      <h2>入力フォーム</h2>
+      <div class="seg">
+        <button type="button" id="segQuote" class="on">見積書</button>
+        <button type="button" id="segInvoice">請求書</button>
+      </div>
+      <div class="row2">
+        <div><label>発行日</label><input type="date" id="fDate"></div>
+        <div><label>書類番号</label><input type="text" id="fNo" value="2026-001"></div>
+      </div>
+      <label>宛先（会社名・お名前）</label>
+      <input type="text" id="fTo" value="株式会社サンプル製作所">
+      <label>件名</label>
+      <input type="text" id="fSubject" value="業務自動化ツールの開発について">
+      <div class="row2">
+        <div><label>自社名</label><input type="text" id="fCo" value="サンプル商事"></div>
+        <div><label>電話番号</label><input type="text" id="fTel" value="03-0000-0000"></div>
+      </div>
+      <label>自社住所</label>
+      <input type="text" id="fAddr" value="東京都サンプル区サンプル町1-2-3">
+
+      <h2 style="margin-top:20px">明細</h2>
+      <table class="items">
+        <thead><tr><th style="width:34%">品名</th><th style="width:11%">数量</th><th style="width:19%">単価</th><th style="width:13%">税率</th><th style="width:15%;text-align:right">金額</th><th></th></tr></thead>
+        <tbody id="itemBody"></tbody>
+      </table>
+      <button type="button" class="addbtn" id="addRow">＋ 明細行を追加</button>
+
+      <div class="totals" id="totals"></div>
+
+      <label style="margin-top:14px">振込先</label>
+      <textarea id="fBank">サンプル銀行 サンプル支店 普通 0000000
+口座名義：サンプル商事</textarea>
+      <label>備考</label>
+      <textarea id="fMemo">お支払い期限：発行日から30日以内にお願いいたします。</textarea>
+
+      <button type="button" class="printbtn" id="printBtn">印刷／PDFで保存</button>
+    </div>
+
+    <div>
+      <div class="sheet" id="sheet"></div>
+      <p class="note">※ このデモの会社名・住所・口座はすべて架空のサンプルです。入力した内容は外部に送信されません（ブラウザ内だけで処理しています）。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let docType = '見積書';
+let items = [
+  {name:'業務自動化ツール開発（一式）', qty:1, price:148000, rate:10},
+  {name:'操作マニュアル作成', qty:1, price:20000, rate:10},
+  {name:'コピー用紙 A4（10冊）', qty:10, price:480, rate:8}
+];
+
+function calcTotals(list){
+  let sub10 = 0, sub8 = 0;
+  for (const it of list){
+    const amt = (Number(it.qty) || 0) * (Number(it.price) || 0);
+    if (it.rate === 8) sub8 += amt; else sub10 += amt;
+  }
+  const tax10 = Math.floor(sub10 * 0.10);
+  const tax8 = Math.floor(sub8 * 0.08);
+  return {sub10, sub8, tax10, tax8, total: sub10 + sub8 + tax10 + tax8};
+}
+function yen(n){ return '¥' + Math.round(n).toLocaleString('ja-JP'); }
+function lineAmt(it){ return (Number(it.qty) || 0) * (Number(it.price) || 0); }
+
+const $ = id => document.getElementById(id);
+
+function renderItems(){
+  const tb = $('itemBody');
+  tb.innerHTML = '';
+  items.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><input type="text" data-f="name" value="' + escapeHtml(it.name) + '"></td>' +
+      '<td><input type="number" data-f="qty" min="0" step="1" value="' + it.qty + '"></td>' +
+      '<td><input type="number" data-f="price" min="0" step="1" value="' + it.price + '"></td>' +
+      '<td><select data-f="rate"><option value="10"' + (it.rate === 10 ? ' selected' : '') + '>10%</option><option value="8"' + (it.rate === 8 ? ' selected' : '') + '>8%</option></select></td>' +
+      '<td class="amt">' + yen(lineAmt(it)) + '</td>' +
+      '<td><button type="button" class="del">削除</button></td>';
+    tr.querySelectorAll('input,select').forEach(el => {
+      el.addEventListener('input', () => {
+        const f = el.getAttribute('data-f');
+        if (f === 'name') items[i].name = el.value;
+        else if (f === 'qty') items[i].qty = Number(el.value);
+        else if (f === 'price') items[i].price = Number(el.value);
+        else if (f === 'rate') items[i].rate = Number(el.value);
+        renderTotals(); renderSheet();
+        tr.querySelector('.amt').textContent = yen(lineAmt(items[i]));
+      });
+    });
+    tr.querySelector('.del').addEventListener('click', () => {
+      items.splice(i, 1);
+      renderItems(); renderTotals(); renderSheet();
+    });
+    tb.appendChild(tr);
+  });
+}
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function renderTotals(){
+  const t = calcTotals(items);
+  $('totals').innerHTML =
+    '小計（10%対象）<span>' + yen(t.sub10) + '</span><br>' +
+    '消費税（10%）<span>' + yen(t.tax10) + '</span><br>' +
+    '小計（8%対象）<span>' + yen(t.sub8) + '</span><br>' +
+    '消費税（8%）<span>' + yen(t.tax8) + '</span><br>' +
+    '<span class="grand">合計（税込）<span>' + yen(t.total) + '</span></span>';
+}
+function fmtDate(v){
+  if (!v) return '';
+  const p = v.split('-');
+  return p[0] + '年' + Number(p[1]) + '月' + Number(p[2]) + '日';
+}
+function renderSheet(){
+  const t = calcTotals(items);
+  let rows = '';
+  for (const it of items){
+    rows += '<tr><td>' + escapeHtml(it.name) + '</td><td class="r">' + (Number(it.qty) || 0) + '</td><td class="r">' + yen(Number(it.price) || 0) + '</td><td class="r">' + it.rate + '%</td><td class="r">' + yen(lineAmt(it)) + '</td></tr>';
+  }
+  if (!rows) rows = '<tr><td colspan="5" style="text-align:center;color:#888">明細がありません</td></tr>';
+  $('sheet').innerHTML =
+    '<div class="doc-title">' + docType + '</div>' +
+    '<div class="issue">発行日：' + fmtDate($('fDate').value) + '<br>No. ' + escapeHtml($('fNo').value) + '</div>' +
+    '<div class="meta"><div>' +
+      '<div class="to-name">' + escapeHtml($('fTo').value) + ' 御中</div>' +
+      '<div class="subject">件名：' + escapeHtml($('fSubject').value) + '</div>' +
+      '<div class="subject">下記の通り' + (docType === '見積書' ? 'お見積もり' : 'ご請求') + '申し上げます。</div>' +
+    '</div>' +
+    '<div class="from"><span class="co">' + escapeHtml($('fCo').value) + '</span>\n' + escapeHtml($('fAddr').value) + '\nTEL ' + escapeHtml($('fTel').value) + '</div></div>' +
+    '<table class="doc"><thead><tr><th>品名</th><th class="r">数量</th><th class="r">単価</th><th class="r">税率</th><th class="r">金額</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div class="sumbox"><table class="sum">' +
+      '<tr><td>小計（10%対象）</td><td class="r">' + yen(t.sub10) + '</td></tr>' +
+      '<tr><td>消費税（10%）</td><td class="r">' + yen(t.tax10) + '</td></tr>' +
+      '<tr><td>小計（8%対象）</td><td class="r">' + yen(t.sub8) + '</td></tr>' +
+      '<tr><td>消費税（8%）</td><td class="r">' + yen(t.tax8) + '</td></tr>' +
+      '<tr class="grand"><td>合計（税込）</td><td class="r">' + yen(t.total) + '</td></tr>' +
+    '</table></div>' +
+    (docType === '請求書' ? '<div class="bank"><b>お振込先</b>' + escapeHtml($('fBank').value) + '</div>' : '') +
+    '<div class="memo">' + escapeHtml($('fMemo').value) + '</div>';
+}
+function setType(t){
+  docType = t;
+  $('segQuote').classList.toggle('on', t === '見積書');
+  $('segInvoice').classList.toggle('on', t === '請求書');
+  renderSheet();
+}
+$('segQuote').addEventListener('click', () => setType('見積書'));
+$('segInvoice').addEventListener('click', () => setType('請求書'));
+$('addRow').addEventListener('click', () => {
+  items.push({name:'', qty:1, price:0, rate:10});
+  renderItems(); renderTotals(); renderSheet();
+});
+$('printBtn').addEventListener('click', () => window.print());
+['fDate','fNo','fTo','fSubject','fCo','fTel','fAddr','fBank','fMemo'].forEach(id => {
+  $(id).addEventListener('input', renderSheet);
+});
+(function init(){
+  const d = new Date();
+  $('fDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  renderItems(); renderTotals(); renderSheet();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在庫アラート（デモ）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a;--red:#c0392b;--redbg:#fdf0ee}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  h2{font-size:17px;margin:0 0 10px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
+  .card.alert{border-color:#eec5bf;background:#fffafa}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle}
+  th{color:var(--muted);font-weight:700;font-size:12.5px;white-space:nowrap}
+  td.num,th.num{text-align:right}
+  tr.low td{background:var(--redbg)}
+  .badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:6px;white-space:nowrap}
+  .badge.ok{background:#e3f0ee;color:var(--teal)}
+  input.stock{width:76px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13.5px;text-align:right}
+  input.stock:focus{outline:2px solid var(--teal);border-color:transparent}
+  .summary{font-size:14px;margin-bottom:10px}
+  .summary strong{color:var(--red);font-size:17px}
+  .empty{color:var(--muted);font-size:13.5px;padding:8px 0}
+  button{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer}
+  button.sub{background:#fff;color:var(--teal);border:1px solid var(--teal)}
+  textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;font-family:ui-monospace,Menlo,monospace;min-height:96px}
+  .err{color:var(--red);font-size:13px;margin-top:8px;display:none}
+  .okmsg{color:var(--teal);font-size:13px;margin-top:8px;display:none}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+  .note a{color:var(--teal)}
+  @media(max-width:640px){.hide-sp{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>在庫アラート（デモ）</h1>
+  <p class="lead">在庫が「発注点」を下回った品目を自動で見つけ、発注リストにまとめます。在庫表の「現在庫」の数字はその場で書き換えられます。数字を下げてみると、アラートにどう入るかが分かります。実際の業務では、在庫データ（Excel・CSV・販売管理システム）と連携し、定期チェックとメール・チャットへの通知まで自動化できます。</p>
+
+  <div class="card">
+    <h2>在庫一覧（サンプル12品目）</h2>
+    <table>
+      <thead><tr>
+        <th>品名</th><th class="hide-sp">分類</th><th class="num">現在庫</th><th class="num">発注点</th><th class="num hide-sp">単価</th><th class="hide-sp">仕入先</th><th>状態</th>
+      </tr></thead>
+      <tbody id="stockBody"></tbody>
+    </table>
+    <div class="row">
+      <button class="sub" id="resetBtn" type="button">サンプルデータに戻す</button>
+    </div>
+    <p class="note">※ 現在庫の欄は直接編集できます。発注点以下になった品目は行が赤くなり、下の「発注が必要な品目」に自動で入ります。</p>
+  </div>
+
+  <div class="card alert">
+    <h2>発注が必要な品目</h2>
+    <div class="summary" id="alertSummary"></div>
+    <div id="alertArea"></div>
+    <div class="row">
+      <button id="csvBtn" type="button">発注リストをCSVでダウンロード</button>
+    </div>
+    <p class="note">発注推奨数は「発注点の2倍 − 現在庫」の目安計算です。実務では発注ロットや納期に合わせて調整します。</p>
+  </div>
+
+  <div class="card">
+    <h2>在庫CSVを貼り付け（任意）</h2>
+    <p class="note" style="margin:0 0 10px">ヘッダー行が「品名,現在庫,発注点」のCSVを貼ると、在庫一覧がそのデータに置き換わります（分類・単価・仕入先は空欄になります）。</p>
+    <textarea id="csvInput" placeholder="品名,現在庫,発注点&#10;コピー用紙A4,30,50&#10;ボールペン（黒）,120,40"></textarea>
+    <div class="row">
+      <button id="loadCsvBtn" type="button">このCSVで置き換える</button>
+    </div>
+    <div class="err" id="csvErr"></div>
+    <div class="okmsg" id="csvOk"></div>
+  </div>
+
+  <p class="note">※ このデモのデータはすべて架空のサンプルで、状態はこのページ内だけに保持されます（リロードするとリセットされます）。実案件では、在庫データと連携した定期チェック、発注点の見直し、通知の自動化まで含めて構築できます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+</div>
+
+<script>
+var SAMPLE = [
+ {name:"コピー用紙A4", cat:"事務用品", stock:320, reorder:100, price:380, supplier:"サンプル文具店"},
+ {name:"ボールペン（黒）", cat:"事務用品", stock:45, reorder:50, price:80, supplier:"サンプル文具店"},
+ {name:"封筒 長3（100枚）", cat:"事務用品", stock:18, reorder:20, price:450, supplier:"サンプル文具店"},
+ {name:"トナーカートリッジ", cat:"事務用品", stock:3, reorder:3, price:6800, supplier:"オフィス機器センター"},
+ {name:"段ボール箱（中・10枚）", cat:"梱包材", stock:64, reorder:30, price:120, supplier:"梱包資材ドットコム"},
+ {name:"ラベルシール（24面）", cat:"梱包材", stock:9, reorder:15, price:260, supplier:"梱包資材ドットコム"},
+ {name:"洗剤 詰替用", cat:"日用品", stock:22, reorder:10, price:320, supplier:"日用品卸センター"},
+ {name:"ティッシュペーパー（5箱）", cat:"日用品", stock:6, reorder:8, price:290, supplier:"日用品卸センター"},
+ {name:"ハンドソープ 詰替", cat:"日用品", stock:14, reorder:6, price:340, supplier:"日用品卸センター"},
+ {name:"単三電池（4本）", cat:"消耗品", stock:40, reorder:16, price:240, supplier:"電材サプライ"},
+ {name:"コーヒー豆（500g）", cat:"食品", stock:5, reorder:4, price:1480, supplier:"食材問屋まるや"},
+ {name:"ミネラルウォーター 2L（6本）", cat:"食品", stock:2, reorder:6, price:110, supplier:"食材問屋まるや"}
+];
+var items = [];
+
+function isLow(it){ return it.stock <= it.reorder; }
+function recommendQty(it){ return Math.max(it.reorder * 2 - it.stock, 1); }
+function computeAlerts(list){
+  return list.filter(isLow).map(function(it){
+    return {name:it.name, stock:it.stock, reorder:it.reorder, qty:recommendQty(it), price:it.price, amount:recommendQty(it) * (it.price || 0), supplier:it.supplier};
+  });
+}
+function csvEscape(v){
+  v = String(v == null ? "" : v);
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function buildOrderCsv(alerts){
+  var lines = ["品名,現在庫,発注点,発注推奨数,単価,金額目安,仕入先"];
+  alerts.forEach(function(a){
+    lines.push([a.name, a.stock, a.reorder, a.qty, a.price, a.amount, a.supplier].map(csvEscape).join(","));
+  });
+  return lines.join("\r\n");
+}
+function parseStockCsv(text){
+  var rows = text.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+  if (rows.length < 2) throw new Error("データ行がありません。ヘッダー行とデータ行を貼ってください。");
+  var head = rows[0].split(",").map(function(s){ return s.trim(); });
+  var iName = head.indexOf("品名"), iStock = head.indexOf("現在庫"), iReorder = head.indexOf("発注点");
+  if (iName < 0 || iStock < 0 || iReorder < 0) throw new Error("ヘッダーに「品名」「現在庫」「発注点」が必要です。");
+  var out = [];
+  for (var i = 1; i < rows.length; i++){
+    var cols = rows[i].split(",");
+    var stock = Number(cols[iStock]), reorder = Number(cols[iReorder]);
+    if (!cols[iName] || isNaN(stock) || isNaN(reorder)) throw new Error((i + 1) + "行目を読み取れませんでした（現在庫と発注点は数字にしてください）。");
+    out.push({name:cols[iName].trim(), cat:"—", stock:stock, reorder:reorder, price:0, supplier:"—"});
+  }
+  if (!out.length) throw new Error("読み取れるデータがありませんでした。");
+  return out;
+}
+
+if (typeof document !== "undefined"){
+  var stockBody = document.getElementById('stockBody');
+  var alertArea = document.getElementById('alertArea');
+  var alertSummary = document.getElementById('alertSummary');
+
+  function yen(n){ return n ? "¥" + n.toLocaleString('ja-JP') : "—"; }
+
+  function render(){
+    stockBody.innerHTML = "";
+    items.forEach(function(it, idx){
+      var tr = document.createElement('tr');
+      if (isLow(it)) tr.className = "low";
+      var state = isLow(it) ? '<span class="badge">発注アラート</span>' : '<span class="badge ok">適正</span>';
+      tr.innerHTML =
+        "<td>" + it.name + "</td>" +
+        '<td class="hide-sp">' + it.cat + "</td>" +
+        '<td class="num"><input class="stock" type="number" min="0" value="' + it.stock + '" data-idx="' + idx + '"></td>' +
+        '<td class="num">' + it.reorder + "</td>" +
+        '<td class="num hide-sp">' + yen(it.price) + "</td>" +
+        '<td class="hide-sp">' + it.supplier + "</td>" +
+        "<td>" + state + "</td>";
+      stockBody.appendChild(tr);
+    });
+    stockBody.querySelectorAll('input.stock').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var v = Number(inp.value);
+        items[Number(inp.dataset.idx)].stock = isNaN(v) ? 0 : v;
+        renderAlertsOnly();
+        var tr = inp.closest('tr');
+        var it = items[Number(inp.dataset.idx)];
+        tr.className = isLow(it) ? "low" : "";
+        tr.lastElementChild.innerHTML = isLow(it) ? '<span class="badge">発注アラート</span>' : '<span class="badge ok">適正</span>';
+      });
+    });
+    renderAlertsOnly();
+  }
+
+  function renderAlertsOnly(){
+    var alerts = computeAlerts(items);
+    if (!alerts.length){
+      alertSummary.innerHTML = "現在、発注が必要な品目はありません。";
+      alertArea.innerHTML = '<div class="empty">在庫はすべて発注点を上回っています。</div>';
+      return;
+    }
+    var total = alerts.reduce(function(s,a){ return s + a.amount; }, 0);
+    alertSummary.innerHTML = "発注が必要な品目は <strong>" + alerts.length + " 件</strong>（金額目安の合計：" + yen(total) + "）";
+    var html = "<table><thead><tr><th>品名</th><th class=\"num\">現在庫</th><th class=\"num\">発注点</th><th class=\"num\">発注推奨数</th><th class=\"num\">金額目安</th><th class=\"hide-sp\">仕入先</th></tr></thead><tbody>";
+    alerts.forEach(function(a){
+      html += "<tr><td>" + a.name + "</td><td class=\"num\">" + a.stock + "</td><td class=\"num\">" + a.reorder + "</td><td class=\"num\">" + a.qty + "</td><td class=\"num\">" + yen(a.amount) + "</td><td class=\"hide-sp\">" + a.supplier + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    alertArea.innerHTML = html;
+  }
+
+  document.getElementById('csvBtn').addEventListener('click', function(){
+    var alerts = computeAlerts(items);
+    if (!alerts.length){ alert("発注が必要な品目がありません。"); return; }
+    var blob = new Blob(["\uFEFF" + buildOrderCsv(alerts)], {type:"text/csv;charset=utf-8"});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = "order_list.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    items = JSON.parse(JSON.stringify(SAMPLE));
+    render();
+  });
+
+  document.getElementById('loadCsvBtn').addEventListener('click', function(){
+    var err = document.getElementById('csvErr'), ok = document.getElementById('csvOk');
+    err.style.display = "none"; ok.style.display = "none";
+    try {
+      items = parseStockCsv(document.getElementById('csvInput').value);
+      render();
+      ok.textContent = items.length + "品目を読み込みました。";
+      ok.style.display = "block";
+    } catch (e) {
+      err.textContent = "読み込みエラー：" + e.message;
+      err.style.display = "block";
+    }
+  });
+
+  items = JSON.parse(JSON.stringify(SAMPLE));
+  render();
+}
+</script>
+</body>
+</html>

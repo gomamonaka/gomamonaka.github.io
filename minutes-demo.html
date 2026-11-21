@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>議事録→タスク抽出（デモ）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  h2{font-size:17px;margin:26px 0 10px;color:var(--navy)}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px rgba(15,42,67,.06);padding:18px}
+  textarea{width:100%;min-height:220px;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;line-height:1.7;font-family:inherit;resize:vertical}
+  textarea:focus{outline:2px solid var(--teal);outline-offset:-1px}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  button{border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid var(--teal)}
+  .btn-main{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn-sub{background:#fff;color:var(--teal)}
+  .btn-sub:hover{background:var(--teal);color:#fff}
+  .btn-main:disabled{opacity:.45;cursor:default}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top;line-height:1.6}
+  th{background:var(--navy);color:#fff;font-weight:700;white-space:nowrap}
+  td.num{width:38px;text-align:center;color:var(--muted)}
+  td.who{white-space:nowrap;font-weight:700}
+  td.due{white-space:nowrap}
+  .empty{color:var(--muted);font-size:14px;padding:6px 0}
+  .count{display:inline-block;background:var(--teal);color:#fff;border-radius:999px;font-size:12px;font-weight:700;padding:2px 10px;margin-left:8px;vertical-align:2px}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.7}
+  .note a{color:var(--teal)}
+  #result{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>議事録 → タスク抽出（デモ）</h1>
+  <p class="lead">会議メモを貼り付けるだけで、「決まったこと」と「誰が・何を・いつまでにやるか」を自動で抜き出して表にします。会議後の議事録整理やタスクの共有に使う仕組みの体験デモです。まずは「サンプル議事録を入れる」からお試しください。</p>
+
+  <div class="card">
+    <textarea id="src" placeholder="ここに会議メモ（議事録）を貼り付けてください。"></textarea>
+    <div class="btns">
+      <button class="btn-sub" id="btn-sample">サンプル議事録を入れる</button>
+      <button class="btn-main" id="btn-run">抽出する</button>
+      <button class="btn-sub" id="btn-clear">クリア</button>
+    </div>
+  </div>
+
+  <div id="result">
+    <h2>決定事項<span class="count" id="cnt-dec">0件</span></h2>
+    <div id="dec-area"></div>
+    <h2>ToDoリスト<span class="count" id="cnt-todo">0件</span></h2>
+    <div id="todo-area"></div>
+    <div class="btns">
+      <button class="btn-main" id="btn-csv">結果をCSVでダウンロード</button>
+    </div>
+  </div>
+
+  <p class="note">※ このデモはキーワードと文のパターンで判定する「ルールベース」方式です（外部のAIには接続していません）。入力したテキストはブラウザの中だけで処理され、外部に送信されることはありません。実案件ではAI（LLM）と組み合わせ、あいまいな言い回しや文脈を踏まえた抽出に精度を上げる構成にできます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にどうぞ。</p>
+</div>
+
+<script>
+// === CORE LOGIC START ===
+const SAMPLE_TEXT = [
+"週次定例会議 議事メモ",
+"参加者：佐藤、鈴木、田中、高橋",
+"",
+"まず、先週の売上について報告があった。鈴木さんから、新商品の評判は上々だという話があった。",
+"新商品の発売日は、準備の進み具合を踏まえて12月10日に決定した。",
+"価格については、税込1,980円とすることにした。",
+"チラシのデザイン案は、B案を採用することに決まった。",
+"佐藤さんは、見積書のドラフトを11月28日までに作成する。",
+"鈴木さんは、取引先への案内メールを今週中にお願いします。",
+"田中さんは在庫リストを更新すること。期限：12月2日。",
+"高橋さんは、来週月曜までに予約ページの文案を用意する。",
+"次回の会議は12月5日に行う。"
+].join("\n");
+
+const DECISION_KEYS = ["決定", "決まった", "決まりました", "することにした", "することになりました", "合意した", "合意しました", "承認された", "承認しました", "採用すること", "方針とした"];
+const DEADLINE_RE = /(\d{1,2}月\d{1,2}日|\d{1,2}\/\d{1,2}|来週[月火水木金土日]曜(?:日)?|今週[月火水木金土日]曜(?:日)?|今週中|来週中|今月中|月末|週明け|明日|明後日|本日中|今日中)/;
+const ASK_KEYS = ["お願い", "担当", "宿題", "アクション", "やること", "TODO", "ToDo"];
+const ACTION_RE = /(作成|用意|準備|更新|提出|連絡|確認|手配|送付|発注|調査|共有|設定)(する|します|して|すること|し)/;
+
+function splitSentences(text){
+  const out = [];
+  for (const line of text.split(/\r?\n/)){
+    const parts = line.split(/(?<=[。！？])/);
+    for (const p of parts){
+      const s = p.replace(/^[\s・\-―*＊]+/, "").trim();
+      if (!s) continue;
+      if (s.startsWith("期限") && out.length){
+        out[out.length - 1] += s;
+      } else {
+        out.push(s);
+      }
+    }
+  }
+  return out;
+}
+
+function isDecision(s){
+  return DECISION_KEYS.some(k => s.includes(k));
+}
+
+function findDeadline(s){
+  const m = s.match(DEADLINE_RE);
+  return m ? m[1] : "";
+}
+
+function parseTodo(s){
+  const nameM = s.match(/([一-龥ぁ-んァ-ヶー]{1,5})さん/);
+  const hasName = !!nameM;
+  const deadline = findDeadline(s);
+  const hasAsk = ASK_KEYS.some(k => s.includes(k));
+  const hasAction = ACTION_RE.test(s);
+  const isT = (hasName && (!!deadline || hasAsk || hasAction)) || (hasAsk && !!deadline) || (s.includes("期限") && hasAction);
+  if (!isT) return null;
+  let who = hasName ? nameM[1] : "（未指定）";
+  let task = s;
+  if (hasName){
+    task = task.replace(new RegExp(nameM[1] + "さん(は|が|、)?"), "");
+  }
+  task = task.replace(/期限[:：]\s*/, "期限：");
+  if (deadline){
+    task = task.replace("期限：" + deadline, "");
+    task = task.replace(deadline + "までに", "");
+    task = task.replace(deadline + "まで", "");
+    task = task.replace(deadline + "に", "");
+    task = task.replace(deadline, "");
+  }
+  task = task.replace(/^[、,。\s]+/, "").replace(/[、,]\s*$/, "").replace(/。+$/, "").trim();
+  task = task.replace(/をお願いします$/, "").replace(/お願いします$/, "").replace(/を$/, "").trim();
+  if (!task) task = s.replace(/。$/, "");
+  return { who: who, task: task, due: deadline || "（未定）" };
+}
+
+function extractAll(text){
+  const sentences = splitSentences(text);
+  const decisions = [];
+  const todos = [];
+  for (const s of sentences){
+    if (isDecision(s)) decisions.push(s);
+    const t = parseTodo(s);
+    if (t) todos.push(t);
+  }
+  return { decisions: decisions, todos: todos };
+}
+// === CORE LOGIC END ===
+
+const $ = id => document.getElementById(id);
+let lastResult = null;
+
+function esc(s){
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function render(res){
+  lastResult = res;
+  $("cnt-dec").textContent = res.decisions.length + "件";
+  $("cnt-todo").textContent = res.todos.length + "件";
+  if (res.decisions.length){
+    let h = "<table><tr><th>#</th><th>決定事項</th></tr>";
+    res.decisions.forEach((d, i) => { h += "<tr><td class='num'>" + (i + 1) + "</td><td>" + esc(d) + "</td></tr>"; });
+    $("dec-area").innerHTML = h + "</table>";
+  } else {
+    $("dec-area").innerHTML = "<p class='empty'>決定事項は見つかりませんでした。「決定」「決まった」「することにした」などの表現があると抽出できます。</p>";
+  }
+  if (res.todos.length){
+    let h = "<table><tr><th>担当者</th><th>タスク内容</th><th>期限</th></tr>";
+    res.todos.forEach(t => { h += "<tr><td class='who'>" + esc(t.who) + "</td><td>" + esc(t.task) + "</td><td class='due'>" + esc(t.due) + "</td></tr>"; });
+    $("todo-area").innerHTML = h + "</table>";
+  } else {
+    $("todo-area").innerHTML = "<p class='empty'>ToDoは見つかりませんでした。「〜さんは〜まで」「期限：〜」などの表現があると抽出できます。</p>";
+  }
+  $("result").style.display = "block";
+}
+
+function toCSV(res){
+  const rows = [["種別", "内容", "担当者", "期限"]];
+  res.decisions.forEach(d => rows.push(["決定事項", d, "", ""]));
+  res.todos.forEach(t => rows.push(["ToDo", t.task, t.who, t.due]));
+  return "﻿" + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\r\n");
+}
+
+$("btn-sample").addEventListener("click", () => { $("src").value = SAMPLE_TEXT; });
+$("btn-clear").addEventListener("click", () => { $("src").value = ""; $("result").style.display = "none"; lastResult = null; });
+$("btn-run").addEventListener("click", () => {
+  const text = $("src").value.trim();
+  if (!text){ alert("会議メモを入力するか、「サンプル議事録を入れる」を押してください。"); return; }
+  render(extractAll(text));
+});
+$("btn-csv").addEventListener("click", () => {
+  if (!lastResult) return;
+  const blob = new Blob([toCSV(lastResult)], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "minutes_extract.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>

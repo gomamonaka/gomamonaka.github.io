@@ -61,6 +61,9 @@
   .bd-top b{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
   .bd-bar{height:6px;background:rgba(247,242,231,.18);border-radius:99px;margin-top:5px;overflow:hidden}
   .bd-bar i{display:block;height:100%;background:var(--teal2);border-radius:99px}
+  .reset-row{text-align:right;margin:2px 0 14px}
+  .btn-reset{background:#fff;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
+  .btn-reset:hover{border-color:var(--teal);color:var(--teal)}
   .first-step{margin-top:14px;background:#eaf1ee;border:1px solid #c9dcd6;border-radius:12px;padding:12px 16px;font-size:13.5px;color:var(--ink)}
   .first-step b{color:var(--teal)}
 
@@ -83,9 +86,10 @@
 <section>
   <div class="wrap">
     <div id="tasks"></div>
+    <div class="reset-row"><button type="button" class="btn-reset" id="btn-reset">入力をリセットする</button></div>
 
     <div class="result" id="result">
-      <div class="result-grid">
+      <div class="result-grid" id="r-grid" style="display:none">
         <div>
           <p>いま毎月かかっている時間</p>
           <div class="big"><span id="r-now">0</span><small> 時間 / 月</small></div>
@@ -100,6 +104,7 @@
         </div>
       </div>
       <p id="r-value" style="margin-top:10px"></p>
+      <p id="r-premise" style="display:none;font-size:12.5px;color:rgba(247,242,231,.7);margin-top:6px">※ この試算は、チェックした作業だけを合計したものです（作業を選ぶほど数字は変わります）。</p>
       <div id="r-breakdown-wrap" style="display:none">
         <p style="margin-top:18px;font-weight:700;color:var(--ivory)">時間損失の内訳（月あたり）</p>
         <div id="r-breakdown"></div>
@@ -140,7 +145,7 @@
     {name:"問い合わせメールの仕分けと返信の下書き", desc:"カテゴリ分け、要約、返信文のたたき台づくり", freq:20, mins:10},
     {name:"複数システム間の転記・コピペ", desc:"CSVの移し替え、台帳への入力、サイトへの登録作業", freq:8, mins:30},
     {name:"勤怠・シフトの集計", desc:"打刻データの取りまとめ、店舗・スタッフ別の集計", freq:2, mins:90},
-    {name:" Webサイトからの情報収集と一覧化", desc:"掲載情報のチェック、価格・在庫の確認とExcel化", freq:4, mins:60},
+    {name:"Webサイトからの情報収集と一覧化", desc:"掲載情報のチェック、価格・在庫の確認とExcel化", freq:4, mins:60},
     {name:"SNS・ブログ投稿の下書きと予約", desc:"投稿文の作成、画像の準備、投稿予約のセット", freq:8, mins:20}
   ];
   var box = document.getElementById("tasks");
@@ -157,12 +162,30 @@
     box.appendChild(div);
   });
 
+  var FREQ_MAX = 1000, MINS_MAX = 1440;
+  function clampVal(v, max){
+    if(isNaN(v) || v < 0){ return 0; }
+    return v > max ? max : v;
+  }
+  function readNum(sel, max){
+    return clampVal(parseFloat(document.querySelector(sel).value), max);
+  }
+  function normalizeInputs(){
+    TASKS.forEach(function(t, i){
+      var fEl = document.querySelector('input[data-f="' + i + '"]');
+      var mEl = document.querySelector('input[data-m="' + i + '"]');
+      var f = clampVal(parseFloat(fEl.value), FREQ_MAX);
+      var m = clampVal(parseFloat(mEl.value), MINS_MAX);
+      if(String(f) !== fEl.value){ fEl.value = f; }
+      if(String(m) !== mEl.value){ mEl.value = m; }
+    });
+  }
   function calc(){
     var totalMin = 0, count = 0, items = [];
     TASKS.forEach(function(t, i){
       var cb = document.querySelector('input[type=checkbox][data-i="' + i + '"]');
-      var f = parseFloat(document.querySelector('input[data-f="' + i + '"]').value) || 0;
-      var m = parseFloat(document.querySelector('input[data-m="' + i + '"]').value) || 0;
+      var f = readNum('input[data-f="' + i + '"]', FREQ_MAX);
+      var m = readNum('input[data-m="' + i + '"]', MINS_MAX);
       cb.closest(".task").classList.toggle("checked", cb.checked);
       if(cb.checked){ totalMin += f * m; count++; items.push({name: t.name, min: f * m, freq: f, mins: m}); }
     });
@@ -172,16 +195,26 @@
     document.getElementById("r-now").textContent = fmt(nowH);
     document.getElementById("r-save").textContent = fmt(saveH);
     document.getElementById("r-year").textContent = fmt(saveH * 12);
+    var gridEl = document.getElementById("r-grid");
     var valueEl = document.getElementById("r-value");
     var planEl = document.getElementById("r-plan");
     var descEl = document.getElementById("r-plan-desc");
     var bdWrap = document.getElementById("r-breakdown-wrap");
     var bdEl = document.getElementById("r-breakdown");
     var firstEl = document.getElementById("r-first");
-    if(count === 0){
+    var premiseEl = document.getElementById("r-premise");
+    var diagnosed = count > 0 && totalMin > 0;
+    gridEl.style.display = diagnosed ? "" : "none";
+    premiseEl.style.display = diagnosed ? "" : "none";
+    if(!diagnosed){
       valueEl.textContent = "";
-      planEl.textContent = "まずは作業を選んでください";
-      descEl.textContent = "チェックを入れると、作業の数と時間に合わせておすすめのパッケージを表示します。";
+      if(count === 0){
+        planEl.textContent = "まずは作業を選んでください";
+        descEl.textContent = "チェックを入れると、作業の数と時間に合わせておすすめのパッケージを表示します。";
+      } else {
+        planEl.textContent = "頻度と1回あたりの時間を入れてみてください";
+        descEl.textContent = "チェックした作業の「月に◯回」と「1回◯分」が両方0のままだと、削減できる時間を計算できません。おおよその数字で大丈夫です。";
+      }
       bdWrap.style.display = "none";
       bdEl.innerHTML = "";
       firstEl.style.display = "none";
@@ -207,9 +240,11 @@
     }
     firstEl.innerHTML = "<b>最初の一手：" + top.name + "（月 " + fmt(top.min / 60) + "時間）</b><br>" + reason;
     firstEl.style.display = "block";
-    if(count === 1 && saveH <= 3){
-      planEl.textContent = "おすすめ：お試し自動化（50,000円〜）";
-      descEl.textContent = "1つの作業に絞った入門パッケージで十分まかなえる規模です。納期は3〜5日。削減できる時間で、数か月で元が取れる計算になります。";
+    if(saveH <= 3){
+      planEl.textContent = "おすすめ：お試し自動化（49,800円〜）";
+      descEl.textContent = count === 1
+        ? "1つの作業に絞った入門パッケージで十分まかなえる規模です。納期は3〜5日。削減できる時間で、数か月で元が取れる計算になります。"
+        : "作業は複数でも、削減見込みの規模はまだ小さめです。まずは「最初の一手」の作業をお試し自動化でツール化し、効果を見てから残りを広げる進め方が無駄がありません。納期は3〜5日。";
     } else if(saveH <= 10){
       planEl.textContent = "おすすめ：標準パッケージ（148,000円〜）";
       descEl.textContent = "複数の作業、または画面（UI）つきで現場に渡したい規模です。使い方マニュアルと修正2回までを含みます。";
@@ -219,7 +254,15 @@
     }
   }
   box.addEventListener("input", calc);
-  box.addEventListener("change", calc);
+  box.addEventListener("change", function(){ normalizeInputs(); calc(); });
+  document.getElementById("btn-reset").addEventListener("click", function(){
+    TASKS.forEach(function(t, i){
+      document.querySelector('input[type=checkbox][data-i="' + i + '"]').checked = false;
+      document.querySelector('input[data-f="' + i + '"]').value = t.freq;
+      document.querySelector('input[data-m="' + i + '"]').value = t.mins;
+    });
+    calc();
+  });
   calc();
 })();
 </script>

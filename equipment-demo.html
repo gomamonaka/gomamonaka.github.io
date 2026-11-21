@@ -109,7 +109,7 @@
 
   <h2>備品一覧</h2>
   <div class="toolbar">
-    <input type="search" id="q" placeholder="キーワード検索（備品名・管理番号・型番・保管場所）">
+    <input type="search" id="q" placeholder="キーワード検索（備品名・管理番号・型番・分類・保管場所・メモ）">
     <button class="sub" id="csvBtn">貸出一覧をCSVで出す</button>
     <button class="sub" id="resetBtn">サンプルデータに戻す</button>
   </div>
@@ -122,6 +122,7 @@
   <div id="loansArea"></div>
 
   <h2>貸出履歴</h2>
+  <p class="muted" style="margin:-6px 0 10px">返却済みの記録だけを表示します（貸出中の備品は上の「貸出中の一覧」に出ます）。返却の記録を取り消したいときは、各行の「返却を取り消す」を使ってください。</p>
   <div id="historyArea"></div>
 
   <h2>備品の利用状況</h2>
@@ -237,12 +238,22 @@ function daysDiff(a, b){ // 'YYYY-MM-DD' 同士の日数差（a - b）
   return Math.round((new Date(a + 'T00:00:00') - new Date(b + 'T00:00:00')) / 86400000);
 }
 // 備品ごとの貸出回数（貸出中＋返却済みの全記録ベース）
+// 割合は最大剰余法で配分し、合計が必ず100%になるようにする（単純な四捨五入だと合計がずれる）
 function usageStats(){
   const total = loans.length;
-  return items.map(it => {
+  const stats = items.map(it => {
     const count = loans.filter(l => l.itemId === it.id).length;
-    return {item: it, count: count, pct: total ? Math.round(count / total * 100) : 0};
-  }).sort((a, b) => b.count - a.count || a.item.id - b.item.id);
+    const raw = total ? count / total * 100 : 0;
+    return {item: it, count: count, pct: Math.floor(raw), rem: raw - Math.floor(raw)};
+  });
+  if (total){
+    let rest = 100 - stats.reduce((s, x) => s + x.pct, 0);
+    const order = [...stats].sort((a, b) => b.rem - a.rem || b.count - a.count || a.item.id - b.item.id);
+    for (let i = 0; rest > 0 && order.length; i = (i + 1) % order.length){
+      if (order[i].count > 0){ order[i].pct += 1; rest -= 1; }
+    }
+  }
+  return stats.sort((a, b) => b.count - a.count || a.item.id - b.item.id);
 }
 
 function esc(s){
@@ -298,22 +309,22 @@ function render(){
   }
   document.getElementById('loansArea').innerHTML = lh;
 
-  // 貸出履歴（返却済みを含む全記録・新しい順、直近30件まで表示）
-  const hist = [...loans].sort((a,b) => (a.loanDate < b.loanDate ? 1 : (a.loanDate > b.loanDate ? -1 : b.id - a.id)));
+  // 貸出履歴（返却済みのみ・返却日が新しい順、直近30件まで表示。貸出中は上の一覧と重複させない）
+  const hist = loans.filter(l => l.returnDate)
+    .sort((a,b) => (a.returnDate < b.returnDate ? 1 : (a.returnDate > b.returnDate ? -1 : b.id - a.id)));
   let hh = '';
   if (hist.length){
-    hh = '<div class="tblwrap"><table><tr><th>貸出日</th><th>備品</th><th>借りた人</th><th>返却期限</th><th>返却日</th><th>状態</th></tr>';
+    hh = '<div class="tblwrap"><table><tr><th>貸出日</th><th>備品</th><th>借りた人</th><th>返却期限</th><th>返却日</th><th>状態</th><th>操作</th></tr>';
     for (const l of hist.slice(0, 30)){
       const it = itemById(l.itemId);
-      const badge = l.returnDate ? '<span class="badge done">返却済み</span>'
-        : (isOverdue(l) ? '<span class="badge over">期限切れ</span>' : '<span class="badge lent">貸出中</span>');
       hh += '<tr><td class="nowrap">' + l.loanDate + '</td><td>' + esc(itemName(l.itemId)) + '<span class="sub2">' + esc(it ? it.code : '') + '</span></td><td>' + esc(borrowerLabel(l)) +
-            '</td><td class="nowrap">' + l.dueDate + '</td><td class="nowrap">' + (l.returnDate || '―') + '</td><td>' + badge + '</td></tr>';
+            '</td><td class="nowrap">' + l.dueDate + '</td><td class="nowrap">' + l.returnDate + '</td><td><span class="badge done">返却済み</span></td>' +
+            '<td><button class="sub" data-unreturn="' + l.id + '">返却を取り消す</button></td></tr>';
     }
     hh += '</table></div>';
-    if (hist.length > 30) hh += '<p class="muted">直近30件を表示しています（全 ' + hist.length + ' 件）。全件はCSVで出力できます。</p>';
+    if (hist.length > 30) hh += '<p class="muted">直近30件を表示しています（返却済み全 ' + hist.length + ' 件）。全件はCSVで出力できます。</p>';
   } else {
-    hh = '<p class="muted">貸出の記録はまだありません。</p>';
+    hh = '<p class="muted">返却済みの記録はまだありません。</p>';
   }
   document.getElementById('historyArea').innerHTML = hh;
 
@@ -392,6 +403,7 @@ function submitCheckout(){
   if (available(it) <= 0){ showFlash('貸出可能な在庫がありません', true); closeCheckout(); render(); return; }
   if (!borrower){ showFlash('借りる人の名前を入力してください', true); return; }
   if (!due){ showFlash('返却期限を選んでください', true); return; }
+  if (due < todayStr()){ showFlash('返却期限に過去の日付は選べません（本日以降の日付を選んでください）', true); return; }
   loans.push({id: nextLoanId++, itemId: it.id, dept: dept, borrower: borrower, loanDate: todayStr(), dueDate: due, returnDate: null});
   closeCheckout();
   saveState();
@@ -406,6 +418,20 @@ function submitReturn(loanId){
   l.returnDate = todayStr();
   saveState();
   showFlash('返却を記録しました：' + itemName(l.itemId) + '（' + borrowerLabel(l) + 'さん）', false);
+  render();
+}
+// ---- 返却の取り消し（誤って返却にした記録を貸出中に戻す） ----
+function submitUnreturn(loanId){
+  const l = loans.find(x => x.id === loanId);
+  if (!l || !l.returnDate) return;
+  const it = itemById(l.itemId);
+  if (it && available(it) <= 0){
+    showFlash('「' + it.name + '」は貸出可能な残りがないため、返却を取り消せません（先に他の貸出を返却してください）', true);
+    return;
+  }
+  l.returnDate = null;
+  saveState();
+  showFlash('返却を取り消しました：' + itemName(l.itemId) + '（' + borrowerLabel(l) + 'さん）を貸出中に戻しました', false);
   render();
 }
 
@@ -436,7 +462,9 @@ document.addEventListener('click', e => {
   const co = e.target.closest('[data-checkout]');
   if (co){ openCheckout(Number(co.dataset.checkout)); return; }
   const rt = e.target.closest('[data-return]');
-  if (rt){ submitReturn(Number(rt.dataset.return)); }
+  if (rt){ submitReturn(Number(rt.dataset.return)); return; }
+  const ur = e.target.closest('[data-unreturn]');
+  if (ur){ submitUnreturn(Number(ur.dataset.unreturn)); }
 });
 
 // ---- 初期化：保存済みの状態があれば復元 ----

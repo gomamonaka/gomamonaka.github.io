@@ -74,7 +74,7 @@
 </header>
 <div class="wrap">
   <h1>売上ダッシュボード（デモ）</h1>
-  <p class="lead">売上明細のCSVから、月別売上・商品別ランキング・前月比を自動で集計するダッシュボードの体験デモです。最初は、水曜定休の小さなコーヒー豆店を想定した架空の売上（直近6か月分）が入っています。表示期間を切り替えたり、下の欄にご自身のCSVを貼り付けて再集計したりできます。</p>
+  <p class="lead" id="leadText">売上明細のCSVから、月別売上・商品別ランキング・前月比を自動で集計するダッシュボードの体験デモです。最初は、水曜定休の小さなコーヒー豆店を想定した架空の売上（直近6か月分）が入っています。表示期間を切り替えたり、下の欄にご自身のCSVを貼り付けて再集計したりできます。</p>
 
   <div class="period-bar">
     <div class="period-btns" role="group" aria-label="表示期間">
@@ -137,7 +137,7 @@
     <div class="status" id="csvStatus"></div>
   </div>
 
-  <p class="note">※ 表示中の数字は、コーヒー豆の小さな販売店を想定して作った架空のサンプルです。水曜定休で週末に売上が寄る、水出しコーヒーは夏だけ伸びて秋には落ち着く、ギフトセットは年末に向けて跳ねる——といった偏りも入れてあります。月末の集計では、こういう偏りが見えるかどうかが案外大事だったりします。<br>実際の案件では、ECや販売管理サービスから書き出した売上CSV、スプレッドシートの台帳などを読み込ませて、毎月同じ形のレポートを自動で出す、という作り方が多いです。「月末の集計に半日かかっている」「商品ごと・月ごとの数字を分けて見たい」といった場合は、<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にご相談ください。自動化で削減できる時間の目安は<a href="shindan.html">自動化診断</a>でも確認できます。</p>
+  <p class="note"><span id="noteDataDesc">※ 表示中の数字は、コーヒー豆の小さな販売店を想定して作った架空のサンプルです。水曜定休で週末に売上が寄る、水出しコーヒーは夏だけ伸びて秋には落ち着く、ギフトセットは年末に向けて跳ねる——といった偏りも入れてあります。月末の集計では、こういう偏りが見えるかどうかが案外大事だったりします。</span><br>実際の案件では、ECや販売管理サービスから書き出した売上CSV、スプレッドシートの台帳などを読み込ませて、毎月同じ形のレポートを自動で出す、という作り方が多いです。「月末の集計に半日かかっている」「商品ごと・月ごとの数字を分けて見たい」といった場合は、<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にご相談ください。自動化で削減できる時間の目安は<a href="shindan.html">自動化診断</a>でも確認できます。</p>
 </div>
 
 <footer class="brandfoot">
@@ -164,9 +164,12 @@ function parseCSV(text){
     const c = splitLine(lines[i]);
     const date = normDate((c[idx.date] || "").trim());
     const name = (c[idx.name] || "").trim();
-    const qty = Number(String(c[idx.qty] || "").replace(/[,¥円\s]/g, ""));
-    const price = Number(String(c[idx.price] || "").replace(/[,¥円\s]/g, ""));
-    if (!date || !name || !isFinite(qty) || !isFinite(price)){ errors.push((i + 1) + "行目を読み取れませんでした"); continue; }
+    const qtyRaw = String(c[idx.qty] || "").replace(/[,¥円\s]/g, "");
+    const priceRaw = String(c[idx.price] || "").replace(/[,¥円\s]/g, "");
+    const qty = Number(qtyRaw);
+    const price = Number(priceRaw);
+    // 日付が実在しない（13月・2月30日など）、数量・単価が空欄の行は、無言で0にせず行エラーにする
+    if (!date || !name || qtyRaw === "" || priceRaw === "" || !isFinite(qty) || !isFinite(price)){ errors.push((i + 1) + "行目を読み取れませんでした"); continue; }
     rows.push({ date: date, month: date.slice(0, 7), name: name, qty: qty, price: price, amount: qty * price });
   }
   return { rows: rows, errors: errors };
@@ -188,8 +191,12 @@ function splitLine(line){
 function normDate(s){
   const m = s.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
   if (!m) return null;
-  const mm = ("0" + m[2]).slice(-2), dd = ("0" + m[3]).slice(-2);
-  return m[1] + "-" + mm + "-" + dd;
+  const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+  if (mo < 1 || mo > 12) return null;
+  const dim = new Date(y, mo, 0).getDate(); // その月の末日
+  if (d < 1 || d > dim) return null;
+  const mm = ("0" + mo).slice(-2), dd = ("0" + d).slice(-2);
+  return y + "-" + mm + "-" + dd;
 }
 // 明細配列を月別・商品別に集計する。
 function aggregate(rows){
@@ -203,8 +210,28 @@ function aggregate(rows){
     byProduct[r.name].total += r.amount; byProduct[r.name].qty += r.qty; byProduct[r.name].count++;
   }
   const monthly = Object.values(byMonth).sort((a, b) => a.month < b.month ? -1 : 1);
+  // 最新月が「今月」でまだ月末に達していない場合は月途中データになる。
+  // そのまま合計同士を比べると月初ほど「大幅減」に見えてしまうため、
+  // 月途中の月が関係する前月比は「1日あたり売上」に換算して比較する。
+  const now = new Date();
+  const curYM = now.getFullYear() + "-" + ("0" + (now.getMonth() + 1)).slice(-2);
+  for (const d of monthly){
+    const p = d.month.split("-");
+    d.daysInMonth = new Date(Number(p[0]), Number(p[1]), 0).getDate();
+    d.partial = d.month === curYM && now.getDate() < d.daysInMonth;
+    d.elapsedDays = d.partial ? now.getDate() : d.daysInMonth;
+    d.daily = d.total / d.elapsedDays;
+  }
   for (let i = 0; i < monthly.length; i++){
-    monthly[i].change = i === 0 ? null : (monthly[i - 1].total === 0 ? null : (monthly[i].total - monthly[i - 1].total) / monthly[i - 1].total * 100);
+    if (i === 0){ monthly[i].change = null; monthly[i].changeDaily = false; continue; }
+    const prev = monthly[i - 1], cur = monthly[i];
+    if (cur.partial || prev.partial){
+      monthly[i].change = prev.daily === 0 ? null : (cur.daily - prev.daily) / prev.daily * 100;
+      monthly[i].changeDaily = monthly[i].change !== null;
+    } else {
+      monthly[i].change = prev.total === 0 ? null : (cur.total - prev.total) / prev.total * 100;
+      monthly[i].changeDaily = false;
+    }
   }
   const products = Object.values(byProduct).sort((a, b) => b.total - a.total);
   const latest = monthly.length ? monthly[monthly.length - 1] : null;
@@ -261,7 +288,9 @@ function weeklyBreakdown(rows, month){
 
 // 架空サンプルデータ：水曜定休の小さなコーヒー豆店、直近6か月分。
 // 週末に売上が寄る、水出しは夏だけ伸びる、ギフトは年末に跳ねるなど、
-// 商品ごとの「動き」を持たせて決定的に生成する（開くたびに同じ数字になる）。
+// 商品ごとの「動き」を持たせて、固定シードの乱数で生成する。
+// 対象の6か月は開いた日を基準に決まり、今月分は今日までのデータになるため、
+// 合計などの数字は開く日によって変わる（同じ日付範囲では同じ並びになる）。
 function buildSampleCSV(){
   // [商品名, 単価, 基本の売れ行き, 動き]
   const products = [
@@ -329,12 +358,16 @@ function barChartMonthly(monthly){
   const bw = Math.min(64, (W - 80) / Math.max(1, monthly.length) * 0.55), step = (W - 80) / Math.max(1, monthly.length);
   let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="月別売上グラフ">';
   s += '<line x1="50" y1="' + base + '" x2="' + (W - 20) + '" y2="' + base + '" stroke="#e3ded1" stroke-width="2"/>';
+  // 月数が多いCSVではラベルが重なるため、金額・月ラベルを間引いて表示する
+  const labelStep = monthly.length > 8 ? Math.ceil(monthly.length / 8) : 1;
   monthly.forEach((d, i) => {
     const h = Math.max(2, (base - top) * d.total / max);
     const x = 60 + step * i + (step - bw) / 2, y = base - h;
     s += '<rect data-month="' + d.month + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="5" fill="' + (typeof drillMonth !== "undefined" && drillMonth === d.month ? "#06333a" : "#0a5c63") + '"><title>' + esc(d.month) + 'の週別内訳を見る</title></rect>';
-    s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '</text>';
-    s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" font-size="12.5" fill="#57534b">' + esc(d.month.slice(2).replace("-", "/")) + '</text>';
+    if (labelStep === 1 || i % labelStep === 0 || i === monthly.length - 1){
+      s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '</text>';
+      s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" font-size="12.5" fill="#57534b">' + esc(d.month.slice(2).replace("-", "/")) + '</text>';
+    }
   });
   return s + "</svg>";
 }
@@ -344,7 +377,9 @@ function barChartProducts(products, total){
   let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="商品別ランキンググラフ">';
   top.forEach((d, i) => {
     const y = 6 + i * rowH, w = Math.max(3, (W - 365) * d.total / max);
-    s += '<text x="0" y="' + (y + 19) + '" font-size="12.5" fill="#211e1a">' + esc(d.name) + '</text>';
+    // 商品名が長いとバーに重なるため、表示は省略し、正式名称は title で読めるようにする
+    const label = d.name.length > 15 ? d.name.slice(0, 15) + "…" : d.name;
+    s += '<text x="0" y="' + (y + 19) + '" font-size="12.5" fill="#211e1a"><title>' + esc(d.name) + '</title>' + esc(label) + '</text>';
     s += '<rect x="205" y="' + (y + 3) + '" width="' + w.toFixed(1) + '" height="17" rx="4" fill="#06333a"/>';
     s += '<text x="' + (212 + w).toFixed(1) + '" y="' + (y + 17) + '" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '（' + (total ? (d.total / total * 100).toFixed(1) : "0.0") + '%）</text>';
   });
@@ -354,30 +389,37 @@ function render(agg){
   document.getElementById("kpiTotal").innerHTML = esc(yen(agg.total));
   document.getElementById("kpiRange").textContent = agg.range ? "対象期間：" + agg.range : "";
   document.getElementById("kpiLatest").innerHTML = agg.latest ? esc(yen(agg.latest.total)) : "-";
-  document.getElementById("kpiLatestMonth").textContent = agg.latest ? agg.latest.month.replace("-", "年") + "月分" : "";
+  document.getElementById("kpiLatestMonth").textContent = agg.latest ? agg.latest.month.replace("-", "年") + "月分" + (agg.latest.partial ? "（" + agg.latest.elapsedDays + "日時点・月途中）" : "") : "";
   const ch = document.getElementById("kpiChange"), chSub = document.getElementById("kpiChangeSub");
   if (agg.latestChange === null || agg.latestChange === undefined){ ch.textContent = "-"; chSub.textContent = "比較できる前月データがありません"; }
   else {
     const v = agg.latestChange;
     ch.innerHTML = '<span class="' + (v >= 0 ? "up" : "down") + '">' + (v >= 0 ? "▲ " : "▼ ") + Math.abs(v).toFixed(1) + "%</span>";
     const prev = agg.monthly.length >= 2 ? agg.monthly[agg.monthly.length - 2].total : agg.prevTotal;
-    chSub.textContent = (prev === null || prev === undefined) ? "" : "前月 " + yen(prev) + " との比較";
+    if (agg.latest && agg.latest.changeDaily){
+      chSub.textContent = "最新月は月途中（" + agg.latest.elapsedDays + "日まで）のため、1日あたり売上に換算して前月と比較しています";
+    } else {
+      chSub.textContent = (prev === null || prev === undefined) ? "" : "前月 " + yen(prev) + " との比較";
+    }
   }
   document.getElementById("kpiRows").textContent = agg.rowCount + " 件";
   document.getElementById("chartMonthly").innerHTML = barChartMonthly(agg.monthly);
   document.getElementById("chartProducts").innerHTML = barChartProducts(agg.products, agg.total);
-  let tm = '<table><thead><tr><th>月</th><th>売上</th><th>数量</th><th>前月比</th></tr></thead><tbody>';
+  let tm = '<div class="tbl-scroll"><table><thead><tr><th>月</th><th>売上</th><th>数量</th><th>前月比</th></tr></thead><tbody>';
   for (const d of agg.monthly){
-    const c = d.change === null ? "—" : '<span class="' + (d.change >= 0 ? "up" : "down") + '">' + (d.change >= 0 ? "▲" : "▼") + " " + Math.abs(d.change).toFixed(1) + "%</span>";
+    const c = d.change === null ? "—" : '<span class="' + (d.change >= 0 ? "up" : "down") + '">' + (d.change >= 0 ? "▲" : "▼") + " " + Math.abs(d.change).toFixed(1) + "%</span>" + (d.changeDaily ? " ※" : "");
     tm += "<tr><td>" + esc(d.month) + "</td><td>" + esc(yen(d.total)) + "</td><td>" + d.qty.toLocaleString("ja-JP") + "</td><td>" + c + "</td></tr>";
   }
-  tm += '</tbody><tfoot><tr><td>合計</td><td>' + esc(yen(agg.total)) + "</td><td></td><td></td></tr></tfoot></table>";
+  tm += '</tbody><tfoot><tr><td>合計</td><td>' + esc(yen(agg.total)) + "</td><td></td><td></td></tr></tfoot></table></div>";
+  if (agg.monthly.some(d => d.changeDaily)){
+    tm += '<p class="hint" style="margin-top:8px">※ 最新月は月途中までのデータのため、前月比は1日あたり売上に換算した値です。</p>';
+  }
   document.getElementById("tableMonthly").innerHTML = tm;
-  let tp = '<table><thead><tr><th>商品名</th><th>売上</th><th>数量</th><th>構成比</th></tr></thead><tbody>';
+  let tp = '<div class="tbl-scroll"><table><thead><tr><th>商品名</th><th>売上</th><th>数量</th><th>構成比</th></tr></thead><tbody>';
   for (const d of agg.products){
     tp += "<tr><td>" + esc(d.name) + "</td><td>" + esc(yen(d.total)) + "</td><td>" + d.qty.toLocaleString("ja-JP") + "</td><td>" + (agg.total ? (d.total / agg.total * 100).toFixed(1) : "0.0") + "%</td></tr>";
   }
-  tp += '</tbody><tfoot><tr><td>合計</td><td>' + esc(yen(agg.total)) + "</td><td></td><td>100%</td></tr></tfoot></table>";
+  tp += '</tbody><tfoot><tr><td>合計</td><td>' + esc(yen(agg.total)) + "</td><td></td><td>100%</td></tr></tfoot></table></div>";
   document.getElementById("tableProducts").innerHTML = tp;
 }
 
@@ -452,10 +494,10 @@ function clearSavedCSV(){ try { localStorage.removeItem(LS_KEY); } catch (e) { /
 // 前月比は表示期間で区切らず全データ基準で計算する（境目の月でも前月と比較できる）。
 function refresh(){
   const full = aggregate(allRows);
-  const changeMap = {}, totalMap = {};
-  full.monthly.forEach(d => { changeMap[d.month] = d.change; totalMap[d.month] = d.total; });
+  const changeMap = {}, dailyMap = {}, totalMap = {};
+  full.monthly.forEach(d => { changeMap[d.month] = d.change; dailyMap[d.month] = d.changeDaily; totalMap[d.month] = d.total; });
   const agg = aggregate(filterByPeriod(allRows, period));
-  agg.monthly.forEach(d => { if (d.month in changeMap) d.change = changeMap[d.month]; });
+  agg.monthly.forEach(d => { if (d.month in changeMap){ d.change = changeMap[d.month]; d.changeDaily = dailyMap[d.month]; } });
   if (agg.latest){
     agg.latestChange = agg.latest.change;
     const prevMonth = monthAdd(agg.latest.month, -1);
@@ -476,14 +518,33 @@ function refresh(){
     period === "all" ? "取り込んだ売上明細の行数" : "全 " + allRows.length + " 件のうち、表示期間分";
 }
 
+// いま表示しているデータの出どころ（"sample"＝架空サンプル／"custom"＝読み込んだCSV）。
+// リード文と末尾noteの説明を、実際の表示状態に合わせて切り替える。
+let dataSource = "sample";
+const LEAD_SAMPLE = document.getElementById("leadText").textContent;
+const NOTE_SAMPLE = document.getElementById("noteDataDesc").textContent;
+function updateDataSourceTexts(){
+  const lead = document.getElementById("leadText");
+  const desc = document.getElementById("noteDataDesc");
+  if (dataSource === "custom"){
+    lead.textContent = "売上明細のCSVから、月別売上・商品別ランキング・前月比を自動で集計するダッシュボードの体験デモです。現在、読み込んだCSVの売上データを表示しています。表示期間を切り替えたり、下の欄から別のCSVに差し替えたり、サンプルデータに戻したりできます。";
+    desc.textContent = "※ 現在表示しているのは、読み込んだCSVのデータです。データはこのブラウザの中にのみ保存され、外部に送信されることはありません。";
+  } else {
+    lead.textContent = LEAD_SAMPLE;
+    desc.textContent = NOTE_SAMPLE;
+  }
+}
+
 // CSVテキストを取り込んでデータセットを差し替える。成功したら true。
-function applyCSV(text, label){
+function applyCSV(text, label, source){
   const res = parseCSV(text);
   if (!res.rows.length){
     setStatus("集計できませんでした：" + (res.errors[0] || "形式をご確認ください"), true);
     return false;
   }
   allRows = res.rows;
+  dataSource = source === "custom" ? "custom" : "sample";
+  updateDataSourceTexts();
   refresh();
   setStatus(label + "：" + res.rows.length + "件の明細を取り込みました。" + (res.errors.length ? "（読み取れなかった行が " + res.errors.length + " 件あります）" : ""), false);
   return true;
@@ -506,22 +567,22 @@ document.getElementById("chartMonthly").addEventListener("click", (e) => {
 document.getElementById("btnApply").addEventListener("click", () => {
   const v = document.getElementById("csvInput").value;
   if (!v.trim()){ setStatus("CSVが貼り付けられていません。", true); return; }
-  if (applyCSV(v, "貼り付けたCSVで再集計しました")) saveCSV(v); // うまく取り込めたときだけ保存する
+  if (applyCSV(v, "貼り付けたCSVで再集計しました", "custom")) saveCSV(v); // うまく取り込めたときだけ保存する
 });
 document.getElementById("btnReset").addEventListener("click", () => {
   document.getElementById("csvInput").value = "";
   clearSavedCSV();
-  applyCSV(SAMPLE, "サンプルデータに戻しました");
+  applyCSV(SAMPLE, "サンプルデータに戻しました", "sample");
 });
 document.getElementById("dlSample").href = "data:text/csv;charset=utf-8," + encodeURIComponent(SAMPLE);
 
 // 初期表示：保存済みのCSVがあれば復元し、なければサンプルを表示する
 const savedCSV = loadSavedCSV();
-if (savedCSV && applyCSV(savedCSV, "前回貼り付けたCSVを復元しました")){
+if (savedCSV && applyCSV(savedCSV, "前回貼り付けたCSVを復元しました", "custom")){
   document.getElementById("csvInput").value = savedCSV;
 } else {
   if (savedCSV) clearSavedCSV(); // 壊れていた保存データは捨てる
-  applyCSV(SAMPLE, "サンプルデータを表示しています");
+  applyCSV(SAMPLE, "サンプルデータを表示しています", "sample");
 }
 </script>
 </body>

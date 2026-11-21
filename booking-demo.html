@@ -66,7 +66,7 @@
   .cal-day{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 5px 6px;min-height:54px;cursor:pointer;text-align:left;font-family:inherit;color:var(--text);width:100%}
   .cal-day:hover{border-color:var(--teal)}
   .cal-day .dnum{font-size:13px;font-weight:700}
-  .cal-day .cnt{font-size:10.5px;color:var(--muted);display:block;margin-top:2px}
+  .cal-day .cnt{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
   .cal-day .cbar{display:block;height:4px;border-radius:2px;background:#e3ded1;margin-top:4px;overflow:hidden}
   .cal-day .cbar i{display:block;height:100%;background:var(--teal)}
   .cal-day.sel{border-color:var(--teal);box-shadow:0 0 0 2px rgba(10,92,99,.28)}
@@ -96,7 +96,7 @@
     .status-form select{min-height:40px;font-size:16px}
     textarea{height:240px;font-size:16px}
     .cal-day{min-height:47px;padding:4px 3px 5px}
-    .cal-day .cnt{font-size:9.5px}
+    .cal-day .cnt{font-size:10.5px}
     .cal-blank{min-height:47px}
     .cal-head span{font-size:14px}
   }
@@ -131,7 +131,7 @@
         <button class="sub" id="cal-next" type="button">次の月 ›</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
-      <p class="note" style="margin-top:10px">日をタップすると、その日の空き枠の確認に切り替わります。各日の数字は「予約件数／全枠（8枠×スタッフ3名＝24）」で、バーがその日の埋まり具合です。</p>
+      <p class="note" style="margin-top:10px">日をタップすると、その日の空き枠の確認に切り替わります。各日の数字は「埋まっている枠数／全枠（8枠×スタッフ3名＝24）」で、所要時間の長いメニューは複数の枠を埋めます。バーがその日の埋まり具合です。</p>
     </div>
     <div class="card" id="slots-card">
       <h2>空き枠の確認</h2>
@@ -187,7 +187,7 @@
     </div>
   </div>
 
-  <p class="note">※ 登場するお店・メニュー・お客様はすべて架空で、実在の人物や店舗とは関係ありません。入力した予約は、このブラウザの localStorage にだけ保存されます。サーバーに送られることは一切なく、別の端末や別のブラウザには引き継がれません。ブラウザのデータを消去するか、管理画面の「サンプルデータに戻す」を押すと、最初のサンプル状態に戻ります。<br>現場で効いてくるのは、施術中でもスマホで空き枠がぱっと見えること、キャンセルが出た瞬間に枠が空いて次の予約が入れること、前日のリマインドを手書きせずに済むこと。そのあたりを意識して作ってあります。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+  <p class="note">※ 登場するお店・メニュー・お客様はすべて架空で、実在の人物や店舗とは関係ありません。入力した予約は、このブラウザの localStorage にだけ保存されます。サーバーに送られることは一切なく、別の端末や別のブラウザには引き継がれません。ブラウザのデータを消去するか、管理画面の「サンプルデータに戻す」を押すと、最初のサンプル状態に戻ります。<br>現場で効いてくるのは、施術中でもスマホで空き枠がぱっと見えること、キャンセルが出た瞬間に枠が空いて次の予約が入れること、確定した予約のリマインド文面を管理画面からその場で作れること。そのあたりを意識して作ってあります。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
 </div>
 <footer class="brandfoot">
   <div class="brandfoot-in">
@@ -241,33 +241,71 @@ function esc(s){
 }
 
 // ===== サンプルデータ（起動日基準の相対日付） =====
-// 昼前後は埋まりやすく、夕方は空きがち、という偏りを付けた初期データ。
+// 表示月の前後あわせて約4週間に分散させ、昼前後（10〜13時）は埋まりやすく
+// 夕方（16〜17時）は空きがち、という偏りを付けた初期データ。
+// 連絡先は実在し得ない 090-0000-xxxx 形式で機械的に振る。
 const TODAY = new Date();
 function seedData(){
   let id = 1;
   const list = [];
   const samples = [
-    // [menu_id, 日付オフセット, 時間, 名前, 連絡先, ステータス, 担当スタッフID]
-    [1, -2, "10:00", "中村 葵",   "090-3847-2916", "visited",   "s1"],
-    [2, -2, "13:00", "木村 颯太", "080-5129-6643", "visited",   "s2"],
-    [2, -1, "11:00", "林 真由美", "070-2214-8857", "visited",   "s1"],
-    [1, -1, "15:00", "清水 大輝", "090-6730-1184", "visited",   "s3"],
-    [4, -1, "17:00", "山本 さくら", "080-9452-3071", "cancelled", "s2"],
-    [5,  0, "10:00", "井上 蓮",   "070-1186-4529", "confirmed", "s3"],
-    [2,  0, "11:00", "渡辺 千尋", "090-4265-7730", "confirmed", "s1"],
-    [1,  0, "12:00", "山口 拓海", "080-7591-0248", "confirmed", "s2"],
-    [2,  0, "13:00", "中島 梨乃", "090-2084-6315", "pending",   "s3"],
-    [3,  0, "14:00", "小川 裕子", "070-8843-1972", "confirmed", "s1"],
-    [1,  0, "16:00", "藤田 翔",   "090-5517-8206", "cancelled", "s2"],
-    [2,  1, "11:00", "岡田 美月", "080-3174-5690", "confirmed", "s2"],
-    [1,  1, "14:00", "近藤 悠真", "090-9028-4413", "pending",   "s1"],
-    [4,  1, "17:00", "佐々木 凛", "070-6651-2087", "pending",   "s3"],
-    [3,  2, "13:00", "西村 佳奈", "080-1937-7452", "confirmed", "s2"],
-    [1,  4, "10:00", "松本 健一", "090-7402-9861", "pending",   "s1"],
-    [2,  4, "15:00", "池田 彩花", "080-4268-1359", "pending",   "s3"],
-    [1,  6, "12:00", "森田 直樹", "070-3591-8042", "pending",   "s2"]
+    // [menu_id, 日付オフセット, 時間, 名前, ステータス, 担当スタッフID]
+    // --- 過去分（来店済み） ---
+    [2, -9, "11:00", "中村 葵",   "visited", "s1"],
+    [1, -9, "10:00", "木村 颯太", "visited", "s2"],
+    [1, -9, "13:00", "林 真由美", "visited", "s3"],
+    [1, -7, "10:00", "清水 大輝", "visited", "s1"],
+    [2, -7, "12:00", "山本 さくら", "visited", "s2"],
+    [4, -7, "16:00", "井上 蓮",   "visited", "s3"],
+    [3, -5, "13:00", "渡辺 千尋", "visited", "s1"],
+    [1, -5, "11:00", "山口 拓海", "visited", "s2"],
+    [5, -5, "10:00", "中島 梨乃", "visited", "s3"],
+    [1, -5, "16:00", "小川 裕子", "visited", "s1"],
+    [2, -3, "11:00", "藤田 翔",   "visited", "s1"],
+    [1, -3, "14:00", "岡田 美月", "visited", "s2"],
+    [1, -3, "12:00", "近藤 悠真", "visited", "s3"],
+    [5, -3, "10:00", "佐々木 凛", "visited", "s2"],
+    [1, -2, "10:00", "西村 佳奈", "visited", "s1"],
+    [2, -2, "13:00", "松本 健一", "visited", "s2"],
+    [2, -1, "11:00", "池田 彩花", "visited", "s1"],
+    [1, -1, "15:00", "森田 直樹", "visited", "s3"],
+    [4, -1, "17:00", "高橋 健",   "cancelled", "s2"],
+    // --- 当日 ---
+    [1,  0, "10:00", "田村 美咲", "confirmed", "s2"],
+    [5,  0, "10:00", "大野 翔太", "confirmed", "s3"],
+    [2,  0, "11:00", "加藤 梨沙", "confirmed", "s1"],
+    [1,  0, "12:00", "鈴木 大地", "confirmed", "s2"],
+    [2,  0, "13:00", "伊藤 葵",   "pending",   "s3"],
+    [3,  0, "14:00", "山田 裕子", "confirmed", "s1"],
+    [1,  0, "16:00", "中野 翔",   "pending",   "s3"],
+    [1,  0, "16:00", "小林 蓮",   "cancelled", "s2"],
+    // --- 未来分 ---
+    [1,  1, "10:00", "吉田 恵",   "confirmed", "s1"],
+    [2,  1, "11:00", "斎藤 颯",   "confirmed", "s2"],
+    [1,  1, "12:00", "石井 美優", "pending",   "s3"],
+    [1,  1, "14:00", "橋本 悠真", "pending",   "s1"],
+    [4,  1, "17:00", "村上 凛",   "pending",   "s3"],
+    [1,  2, "11:00", "青山 大輔", "pending",   "s1"],
+    [3,  2, "13:00", "長谷川 佳奈", "confirmed", "s2"],
+    [2,  3, "12:00", "福田 健一", "pending",   "s1"],
+    [1,  3, "10:00", "大塚 彩",   "pending",   "s3"],
+    [4,  3, "15:00", "金子 翔太", "pending",   "s2"],
+    [2,  5, "11:00", "三浦 千尋", "confirmed", "s3"],
+    [1,  5, "13:00", "原田 拓海", "pending",   "s1"],
+    [5,  5, "10:00", "松田 梨乃", "pending",   "s2"],
+    [1,  6, "12:00", "竹内 直樹", "pending",   "s2"],
+    [2,  8, "10:00", "内田 葵",   "pending",   "s1"],
+    [1,  8, "14:00", "今井 美月", "pending",   "s3"],
+    [1, 10, "11:00", "平野 悠",   "pending",   "s2"],
+    [2, 10, "15:00", "川口 彩花", "pending",   "s1"],
+    [3, 13, "12:00", "坂本 凛",   "pending",   "s3"],
+    [1, 13, "10:00", "西山 健太", "pending",   "s1"],
+    [2, 15, "13:00", "東 さくら", "pending",   "s2"],
+    [1, 18, "11:00", "北村 大輝", "pending",   "s1"],
+    [4, 18, "16:00", "南 優子",   "pending",   "s3"]
   ];
-  for (const [menuId, off, time, name, contact, status, staffId] of samples){
+  for (const [menuId, off, time, name, status, staffId] of samples){
+    const contact = "090-0000-" + String(1000 + id);
     list.push({id: id++, menuId, date: fmtDate(addDays(TODAY, off)), time, name, contact, status, staffId});
   }
   return {bookings: list, nextId: id};
@@ -300,33 +338,75 @@ let bookings, nextId;
 })();
 
 // ===== コアロジック =====
-function staffBusy(dateStr, time, staffId){
-  return bookings.some(b => b.date === dateStr && b.time === time && b.status !== "cancelled" && b.staffId === staffId);
+// 競合判定は「開始時刻の一致」ではなく、メニューの所要時間（開始〜終了）の重なりで行う。
+function timeToMin(t){
+  const p = String(t).split(":");
+  return Number(p[0]) * 60 + Number(p[1] || 0);
 }
-function freeStaff(dateStr, time){
-  return STAFF.filter(s => !staffBusy(dateStr, time, s.id));
+function menuById(id){ return MENUS.find(x => x.id === id) || null; }
+function bookingRange(b){
+  const start = timeToMin(b.time);
+  const m = menuById(b.menuId);
+  return { start: start, end: start + (m ? m.duration : 60) };
 }
-function slotTaken(dateStr, time){
-  // 全スタッフの手が埋まっている枠だけを「満枠」とする
-  return freeStaff(dateStr, time).length === 0;
+function rangesOverlap(aStart, aEnd, bStart, bEnd){
+  return aStart < bEnd && bStart < aEnd;
+}
+// 指定スタッフが、その日に [time, time+durMin) と重なる予約を持っているか
+function staffBusy(dateStr, time, staffId, durMin){
+  const start = timeToMin(time), end = start + (durMin || 60);
+  return bookings.some(b => {
+    if (b.date !== dateStr || b.status === "cancelled" || b.staffId !== staffId) return false;
+    const r = bookingRange(b);
+    return rangesOverlap(start, end, r.start, r.end);
+  });
+}
+// 指定スタッフの予約が、その枠（開始時刻）にかかっているか（1日の占有表示用）
+function staffCoversSlot(dateStr, slot, staffId){
+  const s = timeToMin(slot);
+  return bookings.some(b => {
+    if (b.date !== dateStr || b.status === "cancelled" || b.staffId !== staffId) return false;
+    const r = bookingRange(b);
+    return r.start <= s && s < r.end;
+  });
+}
+function freeStaff(dateStr, time, durMin){
+  return STAFF.filter(s => !staffBusy(dateStr, time, s.id, durMin));
+}
+function slotTaken(dateStr, time, durMin){
+  // 全スタッフの手が所要時間ぶん埋まっている枠だけを「満枠」とする
+  return freeStaff(dateStr, time, durMin).length === 0;
 }
 function dayCapacity(){ return SLOTS.length * STAFF.length; }
-function dayBookedCount(dateStr){
-  return bookings.filter(b => b.date === dateStr && b.status !== "cancelled").length;
+// その日に埋まっている枠数（所要時間ぶんを数える。キャンセルは除く）
+function dayOccupiedCount(dateStr){
+  let n = 0;
+  for (const st of STAFF){
+    n += SLOTS.filter(slot => staffCoversSlot(dateStr, slot, st.id)).length;
+  }
+  return Math.min(n, dayCapacity());
 }
-function availableSlots(dateStr, staffId){
-  if (staffId) return SLOTS.filter(s => !staffBusy(dateStr, s, staffId));
-  return SLOTS.filter(s => !slotTaken(dateStr, s));
+function availableSlots(dateStr, staffId, durMin){
+  if (staffId) return SLOTS.filter(s => !staffBusy(dateStr, s, staffId, durMin));
+  return SLOTS.filter(s => !slotTaken(dateStr, s, durMin));
 }
 function createBooking(menuId, dateStr, time, name, contact, staffId){
+  const menu = menuById(menuId);
+  if (!menu) throw new Error("メニューの指定が不正です");
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || isNaN(new Date(dateStr + "T00:00:00").getTime())){
+    throw new Error("日付を選んでください");
+  }
+  if (dateStr < fmtDate(new Date())) throw new Error("過去の日付には予約できません。今日以降の日付をお選びください");
   if (!SLOTS.includes(time)) throw new Error("時間枠が不正です");
   if (!name.trim()) throw new Error("お名前を入力してください");
+  if (!contact.trim()) throw new Error("連絡先を入力してください（確定のご連絡に必要です）");
+  const dur = menu.duration;
   let assigned = staffId || "";
   if (assigned){
     if (!STAFF.some(s => s.id === assigned)) throw new Error("スタッフの指定が不正です");
-    if (staffBusy(dateStr, time, assigned)) throw new Error("その時間は " + staffName(assigned) + " の予約が入っています。別の時間か「おまかせ」をお選びください");
+    if (staffBusy(dateStr, time, assigned, dur)) throw new Error("その時間は " + staffName(assigned) + " の予約と重なっています（所要時間 " + dur + " 分）。別の時間か「おまかせ」をお選びください");
   } else {
-    const free = freeStaff(dateStr, time);
+    const free = freeStaff(dateStr, time, dur);
     if (!free.length) throw new Error("その時間枠は全スタッフ満員です");
     assigned = free[0].id;
   }
@@ -372,7 +452,7 @@ function renderCalendar(){
   for (let i = 0; i < startDay; i++) h += '<div class="cal-blank"></div>';
   for (let d = 1; d <= daysInMonth; d++){
     const iso = fmtDate(new Date(calYear, calMonth, d));
-    const n = dayBookedCount(iso);
+    const n = dayOccupiedCount(iso);
     const pct = Math.round(n / cap * 100);
     const cls = "cal-day" + (iso === selected ? " sel" : "") + (iso === todayStr ? " today" : "") + (n >= cap ? " full" : "");
     const cnt = n >= cap ? n + "/" + cap + " 満枠" : n + "/" + cap + "件";
@@ -393,51 +473,59 @@ function onPickDay(iso){
 function renderCustomer(){
   const dateStr = $("cust-date").value;
   const filterStaff = $("cust-staff").value;
+  // 空き判定は、予約フォームで選ばれているメニューの所要時間ぶんで行う
+  const menu = menuById(parseInt($("book-menu").value, 10));
+  const dur = menu ? menu.duration : 60;
   $("cust-date-label").textContent = dateLabel(dateStr) + (filterStaff ? "（" + staffName(filterStaff) + "の空き）" : "");
   // 枠ごとの状況：空きはボタン（タップで選択）、満枠はグレー表示
   const prev = $("book-time").value;
   $("cust-slots").innerHTML = SLOTS.map(s => {
     if (filterStaff){
-      if (staffBusy(dateStr, s, filterStaff)){
+      if (staffBusy(dateStr, s, filterStaff, dur)){
         return '<span class="slot full"><span class="tm">' + s + '</span> 済</span>';
       }
       return '<button type="button" class="slot open' + (s === prev ? " sel" : "") + '" onclick="onPickSlot(\'' + s + '\')">' + s + ' 空き</button>';
     }
-    const free = freeStaff(dateStr, s);
+    const free = freeStaff(dateStr, s, dur);
     if (!free.length){
       return '<span class="slot full"><span class="tm">' + s + '</span> 満</span>';
     }
     return '<button type="button" class="slot open' + (s === prev ? " sel" : "") + '" onclick="onPickSlot(\'' + s + '\')">' + s + ' <span class="cap">残り' + free.length + "名分</span></button>";
   }).join("");
-  // 1日の埋まり具合バー（枠ごとに、全スタッフ満員なら濃色、一部埋まりなら薄色）
+  // 1日の埋まり具合バー（枠ごとに、その枠にかかるスタッフ数で濃淡を付ける）
   $("cust-daybar").innerHTML = SLOTS.map(s => {
-    if (filterStaff) return '<i class="' + (staffBusy(dateStr, s, filterStaff) ? "on" : "") + '"></i>';
-    const free = freeStaff(dateStr, s).length;
-    const cls = free === 0 ? "on" : (free < STAFF.length ? "half" : "");
+    if (filterStaff) return '<i class="' + (staffCoversSlot(dateStr, s, filterStaff) ? "on" : "") + '"></i>';
+    const busyCount = STAFF.filter(st => staffCoversSlot(dateStr, s, st.id)).length;
+    const cls = busyCount === STAFF.length ? "on" : (busyCount > 0 ? "half" : "");
     return '<i class="' + cls + '"></i>';
   }).join("");
   if (filterStaff){
-    const taken = SLOTS.filter(s => staffBusy(dateStr, s, filterStaff)).length;
+    const taken = SLOTS.filter(s => staffCoversSlot(dateStr, s, filterStaff)).length;
     $("cust-daysum").innerHTML = taken === SLOTS.length
-      ? "<b>" + staffName(filterStaff) + " はこの日すべての枠がうまっています。</b>"
+      ? "<b>" + staffName(filterStaff) + " はこの日すべての枠が埋まっています。</b>"
       : staffName(filterStaff) + "：8枠中 <b>" + taken + "枠</b> が予約済み ・ 残り <b>" + (SLOTS.length - taken) + "枠</b> 空いています";
   } else {
-    const booked = dayBookedCount(dateStr), cap = dayCapacity();
+    const booked = dayOccupiedCount(dateStr), cap = dayCapacity();
     $("cust-daysum").innerHTML = booked >= cap
       ? "<b>この日は全スタッフ満員です。</b>別の日をご覧ください。"
       : "全スタッフ合計 " + cap + "枠中 <b>" + booked + "枠</b> が予約済み ・ 残り <b>" + (cap - booked) + "枠</b> 空いています";
   }
-  // 予約フォームの日付・時間も連動（時間の候補は担当スタッフの選択に合わせる）
+  // 予約フォームの日付・時間も連動（時間の候補は担当スタッフとメニューの所要時間に合わせる）
   $("book-date").value = dateStr;
-  const slots = availableSlots(dateStr, $("book-staff").value || "");
+  const slots = availableSlots(dateStr, $("book-staff").value || "", dur);
   $("book-time").innerHTML = slots.map(s => '<option value="' + s + '">' + s + "</option>").join("");
   if (slots.includes(prev)) $("book-time").value = prev;
   renderCalendar();
 }
 function onPickSlot(time){
-  $("book-time").value = time;
+  // 空き枠チップと予約フォームで状態が食い違わないよう、
+  // チップ側の日付・スタッフ絞り込みをフォーム側へ確実に反映してから時間を入れる
+  const filterStaff = $("cust-staff").value;
+  $("book-date").value = $("cust-date").value;
+  if (filterStaff) $("book-staff").value = filterStaff;
   renderCustomer();
-  $("book-time").value = time;
+  const opts = Array.prototype.map.call($("book-time").options, o => o.value);
+  if (opts.includes(time)) $("book-time").value = time;
 }
 function renderAdmin(){
   const dateStr = $("admin-date").value;
@@ -453,10 +541,13 @@ function renderAdmin(){
         nexts.map(s => '<option value="' + s + '">' + STATUS_LABEL[s] + "</option>").join("") +
         '</select><button class="small" type="button" onclick="onChangeStatus(' + b.id + ')">変更</button></span>'
       : "（終了）";
+    // リマインド文面は、未実施（仮予約・確定）で日付が今日以降の予約にだけ出す
+    const canRemind = (b.status === "pending" || b.status === "confirmed") && b.date >= fmtDate(TODAY);
+    const remindBtn = canRemind ? ' <button class="sub" type="button" onclick="onShowReminder(' + b.id + ')">リマインド文面</button>' : "";
     return "<tr><td>" + b.time + "</td><td>" + esc(b.name) + "</td><td>" + esc(menuName(b.menuId)) +
       "</td><td>" + esc(staffName(b.staffId)) + "</td><td>" + esc(b.contact) + "</td>" +
       '<td><span class="badge st-' + b.status + '">' + STATUS_LABEL[b.status] + "</span></td>" +
-      "<td>" + action + ' <button class="sub" type="button" onclick="onShowReminder(' + b.id + ')">リマインド文面</button></td></tr>';
+      "<td>" + action + remindBtn + "</td></tr>";
   }).join("");
 }
 function showMsg(elId, text, isErr){
@@ -480,6 +571,7 @@ $("cust-date").addEventListener("change", () => {
 });
 $("cust-staff").addEventListener("change", renderCustomer);
 $("book-staff").addEventListener("change", renderCustomer);
+$("book-menu").addEventListener("change", renderCustomer);
 $("book-date").addEventListener("change", () => { $("cust-date").value = $("book-date").value; renderCustomer(); });
 $("admin-date").addEventListener("change", renderAdmin);
 $("cal-prev").addEventListener("click", () => { calMonth--; if (calMonth < 0){ calMonth = 11; calYear--; } renderCalendar(); });
@@ -497,7 +589,10 @@ $("book-submit").addEventListener("click", () => {
     );
     showMsg("book-result", "ご予約を受け付けました（受付番号：" + b.id + "／日時：" + b.date + " " + b.time + "〜／担当：" + staffName(b.staffId) + "）。店舗からの確定連絡をお待ちください。（このデモではメール送信は行いません）管理画面タブで予約が追加されている様子を確認できます。", false);
     $("book-name").value = ""; $("book-contact").value = "";
+    // 管理画面の日付表示を予約日に同期させ、案内文通りにそのまま確認できるようにする
+    $("admin-date").value = b.date;
     renderCustomer();
+    renderAdmin();
   } catch (e) {
     showMsg("book-result", e.message, true);
   }

@@ -26,6 +26,10 @@
   .tooldesc{color:var(--muted);font-size:12.5px;line-height:1.6;margin:0 0 12px}
   .draftbar{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f1eee3;border:1px solid var(--teal);color:var(--navy);border-radius:8px;padding:8px 12px;font-size:13px;margin:0 0 14px}
   .draftbar[hidden]{display:none}
+  .printwarn{background:#fdf0ee;border:1px solid #c0392b;color:#8f2a20;border-radius:8px;padding:8px 12px;font-size:13px;margin:0 0 14px}
+  .printwarn[hidden]{display:none}
+  .histmsg{color:var(--teal);font-size:13px;margin:0 0 8px}
+  .histmsg:empty{display:none}
   .draftbar button{flex:none;border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;padding:6px 11px;font-weight:700;cursor:pointer;font-size:12.5px;font-family:inherit}
   @media (max-width:600px){.draftbar{flex-direction:column;align-items:flex-start}}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
@@ -39,7 +43,8 @@
   input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
   textarea{resize:vertical;min-height:44px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  table.items{width:100%;border-collapse:collapse;margin-top:4px}
+  .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.items{width:100%;min-width:560px;border-collapse:collapse;margin-top:4px}
   table.items th{font-size:11.5px;color:var(--muted);text-align:left;padding:5px 6px;background:#f3f0e8;border-top:1px solid var(--line);border-bottom:2px solid #cfc8b4}
   table.items td{padding:3px 4px;border-bottom:1px solid #eae5d8;vertical-align:top}
   table.items input,table.items select{padding:5px 6px;font-size:13px;border-radius:4px}
@@ -60,7 +65,7 @@
   .ab-clear{background:transparent;color:#e6efe9;border:1px solid rgba(255,255,255,.5);border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;white-space:nowrap}
   @media (max-width:600px){
     .actionbar{position:fixed;left:0;right:0;bottom:0;border-radius:0;margin-top:0}
-    body{padding-bottom:84px}
+    body{padding-bottom:170px}
     input[type=text],input[type=number],input[type=date],select,textarea{font-size:16px}
     table.items input,table.items select{font-size:16px}
     .seg button{min-height:40px;padding:10px 14px}
@@ -147,6 +152,8 @@
 <div class="wrap">
   <p class="tooldesc">明細を書き換えると、帳票プレビューと下部の合計がその場で更新されます。書類番号は EST／INV の連番が自動で付きます（直接書き換えも可）。入力はこのブラウザに自動保存されます。</p>
 
+  <p class="printwarn" id="printWarn" hidden></p>
+
   <div class="draftbar" id="draftBar" hidden>
     <span>下書きを復元しました。前回このブラウザで入力した内容が残っています。</span>
     <button type="button" id="clearDraft">クリアして新規作成</button>
@@ -170,10 +177,12 @@
       <input type="text" id="fAddr" value="神奈川県横浜市港北区新横浜3-18-7 サンライズ新横浜 402号室">
 
       <div class="ph">明細</div>
+      <div class="tbl-scroll">
       <table class="items">
         <thead><tr><th style="width:34%">品名</th><th style="width:11%">数量</th><th style="width:19%">単価</th><th style="width:13%">税率</th><th style="width:15%;text-align:right">金額</th><th></th></tr></thead>
         <tbody id="itemBody"></tbody>
       </table>
+      </div>
       <button type="button" class="addbtn" id="addRow">＋ 明細行を追加</button>
       <div class="presets"><span class="plabel">よく使う品目：</span><span id="presetChips"></span></div>
       <datalist id="presetNames"></datalist>
@@ -184,8 +193,8 @@
       <textarea id="fBank">横浜みらい銀行 新横浜支店 普通 3048217
 口座名義：ウェブオートラボ</textarea>
       <label>備考</label>
-      <textarea id="fMemo">お支払い期限：発行日から30日以内に、上記口座へお振込みください。
-振込手数料は貴社ご負担にてお願いいたします。</textarea>
+      <textarea id="fMemo">本見積書の有効期限は、発行日から30日間です。
+金額はすべて税込表示です。</textarea>
     </div>
 
     <div>
@@ -196,6 +205,7 @@
   <div class="panel hist">
     <div class="ph">作成した帳票の履歴</div>
     <p class="note" style="margin:0 0 8px">いま表示している内容を残すには、下の操作バーの「履歴に保存」を押してください。保存した帳票は「呼び出す」で再表示でき、「複製」では書類番号を新しく採番して読み込めます。履歴はこのブラウザ内にのみ保存されます。</p>
+    <p class="histmsg" id="histMsg"></p>
     <div id="historyArea"></div>
   </div>
 
@@ -240,6 +250,13 @@ function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
 
 let docType = '見積書';
 let noAuto = true; // 書類番号が自動採番のまま（手入力されていない）かどうか
+// 備考のデフォルトは種別ごとに切り替える。見積書に振込・支払期限の文面は出さない
+const MEMO_BY_TYPE = {
+  '見積書': '本見積書の有効期限は、発行日から30日間です。\n金額はすべて税込表示です。',
+  '請求書': 'お支払い期限：発行日から30日以内に、上記口座へお振込みください。\n振込手数料は貴社ご負担にてお願いいたします。'
+};
+let memoAuto = true; // 備考がデフォルトのまま（利用者が書き換えていない）かどうか
+let baselineJson = ''; // 「編集中かどうか」の判定に使う、読み込み直後の状態スナップショット
 const DEFAULT_ITEMS = [
   {name:'請求書発行ツール改修（工数：6.5h）', qty:6.5, price:8000, rate:10},
   {name:'保守対応 11月分（問い合わせ対応・軽微な修正）', qty:1, price:30000, rate:10},
@@ -262,8 +279,18 @@ function defaultFields(){
     fTel: '045-000-2210',
     fAddr: '神奈川県横浜市港北区新横浜3-18-7 サンライズ新横浜 402号室',
     fBank: '横浜みらい銀行 新横浜支店 普通 3048217\n口座名義：ウェブオートラボ',
-    fMemo: 'お支払い期限：発行日から30日以内に、上記口座へお振込みください。\n振込手数料は貴社ご負担にてお願いいたします。'
+    fMemo: MEMO_BY_TYPE[docType] || MEMO_BY_TYPE['見積書']
   };
+}
+// 備考がデフォルトのままなら、種別に合わせてデフォルト文面へ差し替える
+function syncMemoToType(){
+  if (memoAuto) $('fMemo').value = MEMO_BY_TYPE[docType];
+}
+// 保存された備考がどちらのデフォルトとも一致すれば「デフォルトのまま」とみなす（旧形式の下書き対応）
+function inferMemoAuto(state){
+  if (state && typeof state.memoAuto === 'boolean') return state.memoAuto;
+  const m = state && state.fields ? state.fields.fMemo : null;
+  return m === MEMO_BY_TYPE['見積書'] || m === MEMO_BY_TYPE['請求書'];
 }
 function applyFields(f){
   FIELD_IDS.forEach(id => { if (typeof f[id] === 'string') $(id).value = f[id]; });
@@ -289,7 +316,7 @@ function nextDocNumber(){
 function collectState(){
   const fields = {};
   FIELD_IDS.forEach(id => { fields[id] = $(id).value; });
-  return {docType: docType, noAuto: noAuto, fields: fields, items: items};
+  return {docType: docType, noAuto: noAuto, memoAuto: memoAuto, fields: fields, items: items};
 }
 function saveDraft(){ lsSet(LS_DRAFT, JSON.stringify(collectState())); }
 function loadDraft(){
@@ -299,10 +326,16 @@ function loadDraft(){
   } catch(e){ return null; }
 }
 
+function clampNonNeg(v){
+  const n = Number(v);
+  return isNaN(n) ? 0 : Math.max(0, n);
+}
+// 行金額は行ごとに円単位へ丸め、その丸めた金額を合算する（表示された行の合計＝小計になる）
+function lineAmt(it){ return Math.round(clampNonNeg(it.qty) * clampNonNeg(it.price)); }
 function calcTotals(list){
   let sub10 = 0, sub8 = 0;
   for (const it of list){
-    const amt = (Number(it.qty) || 0) * (Number(it.price) || 0);
+    const amt = lineAmt(it);
     if (it.rate === 8) sub8 += amt; else sub10 += amt;
   }
   const tax10 = Math.floor(sub10 * 0.10);
@@ -310,7 +343,6 @@ function calcTotals(list){
   return {sub10, sub8, tax10, tax8, total: sub10 + sub8 + tax10 + tax8};
 }
 function yen(n){ return '¥' + Math.round(n).toLocaleString('ja-JP'); }
-function lineAmt(it){ return (Number(it.qty) || 0) * (Number(it.price) || 0); }
 
 const $ = id => document.getElementById(id);
 
@@ -330,11 +362,16 @@ function renderItems(){
       el.addEventListener('input', () => {
         const f = el.getAttribute('data-f');
         if (f === 'name') items[i].name = el.value;
-        else if (f === 'qty') items[i].qty = Number(el.value);
-        else if (f === 'price') items[i].price = Number(el.value);
+        else if (f === 'qty') items[i].qty = clampNonNeg(el.value);
+        else if (f === 'price') items[i].price = clampNonNeg(el.value);
         else if (f === 'rate') items[i].rate = Number(el.value);
         renderTotals(); renderSheet(); saveDraft();
         tr.querySelector('.amt').textContent = yen(lineAmt(items[i]));
+      });
+      el.addEventListener('change', () => {
+        // 負数を入力したまま離れたら、表示側も0にそろえる
+        const f = el.getAttribute('data-f');
+        if ((f === 'qty' || f === 'price') && Number(el.value) < 0) el.value = 0;
       });
     });
     const nameEl = tr.querySelector('input[data-f="name"]');
@@ -375,6 +412,16 @@ function fmtDate(v){
 function renderSheet(){
   const t = calcTotals(items);
   $('barMeta').textContent = docType + '　No. ' + $('fNo').value;
+  const missing = [];
+  if (!$('fDate').value) missing.push('発行日');
+  if (!$('fNo').value.trim()) missing.push('書類番号');
+  const warn = $('printWarn');
+  if (missing.length){
+    warn.textContent = '⚠ ' + missing.join('・') + 'が未入力です。このまま印刷すると、帳票の該当欄が空白になります。';
+    warn.hidden = false;
+  } else {
+    warn.hidden = true;
+  }
   let rows = '';
   for (const it of items){
     rows += '<tr><td>' + escapeHtml(it.name) + '</td><td class="r">' + (Number(it.qty) || 0) + '</td><td class="r">' + yen(Number(it.price) || 0) + '</td><td class="r">' + it.rate + '%</td><td class="r">' + yen(lineAmt(it)) + '</td></tr>';
@@ -403,15 +450,28 @@ function renderSheet(){
 function setType(t){
   if (t !== docType){
     docType = t;
-    if (noAuto) $('fNo').value = nextDocNumber();
+    if (noAuto){
+      $('fNo').value = nextDocNumber();
+    } else {
+      // 自動採番の形式（EST-/INV-＋年月＋連番）のままなら、接頭辞だけ種別に追随させる
+      const m = /^(EST|INV)-(\d{6}-\d{3})$/.exec($('fNo').value.trim());
+      if (m) $('fNo').value = docPrefix() + '-' + m[2];
+    }
+    syncMemoToType();
   }
   $('segQuote').classList.toggle('on', docType === '見積書');
   $('segInvoice').classList.toggle('on', docType === '請求書');
   renderSheet(); saveDraft();
 }
+function isDirty(){
+  if (!baselineJson) return false;
+  try { return JSON.stringify(collectState()) !== baselineJson; } catch(e){ return false; }
+}
 function startNew(){
+  if (isDirty() && !confirm('入力中の内容を消して、新規作成の初期状態に戻します。よろしいですか？')) return;
   lsDel(LS_DRAFT);
   docType = '見積書';
+  memoAuto = true;
   items = DEFAULT_ITEMS.map(it => ({...it}));
   applyFields(defaultFields());
   noAuto = true;
@@ -419,7 +479,9 @@ function startNew(){
   $('segQuote').classList.toggle('on', true);
   $('segInvoice').classList.toggle('on', false);
   $('draftBar').hidden = true;
-  renderItems(); renderTotals(); renderSheet(); saveDraft();
+  renderItems(); renderTotals(); renderSheet();
+  // 初期状態そのものは下書きとして保存しない（次回「復元しました」と誤表示しないため）
+  baselineJson = JSON.stringify(collectState());
 }
 // ---- 作成した帳票の履歴 ----
 function loadHistory(){
@@ -432,8 +494,8 @@ function saveHistoryList(a){ lsSet(LS_HISTORY, JSON.stringify(a)); }
 function sanitizeItems(list){
   return (Array.isArray(list) ? list : []).map(it => ({
     name: String((it && it.name) || ''),
-    qty: Number(it && it.qty) || 0,
-    price: Number(it && it.price) || 0,
+    qty: clampNonNeg(it && it.qty),
+    price: clampNonNeg(it && it.price),
     rate: Number(it && it.rate) === 8 ? 8 : 10
   }));
 }
@@ -459,8 +521,10 @@ function addToHistory(){
 function applyDoc(state, duplicate){
   if (!state || !state.fields) return;
   docType = state.docType === '請求書' ? '請求書' : '見積書';
+  memoAuto = inferMemoAuto(state);
   items = sanitizeItems(state.items);
   applyFields(state.fields);
+  syncMemoToType();
   if (duplicate){
     noAuto = true;
     $('fNo').value = nextDocNumber();
@@ -471,6 +535,7 @@ function applyDoc(state, duplicate){
   $('segInvoice').classList.toggle('on', docType === '請求書');
   $('draftBar').hidden = true;
   renderItems(); renderTotals(); renderSheet(); saveDraft();
+  baselineJson = JSON.stringify(collectState());
 }
 function fmtDateTime(isoStr){
   const d = new Date(isoStr);
@@ -499,11 +564,16 @@ function renderHistory(){
       if (!e) return;
       const act = btn.getAttribute('data-hact');
       if (act === 'del'){
+        if (!confirm('この履歴（' + (e.no || '番号なし') + '）を削除します。よろしいですか？')) return;
         list.splice(Number(btn.getAttribute('data-hi')), 1);
         saveHistoryList(list);
         renderHistory();
+        $('histMsg').textContent = '履歴を削除しました。';
       } else if (e.state){
+        if (isDirty() && !confirm('編集中の内容は、履歴の内容で上書きされます。よろしいですか？')) return;
         applyDoc(e.state, act === 'dup');
+        $('histMsg').textContent = (act === 'dup' ? '履歴を複製して読み込みました' : '履歴から呼び出しました') + '（' + docType + '　No. ' + $('fNo').value + '）。帳票プレビューに反映されています。';
+        window.scrollTo({top: 0, behavior: 'smooth'});
       }
     });
   });
@@ -540,6 +610,7 @@ $('clearBtn2').addEventListener('click', startNew);
 FIELD_IDS.forEach(id => {
   $(id).addEventListener('input', () => {
     if (id === 'fNo') noAuto = false;
+    if (id === 'fMemo') memoAuto = false;
     if (id === 'fDate' && noAuto){
       const m = /^(EST|INV)-(\d{6})-\d{3}$/.exec($('fNo').value);
       if (m && m[2] !== ymOf($('fDate').value)) $('fNo').value = nextDocNumber();
@@ -547,29 +618,51 @@ FIELD_IDS.forEach(id => {
     renderSheet(); saveDraft();
   });
 });
+// 下書きが「何も入力していない初期状態」と実質同じかどうか（旧バージョンが初回表示で自動保存した下書き対策）
+function isPristineDraft(draft){
+  if (!draft || draft.docType !== '見積書') return false;
+  const def = defaultFields();
+  for (const id of FIELD_IDS){
+    if (id === 'fNo' || id === 'fDate') continue; // 採番・日付は開くたびに変わりうるので比較対象外
+    if (id === 'fMemo' && inferMemoAuto(draft)) continue; // 備考がデフォルトのままなら種別側の文面と同一視する
+    if (String(draft.fields[id] || '') !== String(def[id] || '')) return false;
+  }
+  const di = draft.items || [];
+  if (di.length !== DEFAULT_ITEMS.length) return false;
+  for (let i = 0; i < di.length; i++){
+    const a = di[i], b = DEFAULT_ITEMS[i];
+    if (String(a.name || '') !== b.name || (Number(a.qty) || 0) !== b.qty ||
+        (Number(a.price) || 0) !== b.price || (Number(a.rate) === 8 ? 8 : 10) !== b.rate) return false;
+  }
+  return true;
+}
 (function init(){
   const draft = loadDraft();
   if (draft){
     docType = draft.docType === '請求書' ? '請求書' : '見積書';
     noAuto = draft.noAuto !== false;
+    memoAuto = inferMemoAuto(draft);
     items = draft.items.map(it => ({
       name: String(it.name || ''),
-      qty: Number(it.qty) || 0,
-      price: Number(it.price) || 0,
+      qty: clampNonNeg(it.qty),
+      price: clampNonNeg(it.price),
       rate: Number(it.rate) === 8 ? 8 : 10
     }));
     applyFields(draft.fields);
-    $('draftBar').hidden = false;
+    syncMemoToType();
+    // 実際に編集された下書きのときだけ「復元しました」を出す
+    $('draftBar').hidden = isPristineDraft(draft);
   } else {
     applyFields(defaultFields());
     noAuto = true;
+    memoAuto = true;
     $('fNo').value = nextDocNumber();
   }
   $('segQuote').classList.toggle('on', docType === '見積書');
   $('segInvoice').classList.toggle('on', docType === '請求書');
   renderItems(); renderTotals(); renderSheet();
   renderPresetChips(); renderHistory();
-  if (!draft) saveDraft();
+  baselineJson = JSON.stringify(collectState());
 })();
 </script>
 </body>

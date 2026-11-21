@@ -112,7 +112,7 @@
     </div>
   </div>
 
-  <p class="note">※ 抽出と要約は、キーワードと文のパターンで判定する「ルールベース」方式で行っています（外部のAIには接続していません）。貼り付けたテキストはブラウザの中だけで処理され、外部に送信されることはありません。そのため、言い回しによっては拾いきれないものもあります。実際の業務で使う場合は、AI（LLM）と組み合わせて、あいまいな言い回しや前後の文脈も踏まえた抽出・要約に精度を上げる構成にできます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にどうぞ。</p>
+  <p class="note">※ 抽出と要約は、キーワードと文のパターンで判定する「ルールベース」方式で行っています（外部のAIには接続していません）。貼り付けたテキストはブラウザの中だけで処理され、外部に送信されることはありません。入力した内容と抽出結果は、このブラウザのlocalStorageに保存されるため、リロードしても残ります（消したいときは「クリア」を押してください）。そのため、言い回しによっては拾いきれないものもあります。実際の業務で使う場合は、AI（LLM）と組み合わせて、あいまいな言い回しや前後の文脈も踏まえた抽出・要約に精度を上げる構成にできます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にどうぞ。</p>
 </div>
 <footer class="brandfoot">
   <div class="brandfoot-in">
@@ -167,10 +167,72 @@ const SAMPLE2_TEXT = [
 "次回は12月2日14時から。北川さんは、試飲会の日程候補を12月2日までに共有する。"
 ].join("\n");
 
-const DECISION_KEYS = ["決定", "決まった", "決まりました", "することにした", "することになりました", "ことにした", "合意した", "合意しました", "承認された", "承認しました", "採用すること", "方針とした"];
+const DECISION_KEYS = ["決定", "決まった", "決まりました", "することにした", "することになりました", "ことにした", "合意した", "合意しました", "承認された", "承認しました", "採用すること", "方針とした", "持ち越し", "見送り", "延期"];
+// 「決定事項として記録する」のような、記録行為そのものに触れただけの文は決定にしない
+const META_DECISION_RE = /(決定事項|決まったこと|決定したこと)として記録/;
 const DEADLINE_RE = /(\d{1,2}月\d{1,2}日|\d{1,2}\/\d{1,2}|来週[月火水木金土日]曜(?:日)?|今週[月火水木金土日]曜(?:日)?|今週中|来週中|今月中|月末|週明け|明日|明後日|本日中|今日中)/;
-const ASK_KEYS = ["お願い", "担当", "宿題", "アクション", "やること", "TODO", "ToDo"];
+const ASK_KEYS = ["お願い", "担当", "宿題", "アクション", "やること", "TODO", "ToDo", "ください", "下さい"];
 const ACTION_RE = /(作成|用意|準備|更新|提出|連絡|確認|手配|送付|発注|調査|共有|設定)(する|します|して|すること|し)/;
+
+// ===== 日付ユーティリティ（期限の相対表現を絶対日付に換算する） =====
+function addDaysD(base, n){ return new Date(base.getFullYear(), base.getMonth(), base.getDate() + n); }
+function toISODate(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+const WD_NUM = { "日": 0, "月": 1, "火": 2, "水": 3, "木": 4, "金": 5, "土": 6 };
+
+// 会議日は、メモの冒頭などにある最初の「◯月◯日」を会議開催日とみなす（無ければ今日）
+function parseMeetingDate(text){
+  const today = new Date();
+  const m = text.match(/(\d{1,2})月(\d{1,2})日/);
+  if (!m) return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  let d = new Date(today.getFullYear(), +m[1] - 1, +m[2]);
+  const DAY = 86400000;
+  if (d - today > 180 * DAY) d = new Date(today.getFullYear() - 1, +m[1] - 1, +m[2]);
+  else if (today - d > 180 * DAY) d = new Date(today.getFullYear() + 1, +m[1] - 1, +m[2]);
+  return d;
+}
+
+// 期限表現を会議日基準の絶対日付に換算する（換算できなければ null）
+function resolveDeadline(expr, base){
+  if (!expr || !base) return null;
+  let m = expr.match(/(\d{1,2})月(\d{1,2})日/) || expr.match(/(\d{1,2})\/(\d{1,2})/);
+  if (m){
+    let d = new Date(base.getFullYear(), +m[1] - 1, +m[2]);
+    if (d < base) d = new Date(base.getFullYear() + 1, +m[1] - 1, +m[2]); // 年をまたぐ場合は翌年
+    return d;
+  }
+  if (expr === "今日中" || expr === "本日中") return new Date(base.getFullYear(), base.getMonth(), base.getDate());
+  if (expr === "明日") return addDaysD(base, 1);
+  if (expr === "明後日") return addDaysD(base, 2);
+  if (expr === "今週中") return addDaysD(base, (7 - base.getDay()) % 7); // その週の日曜（週末）
+  if (expr === "来週中") return addDaysD(base, ((7 - base.getDay()) % 7) + 7);
+  if (expr === "今月中" || expr === "月末") return new Date(base.getFullYear(), base.getMonth() + 1, 0);
+  if (expr === "週明け"){ const add = ((8 - base.getDay()) % 7) || 7; return addDaysD(base, add); }
+  m = expr.match(/(今週|来週)([月火水木金土日])曜/);
+  if (m){
+    // 今週X曜＝今日以降で最も近いその曜日、来週X曜＝翌週（日曜始まり）のその曜日
+    const add = m[1] === "来週"
+      ? 7 + WD_NUM[m[2]] - base.getDay()
+      : (WD_NUM[m[2]] - base.getDay() + 7) % 7;
+    return addDaysD(base, add);
+  }
+  return null;
+}
+
+// サンプル文の日付を「会議日＝昨日」になるようずらして、開いた日に応じて古くならない形にする
+function shiftSampleDates(text, baseMonth, baseDay){
+  const today = new Date();
+  const today0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const newMeeting = addDaysD(today0, -1);
+  let baseMeeting = new Date(today.getFullYear(), baseMonth - 1, baseDay);
+  if (baseMeeting - today0 > 60 * 86400000) baseMeeting = new Date(today.getFullYear() - 1, baseMonth - 1, baseDay);
+  return text.replace(/(\d{1,2})月(\d{1,2})日/g, (m0, mo, da) => {
+    let d = new Date(baseMeeting.getFullYear(), +mo - 1, +da);
+    if (d - baseMeeting < -150 * 86400000) d = new Date(baseMeeting.getFullYear() + 1, +mo - 1, +da); // 年明け側の日付
+    const diff = Math.round((d - baseMeeting) / 86400000);
+    const nd = addDaysD(newMeeting, diff);
+    return (nd.getMonth() + 1) + "月" + nd.getDate() + "日";
+  });
+}
 
 function splitSentences(text){
   const out = [];
@@ -190,6 +252,7 @@ function splitSentences(text){
 }
 
 function isDecision(s){
+  if (META_DECISION_RE.test(s)) return false;
   return DECISION_KEYS.some(k => s.includes(k));
 }
 
@@ -198,10 +261,11 @@ function findDeadline(s){
   return m ? m[1] : "";
 }
 
-function parseTodo(s){
+function parseTodo(s, meetingDate){
   const nameM = s.match(/([一-龥ぁ-んァ-ヶー]{1,5})さん/);
   const hasName = !!nameM;
   const deadline = findDeadline(s);
+  const resolved = deadline ? resolveDeadline(deadline, meetingDate) : null;
   const hasAsk = ASK_KEYS.some(k => s.includes(k));
   const hasAction = ACTION_RE.test(s);
   const isT = (hasName && (!!deadline || hasAsk || hasAction)) || (hasAsk && !!deadline) || (s.includes("期限") && hasAction);
@@ -220,18 +284,19 @@ function parseTodo(s){
     task = task.replace(deadline, "");
   }
   task = task.replace(/^[、,。\s]+/, "").replace(/[、,]\s*$/, "").replace(/。+$/, "").trim();
-  task = task.replace(/をお願いします$/, "").replace(/お願いします$/, "").replace(/を$/, "").trim();
+  task = task.replace(/をお願いします$/, "").replace(/お願いします$/, "").replace(/してください$/, "").replace(/下さい$/, "").replace(/を$/, "").trim();
   if (!task) task = s.replace(/。$/, "");
-  return { who: who, task: task, due: deadline || "（未定）" };
+  return { who: who, task: task, due: deadline || "（未定）", dueDate: resolved ? toISODate(resolved) : "" };
 }
 
 function extractAll(text){
+  const meetingDate = parseMeetingDate(text);
   const sentences = splitSentences(text);
   const decisions = [];
   const todos = [];
   for (const s of sentences){
     if (isDecision(s)) decisions.push(s);
-    const t = parseTodo(s);
+    const t = parseTodo(s, meetingDate);
     if (t) todos.push(t);
   }
   return { decisions: decisions, todos: todos };
@@ -247,19 +312,23 @@ function buildSummary(res, mode){
   }
   if (mode === "short") return s;
   if (tn){
-    const dated = res.todos.filter(t => /\d{1,2}月\d{1,2}日/.test(t.due));
+    // 直近の期限は、相対表現も含めて絶対日付（dueDate）に換算してから比較する
+    const dated = res.todos.filter(t => t.dueDate);
     let near = null;
     if (dated.length){
-      near = dated.slice().sort((a, b) => {
-        const pa = a.due.match(/(\d{1,2})月(\d{1,2})日/), pb = b.due.match(/(\d{1,2})月(\d{1,2})日/);
-        return (pa[1] * 100 + (+pa[2])) - (pb[1] * 100 + (+pb[2]));
-      })[0];
+      near = dated.slice().sort((a, b) => a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0)[0];
     } else {
       near = res.todos.find(t => t.due !== "（未定）") || res.todos[0];
     }
     if (near){
       const whoPart = near.who !== "（未指定）" ? near.who + "さん：" : "";
-      s += "直近の期限は" + near.due + "（" + whoPart + near.task + "）です。";
+      let dueDisp = near.due;
+      // 相対表現には、換算した日付を「＝◯月◯日」の形で添える
+      if (near.dueDate && !/^\d{1,2}月\d{1,2}日/.test(near.due) && !/^\d{1,2}\/\d{1,2}/.test(near.due)){
+        const dd = near.dueDate.split("-");
+        dueDisp = near.due + "＝" + (+dd[1]) + "月" + (+dd[2]) + "日";
+      }
+      s += "直近の期限は" + dueDisp + "（" + whoPart + near.task + "）です。";
     }
     const who = [...new Set(res.todos.map(t => t.who).filter(w => w !== "（未指定）"))];
     if (who.length) s += "担当は" + who.map(w => w + "さん").join("、") + "の" + who.length + "名です。";
@@ -304,7 +373,9 @@ function renderTodos(){
   const rows = todoFilter === "all" ? res.todos : res.todos.filter(t => t.who === todoFilter);
   $("todo-filter-note").textContent = todoFilter === "all"
     ? "全 " + res.todos.length + " 件を表示中"
-    : todoFilter + "さんのToDoは " + rows.length + " 件です（全 " + res.todos.length + " 件中）";
+    : (todoFilter === "（未指定）"
+        ? "担当者未指定のToDoは " + rows.length + " 件です（全 " + res.todos.length + " 件中）"
+        : todoFilter + "さんのToDoは " + rows.length + " 件です（全 " + res.todos.length + " 件中）");
   if (!rows.length){
     $("todo-area").innerHTML = "<p class='empty'>該当するToDoはありません。</p>";
     return;
@@ -333,23 +404,55 @@ function render(res){
 
 function toCSV(res){
   const rows = [["種別", "内容", "担当者", "期限"]];
+  rows.push(["要約", buildSummary(res, "normal"), "", ""]);
   res.decisions.forEach(d => rows.push(["決定事項", d, "", ""]));
   res.todos.forEach(t => rows.push(["ToDo", t.task, t.who, t.due]));
   return "﻿" + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\r\n");
 }
 
-$("btn-sample").addEventListener("click", () => { $("src").value = SAMPLE_TEXT; });
-$("btn-sample2").addEventListener("click", () => { $("src").value = SAMPLE2_TEXT; });
-$("btn-clear").addEventListener("click", () => { $("src").value = ""; $("result").style.display = "none"; lastResult = null; todoFilter = "all"; });
-document.querySelectorAll("#summary-mode button").forEach(b => {
-  b.addEventListener("click", () => { summaryMode = b.getAttribute("data-mode"); renderSummary(); });
-});
-$("todo-filter").addEventListener("change", () => { todoFilter = $("todo-filter").value; renderTodos(); });
-$("btn-run").addEventListener("click", () => {
+// ===== 入力と結果の保存（このブラウザの localStorage のみ。外部送信なし） =====
+const LS_KEY = "wal-minutes-demo-v1";
+function persist(){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ text: $("src").value, result: lastResult, summaryMode: summaryMode, todoFilter: todoFilter }));
+  } catch (e) { /* 保存できない環境ではメモリ上のみで動作 */ }
+}
+function clearPersist(){
+  try { localStorage.removeItem(LS_KEY); } catch (e) { /* 無視 */ }
+}
+
+function runExtract(){
   const text = $("src").value.trim();
-  if (!text){ alert("会議メモを入力するか、「サンプル議事録を入れる」を押してください。"); return; }
+  if (!text){ alert("会議メモを入力するか、「サンプル1（ECサイト会議）を入れる」を押してください。"); return; }
   render(extractAll(text));
+  persist();
+}
+
+$("btn-sample").addEventListener("click", () => { $("src").value = shiftSampleDates(SAMPLE_TEXT, 11, 18); runExtract(); });
+$("btn-sample2").addEventListener("click", () => { $("src").value = shiftSampleDates(SAMPLE2_TEXT, 11, 20); runExtract(); });
+$("btn-clear").addEventListener("click", () => { $("src").value = ""; $("result").style.display = "none"; lastResult = null; todoFilter = "all"; clearPersist(); });
+$("src").addEventListener("input", persist);
+document.querySelectorAll("#summary-mode button").forEach(b => {
+  b.addEventListener("click", () => { summaryMode = b.getAttribute("data-mode"); renderSummary(); persist(); });
 });
+$("todo-filter").addEventListener("change", () => { todoFilter = $("todo-filter").value; renderTodos(); persist(); });
+$("btn-run").addEventListener("click", runExtract);
+
+// 前回の入力・結果が残っていれば復元する（リロードしても消えない）
+(function restore(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LS_KEY) || "null"); } catch (e) { saved = null; }
+  if (!saved) return;
+  if (typeof saved.text === "string") $("src").value = saved.text;
+  if (saved.result && Array.isArray(saved.result.decisions) && Array.isArray(saved.result.todos)){
+    if (saved.summaryMode === "short" || saved.summaryMode === "normal") summaryMode = saved.summaryMode;
+    render(saved.result);
+    if (typeof saved.todoFilter === "string" && saved.todoFilter !== "all"){
+      todoFilter = saved.todoFilter;
+      renderTodos();
+    }
+  }
+})();
 $("btn-csv").addEventListener("click", () => {
   if (!lastResult) return;
   const blob = new Blob([toCSV(lastResult)], { type: "text/csv;charset=utf-8" });

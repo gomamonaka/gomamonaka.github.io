@@ -3,27 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>セキュリティ簡易診断｜10の質問で自社のリスクをチェック - ウェブオートラボ</title>
-<meta name="description" content="10の質問に答えるだけで、自社のセキュリティリスクの目安と優先対策がその場で分かります。入力はブラウザ内のみで処理され、外部に送信されることはありません。">
+<title>セキュリティ簡易診断｜12の質問で自社のリスクをチェック - ウェブオートラボ</title>
+<meta name="description" content="12の質問に答えるだけで、自社のセキュリティリスクの目安と優先対策がその場で分かります。入力はブラウザ内のみで処理され、外部に送信されることはありません。">
 <style>
   :root{
     --navy:#06333a; --navy2:#0a4a52; --teal:#0a5c63; --teal2:#0e7c86;
     --ink:#211e1a; --muted:#57534b; --line:#e3ded1; --soft:#f3f0e8;
-    --shadow:0 10px 30px rgba(6,51,58,.08); --shadow-lg:0 24px 60px rgba(6,51,58,.16);
+    --shadow:0 10px 30px rgba(6,51,58,.08);
     --radius:18px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;color:var(--ink);background:#faf8f3;line-height:1.85;-webkit-font-smoothing:antialiased}
   a{color:var(--teal);text-decoration:none}
   .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
-  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--navy);letter-spacing:.04em}
-  .brand small{display:block;font-size:10px;letter-spacing:.28em;color:var(--teal);font-weight:800;line-height:1}
-  .nav-links{display:flex;gap:28px;align-items:center;font-size:14px;font-weight:500}
-  .nav-links a{color:var(--ink)}
-  .nav-cta{background:var(--navy);color:#fff !important;padding:9px 20px;border-radius:999px;font-weight:700}
-  @media (max-width:720px){ .nav-links a:not(.nav-cta){display:none} .brandbar a.bb-back{display:inline-flex;align-items:center;min-height:40px} footer a{display:inline-block;padding:8px 0} }
+  @media (max-width:720px){ .brandbar a.bb-back{display:inline-flex;align-items:center;min-height:40px} .brandfoot a{display:inline-block;padding:8px 0} }
   .brandbar{background:var(--navy);color:#f7f2e7;padding:10px 0}
   .brandbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .brandbar .bb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -31,7 +24,7 @@
   .brandbar .bb-name{font-weight:800;letter-spacing:.06em;font-size:14.5px}
   .brandbar .bb-tag{font-size:11.5px;color:rgba(247,242,231,.78);letter-spacing:.08em}
   .brandbar a.bb-back{color:#f7f2e7;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:1px}
-  .page-head{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,var(--teal) 100%);color:#fff;padding:56px 0 48px}
+  .page-head{background:var(--navy);color:#fff;padding:56px 0 48px}
   .page-head h1{font-size:30px;font-weight:900;line-height:1.5}
   .page-head p{margin-top:12px;color:rgba(255,255,255,.85);max-width:680px;font-size:15px}
   .page-head .head-note{margin-top:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px 16px;font-size:13.5px;color:#fff;max-width:680px}
@@ -49,10 +42,10 @@
   @media (min-width:721px){ .q-opts{grid-template-columns:repeat(3,1fr)} .q-opts label{height:100%} }
   .diag-area{text-align:center;margin-top:28px}
   .btn{display:inline-block;padding:13px 28px;border-radius:999px;font-weight:700;font-size:14.5px;transition:.2s;border:none;cursor:pointer;margin-top:16px}
-  .btn-primary{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;box-shadow:0 12px 28px rgba(10,92,99,.32)}
-  .btn-light{background:#fff;color:var(--navy)}
+  .btn-primary{background:var(--teal);color:#fff;box-shadow:0 4px 18px rgba(6,51,58,.18)}
+  .btn-light{background:#fff;color:var(--navy);border:1px solid var(--navy)}
   .warn{display:none;color:#c0392b;font-weight:700;font-size:14px;margin-top:12px}
-  .result{background:linear-gradient(135deg,var(--navy),var(--teal));border-radius:22px;color:#fff;padding:34px;box-shadow:var(--shadow-lg);margin-top:36px}
+  .result{background:var(--navy);border-radius:22px;color:#fff;padding:34px;box-shadow:var(--shadow);margin-top:36px}
   .result .big{font-size:40px;font-weight:800;line-height:1.25}
   .result .big small{font-size:16px;font-weight:700}
   .level-badge{display:inline-block;padding:6px 18px;border-radius:999px;font-weight:800;font-size:15px;color:#fff}
@@ -68,7 +61,7 @@
   .layer-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:14px}
   .layer-name{flex:0 0 11.5em;font-weight:700;color:var(--navy)}
   .layer-bar{flex:1;height:10px;background:#e9e4d8;border-radius:999px;overflow:hidden}
-  .layer-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal2),var(--teal));border-radius:999px}
+  .layer-bar i{display:block;height:100%;background:var(--teal);border-radius:999px}
   .layer-score{flex:0 0 5.5em;text-align:right;font-weight:700;color:var(--navy);white-space:nowrap}
   @media (max-width:560px){ .layer-row{flex-wrap:wrap;gap:6px 10px} .layer-name{flex:1 1 100%} .layer-score{flex:0 0 auto} }
   .advice-meta{margin-top:5px;font-size:12.5px;color:var(--muted)}
@@ -77,11 +70,13 @@
   .plan-box{background:#fff;border-radius:16px;padding:22px 24px;color:var(--ink);margin-top:20px}
   .plan-box h3{color:var(--navy);font-size:17px;margin-bottom:6px}
   .plan-box p{color:var(--muted);font-size:14px}
+  .plan-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .plan-btns .btn{margin-top:10px}
   .note{font-size:12.5px;color:var(--muted);margin-top:16px}
-  footer{background:var(--navy);color:rgba(255,255,255,.75);padding:40px 0;font-size:13.5px;margin-top:72px}
-  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
-  footer b{color:#fff}
-  footer a{color:#bfe3e0}
+  .brandfoot{background:var(--navy);color:rgba(247,242,231,.82);padding:22px 20px;font-size:13px;margin-top:72px}
+  .brandfoot .bf-in{max-width:1080px;margin:0 auto;display:flex;justify-content:space-between;gap:10px 20px;flex-wrap:wrap;align-items:center}
+  .brandfoot b{color:#f7f2e7;letter-spacing:.05em}
+  .brandfoot a{color:#f7f2e7;text-decoration:none;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:1px;margin-left:16px}
 </style>
 </head>
 <body>
@@ -95,15 +90,15 @@
 
 <div class="page-head">
   <div class="wrap">
-    <h1>セキュリティ簡易診断：10の質問で自社のリスクをチェック</h1>
-    <p>日々の運用に関する10の質問に答えるだけで、自社のセキュリティリスクの目安と、いま優先すべき対策トップ3がその場で分かります。専任のIT担当がいない中小企業・個人事業主の方を想定した診断です。</p>
+    <h1>セキュリティ簡易診断：12の質問で自社のリスクをチェック</h1>
+    <p>日々の運用に関する12の質問に答えるだけで、自社のセキュリティリスクの目安と、いま優先すべき対策トップ3がその場で分かります。専任のIT担当がいない中小企業・個人事業主の方を想定した診断です。</p>
     <div class="head-note">※ これは簡易診断であり、本格的な脆弱性診断ではありません。あくまで運用面の弱点をざっくり把握するための目安としてご利用ください。回答はお使いのブラウザ内でのみ処理され、外部に送信されることはありません。</div>
   </div>
 </div>
 
 <section>
   <div class="wrap">
-    <h2>質問に答えてください（全10問・各3択）</h2>
+    <h2>質問に答えてください（全12問・各3択）</h2>
     <div id="questions"></div>
 
     <div class="diag-area">
@@ -114,7 +109,7 @@
     <div class="result" id="result" style="display:none">
       <p>あなたの会社のリスクの目安</p>
       <div style="margin:10px 0 6px"><span class="level-badge" id="r-badge">―</span></div>
-      <div class="big"><span id="r-score">0</span><small> / 20 点</small></div>
+      <div class="big"><span id="r-score">0</span><small> / 24 点</small></div>
       <p id="r-message" style="margin-top:10px"></p>
       <div class="advice-box">
         <h3>レイヤー別のスコア</h3>
@@ -124,79 +119,48 @@
       <div class="advice-box">
         <h3>優先対策トップ3</h3>
         <ol id="r-advice"></ol>
-        <p id="r-advice-none" style="display:none">今回の10項目では、大きな弱点は見つかりませんでした。この状態を維持しつつ、半年に一度ほどの定期点検をおすすめします。</p>
-      </div>
-      <div class="plan-box">
-        <h3>本格的な点検レポートについて</h3>
-        <p>簡易診断では分からない、公開情報や設定の具体的な検出結果までまとめた「セキュリティ点検レポート」を納品するサービスも行っています。まずサンプルレポートで、納品物のイメージをご確認ください。</p>
-        <a class="btn btn-primary" href="security-report.html">点検レポート（サンプル）を見る</a>
-        <a class="btn btn-primary" href="https://coconala.com/users/6294387" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ココナラで相談する</a>
-        <a class="btn btn-primary" href="https://www.lancers.jp/profile/webautolab" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ランサーズで相談する</a>
+        <p id="r-advice-none" style="display:none">今回の12項目では、大きな弱点は見つかりませんでした。この状態を維持しつつ、半年に一度ほどの定期点検をおすすめします。</p>
       </div>
       <div class="plan-box">
         <h3>点検サービスのご相談について</h3>
-        <p>この簡易診断は、あくまで目安です。「自社では実際にどうなっているか」を確認したい場合は、公開情報と設定を実際に確認する点検サービス（お試し点検 49,800円〜）も行っています。診断結果をもとに「うちの場合はどこまで必要か」を整理するだけのご相談でもかまいません。必要性を感じたタイミングで、無理のない範囲でご検討ください。</p>
-        <a class="btn btn-primary" href="https://coconala.com/users/6294387">ココナラで相談する</a>
-        <a class="btn btn-primary" href="https://www.lancers.jp/profile/webautolab" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ランサーズで相談する</a>
+        <p>この簡易診断は、あくまで目安です。簡易診断では分からない、公開情報や設定の具体的な検出結果までまとめた「セキュリティ点検レポート」を納品するサービス（お試し点検 49,800円〜）も行っています。まずサンプルレポートで、納品物のイメージをご確認ください。「自社では実際にどうなっているか」を確認したい場合も、診断結果をもとに「うちの場合はどこまで必要か」を整理するだけのご相談でかまいません。必要性を感じたタイミングで、無理のない範囲でご検討ください。</p>
+        <div class="plan-btns">
+          <a class="btn btn-primary" href="security-report.html">点検レポート（サンプル）を見る</a>
+          <a class="btn btn-light" href="https://coconala.com/users/6294387">ココナラで相談する</a>
+          <a class="btn btn-light" href="https://www.lancers.jp/profile/webautolab">ランサーズで相談する</a>
+        </div>
       </div>
     </div>
 
-    <p class="note">※ スコアは各質問「できている＝2点／一部のみ・わからない＝1点／できていない＝0点」の合計（20点満点）です。16点以上＝良好、10〜15点＝注意、9点以下＝要対策を目安としています。実際のリスクは業種や扱う情報によって変わります。具体的な検出と対策の優先順位づけは、点検レポートでお渡しします。</p>
+    <p class="note">※ スコアは各質問「できている＝2点／一部のみ・わからない＝1点／できていない＝0点」の合計（24点満点）です。19点以上＝良好、12〜18点＝注意、11点以下＝要対策を目安としています。実際のリスクは業種や扱う情報によって変わります。具体的な検出と対策の優先順位づけは、点検レポートでお渡しします。</p>
   </div>
 </section>
 
-<footer>
-  <div class="wrap">
-    <div><b>ウェブオートラボ</b>｜手作業の時間を、取り戻す。　業務自動化・AIツール開発／セキュリティ点検</div>
-    <div><a href="index.html">トップ</a>　／　<a href="shindan.html">自動化診断</a>　／　<a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a> ／ <a href="legal.html">運営者情報・プライバシー</a></div>
+<footer class="brandfoot">
+  <div class="bf-in">
+    <div><b>ウェブオートラボ</b>｜手作業の時間を、取り戻す。</div>
+    <div><a href="index.html">トップ</a><a href="shindan.html">自動化診断</a><a href="security-shindan.html">セキュリティ簡易診断</a><a href="legal.html">運営者情報・プライバシー</a></div>
   </div>
 </footer>
 
 <script>
 (function(){
   "use strict";
+  // 質問は点検レポートと同じ4レイヤーの順に並べている（第1層3問／第2層3問／第3層4問／第4層2問＝全12問・24点満点）。
   var QUESTIONS = [
     {
-      q: "業務で使う主要なサービス（メール、クラウドストレージ、会計ソフトなど）に、二要素認証（MFA）を設定していますか？",
-      options: ["はい（主要サービス・全員に設定済み）", "一部のみ／わからない", "いいえ（未設定）"],
-      weight: 9,
-      title: "二要素認証（MFA）の有効化",
-      advice: "二要素認証は、不正ログイン対策として最も効果が高い対策のひとつです。パスワードが漏れても侵入を防げるよう、まずメールとクラウドストレージから、全員分を有効化してください。"
+      q: "自社のWebサイトは、すべてのページがHTTPS化され、証明書が自動で更新される設定になっていますか？",
+      options: ["はい（HTTPS化・自動更新とも設定済み）", "一部未対応／わからない", "いいえ（未対応のページがある）"],
+      weight: 6,
+      title: "サイトのHTTPS化と証明書の管理",
+      advice: "HTTPS化されていないページがあると、通信内容の盗み見や改ざんの恐れがあるうえ、ブラウザに警告が表示されて信頼を落とします。証明書の自動更新まで含めて設定し、期限切れが起きない状態にしてください。"
     },
     {
-      q: "パスワードは使い回さず、パスワード管理ツールなどでサービスごとに個別に管理していますか？",
-      options: ["はい（個別に管理している）", "一部使い回しがある／わからない", "いいえ（使い回している）"],
+      q: "自社サイトのCMS（WordPressなど）やプラグインは、最新の状態に保たれていますか？",
+      options: ["はい（更新し、自動更新も設定済み）", "不定期に更新／わからない", "いいえ（旧版のままのものがある）"],
       weight: 7,
-      title: "パスワードの使い回し廃止",
-      advice: "パスワードの使い回しは、1件の漏えいが全サービスへの侵入につながります。パスワード管理ツールを導入し、サービスごとに異なる長いパスワードへ切り替えましょう。"
-    },
-    {
-      q: "退職・異動した人のアカウントを、定期的に棚卸しして無効化していますか？",
-      options: ["はい（定期的に棚卸ししている）", "不定期／わからない", "いいえ（したことがない）"],
-      weight: 10,
-      title: "退職者アカウントの棚卸し",
-      advice: "退職者のアカウントが残っていると、不正アクセスや情報持ち出しの入口になります。在籍者とアカウント一覧を突き合わせ、不要なアカウントを今すぐ無効化してください。"
-    },
-    {
-      q: "重要なデータのバックアップを取得し、実際に復旧できるかテストしたことがありますか？",
-      options: ["はい（復旧テストも実施済み）", "バックアップはあるが復旧テストは未実施／わからない", "いいえ（取っていない）"],
-      weight: 8,
-      title: "バックアップと復旧テスト",
-      advice: "バックアップは「取っている」だけでは不十分で、復旧できて初めて意味があります。重要データのバックアップ方法を見直し、一度は復旧テストを行いましょう。"
-    },
-    {
-      q: "パソコンのOSや業務ソフトは、自動更新を有効にして最新の状態に保っていますか？",
-      options: ["はい（自動更新を有効化している）", "一部は手動／わからない", "いいえ（更新していない端末がある）"],
-      weight: 5,
-      title: "OS・ソフトの自動更新",
-      advice: "OSやソフトの更新漏れは、既知の弱点を放置することになります。自動更新を有効にし、更新が止まっている端末がないか定期的に確認してください。"
-    },
-    {
-      q: "アカウントは一人ひとり個別に発行し、複数人での共有アカウントは使っていませんか？",
-      options: ["はい（個別アカウントのみ）", "一部共有している／わからない", "いいえ（共有アカウントがある）"],
-      weight: 8,
-      title: "共有アカウントの廃止",
-      advice: "共有アカウントは「誰が操作したか」が分からず、漏えい時の影響も大きくなります。利用者ごとにアカウントを発行し、権限も必要最小限に分けましょう。"
+      title: "CMS・プラグインの更新",
+      advice: "旧版のまま公開されているCMSやプラグインは、既知の弱点が知られている状態で、自動化された攻撃の対象になりやすくなります。バックアップを取得したうえで最新版へ更新し、自動更新の有効化と、使っていないプラグインの削除を行ってください。"
     },
     {
       q: "自社ドメインのメールなりすまし対策（SPF／DKIM／DMARC）の設定状況を把握していますか？",
@@ -213,11 +177,39 @@
       advice: "公開ページやリポジトリに秘密情報が残っていると、誰でも取得できてしまいます。公開範囲を一度総点検し、見つけたキーやパスワードは無効化・再発行してください。"
     },
     {
-      q: "クラウドストレージの外部共有リンク（URLを知っている人が閲覧できる共有など）を、定期的に確認・管理していますか？",
-      options: ["はい（定期的に確認している）", "不定期／わからない", "いいえ（確認していない）"],
-      weight: 6,
-      title: "外部共有リンクの棚卸し",
-      advice: "外部共有リンクは、意図せず情報が社外に出る経路になります。共有中のリンクを棚卸しし、不要なものは停止、必要なものも期限やパスワードを設定しましょう。"
+      q: "公開中のPDF資料やWebページに、社内向けの情報（内線番号表や社内手順など）が混ざっていないか確認したことがありますか？",
+      options: ["はい（確認済み）", "一部確認した／わからない", "いいえ（確認したことがない）"],
+      weight: 4,
+      title: "公開資料の内容チェック",
+      advice: "公開資料に社内向けの情報が混ざっていると、電話やメールでの詐欺の材料に使われることがあります。公開中の資料を一覧化して内容を棚卸しし、公開前に「社外に出してよい内容か」を確認する手順を加えてください。"
+    },
+    {
+      q: "自社名や自社ドメインで検索して、意図せず公開されている情報（古い資料・テストページなど）がないか確認したことがありますか？",
+      options: ["はい（確認済み）", "一部確認した／わからない", "いいえ（確認したことがない）"],
+      weight: 4,
+      title: "意図しない公開情報の確認",
+      advice: "忘れていたテストページや古い資料が公開されたままになっていると、攻撃や誤解の入口になります。自社名・自社ドメインで定期的に検索し、不要な公開情報は削除・非公開化してください。"
+    },
+    {
+      q: "業務で使う主要なサービス（メール、クラウドストレージ、会計ソフトなど）に、二要素認証（MFA）を設定していますか？",
+      options: ["はい（主要サービス・全員に設定済み）", "一部のみ／わからない", "いいえ（未設定）"],
+      weight: 9,
+      title: "二要素認証（MFA）の有効化",
+      advice: "二要素認証は、不正ログイン対策として最も効果が高い対策のひとつです。パスワードが漏れても侵入を防げるよう、まずメールとクラウドストレージから、全員分を有効化してください。"
+    },
+    {
+      q: "退職・異動した人のアカウントを、定期的に棚卸しして無効化していますか？",
+      options: ["はい（定期的に棚卸ししている）", "不定期／わからない", "いいえ（したことがない）"],
+      weight: 10,
+      title: "退職者アカウントの棚卸し",
+      advice: "退職者のアカウントが残っていると、不正アクセスや情報持ち出しの入口になります。在籍者とアカウント一覧を突き合わせ、不要なアカウントを今すぐ無効化してください。"
+    },
+    {
+      q: "重要なデータのバックアップを取得し、実際に復旧できるかテストしたことがありますか？",
+      options: ["はい（復旧テストも実施済み）", "バックアップはあるが復旧テストは未実施／わからない", "いいえ（取っていない）"],
+      weight: 8,
+      title: "バックアップと復旧テスト",
+      advice: "バックアップは「取っている」だけでは不十分で、復旧できて初めて意味があります。重要データのバックアップ方法を見直し、一度は復旧テストを行いましょう。"
     },
     {
       q: "全ての業務パソコンにウイルス対策ソフトを入れ、定義ファイルを最新の状態に保っていますか？",
@@ -225,32 +217,49 @@
       weight: 6,
       title: "ウイルス対策ソフトの整備",
       advice: "ウイルス対策ソフトが入っていない・期限切れの端末は、感染の入口になります。全端末の導入状況と更新状態を一覧で確認してください。"
+    },
+    {
+      q: "クラウドストレージの外部共有リンク（URLを知っている人が閲覧できる共有など）を、定期的に確認・管理していますか？",
+      options: ["はい（定期的に確認している）", "不定期／わからない", "いいえ（確認していない）"],
+      weight: 8,
+      title: "外部共有リンクの棚卸し",
+      advice: "外部共有リンクは、意図せず情報が社外に出る経路になります。共有中のリンクを棚卸しし、不要なものは停止、必要なものも期限やパスワードを設定しましょう。"
+    },
+    {
+      q: "クラウドサービス（Google Workspace、Microsoft 365など）の管理者権限は、日常的に必要な人だけに絞っていますか？",
+      options: ["はい（必要な人だけに絞っている）", "一部見直し中／わからない", "いいえ（多くの人に付けている）"],
+      weight: 6,
+      title: "管理者権限の絞り込み",
+      advice: "管理者が多いほど、どれか1件のアカウントが乗っ取られたときの影響範囲が広がります。特権管理者は2名程度に絞り、日常業務用のアカウントと管理作業用のアカウントを分けてください。"
     }
   ];
 
   // 各質問のレイヤー（点検の4観点）・対策の難易度・所要時間の目安。QUESTIONS と同じ並び順。
+  // レイヤーの名前と中身は、点検レポート（security-report.html）の4層と揃えている。
   var LAYER_NAMES = ["公開資産（サイト・メール）", "公開情報の漏えいチェック", "アカウント・端末の運用", "クラウド設定"];
   var META = [
-    { layer: 3, diff: "低", time: "1人あたり10〜15分程度（全員分でも半日ほど）" },
-    { layer: 3, diff: "中", time: "管理ツールの導入に半日程度、移行は1人30分ほど" },
-    { layer: 3, diff: "低", time: "一覧の突き合わせと無効化で1〜2時間程度" },
-    { layer: 3, diff: "中", time: "復旧テストの初回は半日程度" },
-    { layer: 3, diff: "低", time: "確認と設定変更は1台10分程度" },
-    { layer: 3, diff: "中", time: "アカウント発行と移行で半日〜1日程度" },
+    { layer: 1, diff: "低", time: "証明書の自動更新の確認は30分程度" },
+    { layer: 1, diff: "低", time: "バックアップ取得と更新で1〜2時間程度" },
     { layer: 1, diff: "中", time: "初期設定は30分程度、その後2〜4週間の監視期間" },
     { layer: 2, diff: "低", time: "公開範囲の総点検に半日程度" },
+    { layer: 2, diff: "低", time: "資料1件あたり30分程度" },
+    { layer: 2, diff: "低", time: "検索と棚卸しで1時間程度" },
+    { layer: 3, diff: "低", time: "1人あたり10〜15分程度（全員分でも半日ほど）" },
+    { layer: 3, diff: "低", time: "一覧の突き合わせと無効化で1〜2時間程度" },
+    { layer: 3, diff: "中", time: "復旧テストの初回は半日程度" },
+    { layer: 3, diff: "低", time: "導入状況の一覧確認に1時間程度" },
     { layer: 4, diff: "低", time: "棚卸しと見直しで1〜2時間程度" },
-    { layer: 3, diff: "低", time: "導入状況の一覧確認に1時間程度" }
+    { layer: 4, diff: "低", time: "設定変更は30分程度" }
   ];
 
   function computeResult(scores){
     var total = 0, i;
     for(i = 0; i < scores.length; i++){ total += scores[i]; }
     var level, levelKey, message;
-    if(total >= 16){
+    if(total >= 19){
       level = "良好"; levelKey = "good";
       message = "基本的な対策はおおむねできています。この状態を維持しつつ、新しいサービスを導入するときも同じ基準で設定していくことが大切です。";
-    } else if(total >= 10){
+    } else if(total >= 12){
       level = "注意"; levelKey = "warn";
       message = "大きな穴はないものの、一部に弱いところがあります。下の優先対策から順に潰していくことで、事故の確率を大きく下げられます。";
     } else {
@@ -306,6 +315,14 @@
       var idx = parseInt(name.slice(1), 10);
       var card = document.getElementById("qcard-" + idx);
       if(card){ card.classList.add("answered"); card.classList.remove("unanswered"); }
+      // 診断結果を表示したあとに回答を変えたら、古い結果を残さず隠して再診断を促す
+      var result = document.getElementById("result");
+      if(result && result.style.display === "block"){
+        result.style.display = "none";
+        var warn = document.getElementById("warn");
+        warn.textContent = "回答が変更されました。もう一度「診断する」を押すと、新しい回答で結果を表示します。";
+        warn.style.display = "block";
+      }
     }
   });
 

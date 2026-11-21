@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自動化診断｜繰り返し作業、何時間消える？ - ウェブオートラボ</title>
+<meta name="description" content="毎月の繰り返し作業にかかっている時間を入力すると、自動化で削減できる時間の目安と、おすすめのパッケージがその場で分かります。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2239; --navy2:#10314f; --teal:#0e7c86; --teal2:#12a5b0;
+    --ink:#182635; --muted:#5d7183; --line:#e3eaf0; --soft:#f4f8fa;
+    --shadow:0 10px 30px rgba(11,34,57,.08); --shadow-lg:0 24px 60px rgba(11,34,57,.16);
+    --radius:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);background:#fff;line-height:1.85;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--navy);letter-spacing:.04em}
+  .brand small{display:block;font-family:Inter,sans-serif;font-size:10px;letter-spacing:.28em;color:var(--teal);font-weight:800;line-height:1}
+  .nav-links{display:flex;gap:28px;align-items:center;font-size:14px;font-weight:500}
+  .nav-links a{color:var(--ink)}
+  .nav-cta{background:var(--navy);color:#fff !important;padding:9px 20px;border-radius:999px;font-weight:700}
+  @media (max-width:720px){ .nav-links a:not(.nav-cta){display:none} }
+  .page-head{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,#0d4a54 100%);color:#fff;padding:56px 0 48px}
+  .page-head h1{font-size:30px;font-weight:900;line-height:1.5}
+  .page-head p{margin-top:12px;color:rgba(255,255,255,.85);max-width:640px;font-size:15px}
+  section{padding:56px 0}
+  h2{font-size:22px;font-weight:900;color:var(--navy);margin-bottom:14px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px}
+  .task{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px;display:grid;grid-template-columns:1fr auto;gap:8px 18px;align-items:center;background:#fff}
+  .task.checked{border-color:var(--teal);background:#f2fafa}
+  .task label{font-weight:700;color:var(--navy);cursor:pointer;display:flex;gap:10px;align-items:center;font-size:15px}
+  .task .desc{grid-column:1/-1;font-size:13px;color:var(--muted)}
+  .task .inputs{display:flex;gap:14px;align-items:center;font-size:13px;color:var(--muted)}
+  .task input[type=number]{width:74px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:Inter,"Noto Sans JP",sans-serif}
+  .task input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal)}
+  @media (max-width:720px){ .task{grid-template-columns:1fr} }
+  .result{background:linear-gradient(135deg,var(--navy),#0d4a54);border-radius:22px;color:#fff;padding:34px;box-shadow:var(--shadow-lg)}
+  .result .big{font-family:Inter,"Noto Sans JP",sans-serif;font-size:40px;font-weight:800;line-height:1.25}
+  .result .big small{font-size:16px;font-weight:700}
+  .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-top:8px}
+  .result p{color:rgba(255,255,255,.85);font-size:14px}
+  .plan-box{background:#fff;border-radius:16px;padding:22px 24px;color:var(--ink);margin-top:20px}
+  .plan-box h3{color:var(--navy);font-size:17px;margin-bottom:6px}
+  .plan-box p{color:var(--muted)}
+  .btn{display:inline-block;padding:13px 28px;border-radius:999px;font-weight:700;font-size:14.5px;transition:.2s;border:none;cursor:pointer;margin-top:16px}
+  .btn-primary{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;box-shadow:0 12px 28px rgba(14,124,134,.35)}
+  .btn-light{background:#fff;color:var(--navy)}
+  .note{font-size:12.5px;color:var(--muted);margin-top:16px}
+  footer{background:var(--navy);color:rgba(255,255,255,.75);padding:40px 0;font-size:13.5px;margin-top:72px}
+  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+  footer b{color:#fff}
+  footer a{color:#8fe3ea}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html"><svg width="34" height="34" viewBox="0 0 48 48" aria-label="ウェブオートラボ ロゴ"><rect width="48" height="48" rx="10" fill="#0b2239"/><text x="24" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="12" fill="#ffffff">WA</text></svg><span>ウェブオートラボ<small>WEBAUTOLAB</small></span></a>
+    <div class="nav-links">
+      <a href="index.html#services">対応領域</a>
+      <a href="index.html#pricing">料金</a>
+      <a href="demo.html">体験デモ</a>
+      <a href="shindan.html">自動化診断</a>
+      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-head">
+  <div class="wrap">
+    <h1>自動化診断：繰り返し作業、何時間消える？</h1>
+    <p>当てはまる作業にチェックを入れて、頻度と1回あたりの時間を調整してください。その場で、自動化で削減できる時間の目安と、おすすめのパッケージが分かります。</p>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div id="tasks"></div>
+
+    <div class="result" id="result">
+      <div class="result-grid">
+        <div>
+          <p>いま毎月かかっている時間</p>
+          <div class="big"><span id="r-now">0</span><small> 時間 / 月</small></div>
+        </div>
+        <div>
+          <p>自動化で削減できる目安</p>
+          <div class="big"><span id="r-save">0</span><small> 時間 / 月</small></div>
+        </div>
+        <div>
+          <p>1年分にすると</p>
+          <div class="big"><span id="r-year">0</span><small> 時間 / 年</small></div>
+        </div>
+      </div>
+      <p id="r-value" style="margin-top:10px"></p>
+      <div class="plan-box">
+        <h3 id="r-plan">まずは作業を選んでください</h3>
+        <p id="r-plan-desc">チェックを入れると、作業の数と時間に合わせておすすめのパッケージを表示します。</p>
+        <a class="btn btn-primary" href="https://coconala.com/users/6294387">この内容で無料相談する</a>
+        <a class="btn btn-primary" href="demo.html" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">体験デモを触ってみる</a>
+      </div>
+    </div>
+
+    <p class="note">※ 削減率は「整形・集計・転記などの定型部分は自動化でき、確認作業は残る」前提で80%として試算しています。人件費換算は時給3,000円の目安です。実際の削減幅は作業内容によって変わります。正確なところは、無料ヒアリングで実際の手順を拝見してからお答えします。</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><b>ウェブオートラボ</b>　業務自動化・AIツール開発</div>
+    <div><a href="index.html">トップ</a>　／　<a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var TASKS = [
+    {name:"売上・在庫データの整形と集計", desc:"表記ゆれ直し、日付の統一、月別・商品別の集計表づくり", freq:4, mins:45},
+    {name:"月次レポート・報告書の作成", desc:"同じ形式のレポートを毎月、数字を差し替えて作る作業", freq:1, mins:180},
+    {name:"請求書の発行と送付準備", desc:"請求データの転記、PDF化、メール下書きの作成", freq:10, mins:15},
+    {name:"問い合わせメールの仕分けと返信の下書き", desc:"カテゴリ分け、要約、返信文のたたき台づくり", freq:20, mins:10},
+    {name:"複数システム間の転記・コピペ", desc:"CSVの移し替え、台帳への入力、サイトへの登録作業", freq:8, mins:30},
+    {name:"勤怠・シフトの集計", desc:"打刻データの取りまとめ、店舗・スタッフ別の集計", freq:2, mins:90},
+    {name:" Webサイトからの情報収集と一覧化", desc:"掲載情報のチェック、価格・在庫の確認とExcel化", freq:4, mins:60},
+    {name:"SNS・ブログ投稿の下書きと予約", desc:"投稿文の作成、画像の準備、投稿予約のセット", freq:8, mins:20}
+  ];
+  var box = document.getElementById("tasks");
+  TASKS.forEach(function(t, i){
+    var div = document.createElement("div");
+    div.className = "task";
+    div.innerHTML =
+      '<label><input type="checkbox" data-i="' + i + '"> ' + t.name + '</label>' +
+      '<div class="inputs">' +
+        '<span>月に <input type="number" min="0" value="' + t.freq + '" data-f="' + i + '"> 回</span>' +
+        '<span>1回 <input type="number" min="0" value="' + t.mins + '" data-m="' + i + '"> 分</span>' +
+      '</div>' +
+      '<div class="desc">' + t.desc + '</div>';
+    box.appendChild(div);
+  });
+
+  function calc(){
+    var totalMin = 0, count = 0;
+    TASKS.forEach(function(t, i){
+      var cb = document.querySelector('input[type=checkbox][data-i="' + i + '"]');
+      var f = parseFloat(document.querySelector('input[data-f="' + i + '"]').value) || 0;
+      var m = parseFloat(document.querySelector('input[data-m="' + i + '"]').value) || 0;
+      cb.closest(".task").classList.toggle("checked", cb.checked);
+      if(cb.checked){ totalMin += f * m; count++; }
+    });
+    var nowH = totalMin / 60;
+    var saveH = nowH * 0.8;
+    function fmt(n){ return (Math.round(n * 10) / 10).toLocaleString("ja-JP"); }
+    document.getElementById("r-now").textContent = fmt(nowH);
+    document.getElementById("r-save").textContent = fmt(saveH);
+    document.getElementById("r-year").textContent = fmt(saveH * 12);
+    var valueEl = document.getElementById("r-value");
+    var planEl = document.getElementById("r-plan");
+    var descEl = document.getElementById("r-plan-desc");
+    if(count === 0){
+      valueEl.textContent = "";
+      planEl.textContent = "まずは作業を選んでください";
+      descEl.textContent = "チェックを入れると、作業の数と時間に合わせておすすめのパッケージを表示します。";
+      return;
+    }
+    valueEl.textContent = "人件費に換算すると、月あたり約" + Math.round(saveH * 3000).toLocaleString("ja-JP") + "円分の時間が戻ってくる計算です。";
+    if(count === 1 && saveH <= 3){
+      planEl.textContent = "おすすめ：お試し自動化（50,000円〜）";
+      descEl.textContent = "1つの作業に絞った入門パッケージで十分まかなえる規模です。納期は3〜5日。削減できる時間で、数か月で元が取れる計算になります。";
+    } else if(saveH <= 10){
+      planEl.textContent = "おすすめ：標準パッケージ（148,000円〜）";
+      descEl.textContent = "複数の作業、または画面（UI）つきで現場に渡したい規模です。使い方マニュアルと修正2回までを含みます。";
+    } else {
+      planEl.textContent = "おすすめ：標準パッケージ＋月額保守（30,000円〜/月）";
+      descEl.textContent = "削減効果が大きい分、業務の変化に合わせてツールを育てていく形が向いています。まずは標準パッケージで土台を作り、保守で月次の改善を続けます。";
+    }
+  }
+  box.addEventListener("input", calc);
+  box.addEventListener("change", calc);
+  calc();
+})();
+</script>
+</body>
+</html>

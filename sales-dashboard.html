@@ -14,6 +14,11 @@
   .wrap{max-width:1080px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .period-bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:14px}
+  .period-btns{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
+  .period-btns button{background:transparent;color:var(--muted);border-radius:999px;padding:7px 18px;font-size:13px;box-shadow:none}
+  .period-btns button.active{background:var(--navy);color:#fff}
+  .period-note{font-size:12.5px;color:var(--muted)}
   .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
   .kpi .label{font-size:12px;color:var(--muted);margin-bottom:6px}
@@ -50,13 +55,22 @@
 </header>
 <div class="wrap">
   <h1>売上ダッシュボード（デモ）</h1>
-  <p class="lead">売上明細のCSVから、月別売上・商品別ランキング・前月比を自動で集計して表示するダッシュボードの体験デモです。最初から架空のサンプルデータ（直近6か月分）が入っています。下の欄にご自身のCSVを貼り付けると、その場で再集計されます。</p>
+  <p class="lead">売上明細のCSVから、月別売上・商品別ランキング・前月比を自動で集計するダッシュボードの体験デモです。最初は、水曜定休の小さなコーヒー豆店を想定した架空の売上（直近6か月分）が入っています。表示期間を切り替えたり、下の欄にご自身のCSVを貼り付けて再集計したりできます。</p>
+
+  <div class="period-bar">
+    <div class="period-btns" role="group" aria-label="表示期間">
+      <button type="button" data-period="all" class="active">全期間</button>
+      <button type="button" data-period="3m">直近3か月</button>
+      <button type="button" data-period="1m">今月</button>
+    </div>
+    <span class="period-note" id="periodNote"></span>
+  </div>
 
   <div class="kpis">
     <div class="kpi"><div class="label">総売上（表示期間）</div><div class="value" id="kpiTotal">-</div><div class="sub" id="kpiRange"></div></div>
     <div class="kpi"><div class="label">最新月の売上</div><div class="value" id="kpiLatest">-</div><div class="sub" id="kpiLatestMonth"></div></div>
     <div class="kpi"><div class="label">前月比（最新月）</div><div class="value" id="kpiChange">-</div><div class="sub" id="kpiChangeSub"></div></div>
-    <div class="kpi"><div class="label">明細件数</div><div class="value" id="kpiRows">-</div><div class="sub">取り込んだ売上明細の行数</div></div>
+    <div class="kpi"><div class="label">明細件数</div><div class="value" id="kpiRows">-</div><div class="sub" id="kpiRowsSub">取り込んだ売上明細の行数</div></div>
   </div>
 
   <div class="grid">
@@ -75,7 +89,7 @@
   <div class="grid" style="margin-top:14px">
     <div class="card" style="margin-bottom:0">
       <h2>月別集計表</h2>
-      <p class="hint">月ごとの売上・数量・前月比</p>
+      <p class="hint">月ごとの売上・数量・前月比（前月比は表示期間の外の月とも比較します）</p>
       <div id="tableMonthly"></div>
     </div>
     <div class="card" style="margin-bottom:0">
@@ -87,8 +101,8 @@
 
   <div class="card" style="margin-top:14px">
     <h2>自分のCSVで試す</h2>
-    <p class="hint">ヘッダー行が「日付,商品名,数量,単価」のCSVを貼り付けて「再集計する」を押してください。日付は 2026-01-15 や 2026/1/15 の形式に対応します。貼り付けたデータは外部に送信されず、このブラウザの中だけで処理されます。</p>
-    <textarea id="csvInput" placeholder="日付,商品名,数量,単価&#10;2026-01-05,コーヒー豆 200g,12,1200&#10;2026-01-12,焼き菓子セット,5,2400"></textarea>
+    <p class="hint">ヘッダー行が「日付,商品名,数量,単価」のCSVを貼り付けて「再集計する」を押してください。日付は 2026-01-15 や 2026/1/15 の形式に対応します。再集計したデータはこのブラウザに保存され、次回開いたときに復元されます。保存先はお使いのブラウザの中だけで、外部に送信されることはありません。</p>
+    <textarea id="csvInput" placeholder="日付,商品名,数量,単価&#10;2026-11-05,深煎りブレンド豆 200g,12,1280&#10;2026-11-12,焼き菓子 詰め合わせ 6種入,5,2160"></textarea>
     <div class="btns">
       <button id="btnApply">再集計する</button>
       <button id="btnReset" class="ghost">サンプルデータに戻す</button>
@@ -97,7 +111,7 @@
     <div class="status" id="csvStatus"></div>
   </div>
 
-  <p class="note">※ 表示されている売上データは、すべて架空のサンプルです。実際の案件では、スプレッドシートや販売管理・ECの売上データと連携し、このような月次レポート（グラフ・集計表つき）を毎月自動で生成する構成にできます。「毎月の集計を手作業でやっている」という方は、<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にご相談ください。自動化で削減できる時間の目安は<a href="shindan.html">自動化診断</a>でも確認できます。</p>
+  <p class="note">※ 表示中の数字は、コーヒー豆の小さな販売店を想定して作った架空のサンプルです。水曜定休で週末に売上が寄る、水出しコーヒーは夏だけ伸びて秋には落ち着く、ギフトセットは年末に向けて跳ねる——といった偏りも入れてあります。月末の集計では、こういう偏りが見えるかどうかが案外大事だったりします。<br>実際の案件では、ECや販売管理サービスから書き出した売上CSV、スプレッドシートの台帳などを読み込ませて、毎月同じ形のレポートを自動で出す、という作り方が多いです。「月末の集計に半日かかっている」「商品ごと・月ごとの数字を分けて見たい」といった場合は、<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からお気軽にご相談ください。自動化で削減できる時間の目安は<a href="shindan.html">自動化診断</a>でも確認できます。</p>
 </div>
 
 <script>
@@ -165,29 +179,80 @@ function aggregate(rows){
            latestChange: latest ? latest.change : null,
            range: monthly.length ? monthly[0].month + " 〜 " + monthly[monthly.length - 1].month : "" };
 }
+// "YYYY-MM" に月数を加減する
+function monthAdd(ym, delta){
+  const parts = ym.split("-");
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1 + delta, 1);
+  return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2);
+}
+// 表示期間で明細を絞る。「今月」「直近3か月」はデータ内の最新月を基準にする。
+function filterByPeriod(rows, period){
+  if (!rows.length || period === "all") return rows;
+  const months = Array.from(new Set(rows.map(r => r.month))).sort();
+  const last = months[months.length - 1];
+  if (period === "1m") return rows.filter(r => r.month === last);
+  const from = monthAdd(last, -2);
+  return rows.filter(r => r.month >= from);
+}
 // === CORE END ===
 
-// 架空サンプルデータ：直近6か月分を決定的に生成する
+// 架空サンプルデータ：水曜定休の小さなコーヒー豆店、直近6か月分。
+// 週末に売上が寄る、水出しは夏だけ伸びる、ギフトは年末に跳ねるなど、
+// 商品ごとの「動き」を持たせて決定的に生成する（開くたびに同じ数字になる）。
 function buildSampleCSV(){
+  // [商品名, 単価, 基本の売れ行き, 動き]
   const products = [
-    ["コーヒー豆 200g", 1200], ["ドリップバッグ 10個入", 980], ["焼き菓子セット", 2400],
-    ["ギフトボックス", 3800], ["水出しコーヒーボトル", 1600], ["季節のブレンド 200g", 1500],
-    ["クッキー缶", 2100], ["オリジナルマグカップ", 1800]
+    ["深煎りブレンド豆 200g", 1280, 1.00, "steady"],
+    ["浅煎りシングルオリジン豆 200g", 1458, 0.60, "grow"],
+    ["ドリップバッグ 12個入", 1080, 0.85, "steady"],
+    ["水出しコーヒーパック 8袋入", 1296, 0.55, "summer"],
+    ["焼き菓子 詰め合わせ 6種入", 2160, 0.46, "steady"],
+    ["コーヒー羊かん 5本入", 864, 0.30, "fade"],
+    ["ギフトセット 木箱入", 4980, 0.20, "gift"],
+    ["ステンレスタンブラー 350ml", 2750, 0.24, "fade"],
+    ["カフェオレベース 500ml", 972, 0.38, "grow"],
+    ["デカフェ豆 200g", 1380, 0.34, "steady"]
   ];
   let seed = 20261121;
   const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  // 商品の「動き」：その月にどれくらい売れやすいかの係数
+  function trend(kind, calMonth, monthIdx){
+    if (kind === "grow") return 0.72 + monthIdx * 0.12;   // 少しずつ伸びていく
+    if (kind === "fade") return 1.18 - monthIdx * 0.14;   // 少しずつ落ちていく
+    if (kind === "summer"){
+      const t = { 1: 0.25, 2: 0.30, 3: 0.45, 4: 0.65, 5: 0.90, 6: 1.15, 7: 1.90, 8: 1.75, 9: 0.95, 10: 0.50, 11: 0.32, 12: 0.28 };
+      return t[calMonth] || 0.5;
+    }
+    if (kind === "gift"){
+      const t = { 2: 1.35, 3: 1.25, 11: 1.55, 12: 2.30 };
+      return t[calMonth] || 0.65;
+    }
+    return 1;
+  }
   const now = new Date();
   const lines = ["日付,商品名,数量,単価"];
   for (let back = 5; back >= 0; back--){
-    const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
-    const y = d.getFullYear(), m = d.getMonth() + 1;
-    const growth = 1 + (5 - back) * 0.06; // 月ごとに少しずつ伸びる売上の傾向
-    const n = 9 + Math.floor(rnd() * 5);
-    for (let i = 0; i < n; i++){
-      const p = products[Math.floor(rnd() * products.length)];
-      const day = 1 + Math.floor(rnd() * 27);
-      const qty = Math.max(1, Math.round((2 + rnd() * 14) * growth));
-      lines.push(y + "-" + ("0" + m).slice(-2) + "-" + ("0" + day).slice(-2) + "," + p[0] + "," + qty + "," + p[1]);
+    const first = new Date(now.getFullYear(), now.getMonth() - back, 1);
+    const y = first.getFullYear(), m = first.getMonth() + 1, monthIdx = 5 - back;
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const lastDay = back === 0 ? now.getDate() : daysInMonth; // 今月分は今日まで
+    const monthNoise = 0.86 + rnd() * 0.30; // 月ごとの浮き沈み（天候や近所の行事など）
+    for (let day = 1; day <= lastDay; day++){
+      const dow = new Date(y, m - 1, day).getDay();
+      if (dow === 3) continue; // 水曜定休
+      const pOrder = (dow === 0 || dow === 6 ? 0.62 : 0.34) * monthNoise;
+      if (rnd() > pOrder) continue;
+      const nLines = rnd() < 0.22 ? 2 : 1; // まとめ買いで2品目になる日もある
+      for (let li = 0; li < nLines; li++){
+        let tot = 0;
+        const w = products.map(p => { const v = p[2] * trend(p[3], m, monthIdx); tot += v; return v; });
+        let x = rnd() * tot, pi = 0;
+        while (pi < w.length - 1 && x > w[pi]){ x -= w[pi]; pi++; }
+        const p = products[pi];
+        let qty = 1 + Math.floor(Math.pow(rnd(), 1.6) * 6);
+        if (p[0].indexOf("豆") >= 0 && rnd() < 0.07) qty = 10 + Math.floor(rnd() * 15); // 飲食店向けのまとめ買い
+        lines.push(y + "-" + ("0" + m).slice(-2) + "-" + ("0" + day).slice(-2) + "," + p[0] + "," + qty + "," + p[1]);
+      }
     }
   }
   return lines.join("\n");
@@ -198,7 +263,7 @@ function esc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").r
 
 function barChartMonthly(monthly){
   const W = 640, H = 250, base = 205, top = 28, max = Math.max.apply(null, monthly.map(d => d.total).concat([1]));
-  const bw = Math.min(64, (W - 80) / monthly.length * 0.55), step = (W - 80) / monthly.length;
+  const bw = Math.min(64, (W - 80) / Math.max(1, monthly.length) * 0.55), step = (W - 80) / Math.max(1, monthly.length);
   let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="月別売上グラフ">';
   s += '<line x1="50" y1="' + base + '" x2="' + (W - 20) + '" y2="' + base + '" stroke="#d9e2e8" stroke-width="2"/>';
   monthly.forEach((d, i) => {
@@ -215,10 +280,10 @@ function barChartProducts(products, total){
   const rowH = 34, W = 640, H = top.length * rowH + 8, max = Math.max.apply(null, top.map(d => d.total).concat([1]));
   let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="商品別ランキンググラフ">';
   top.forEach((d, i) => {
-    const y = 6 + i * rowH, w = Math.max(3, (W - 330) * d.total / max);
-    s += '<text x="0" y="' + (y + 19) + '" font-size="13" fill="#22303c">' + esc(d.name) + '</text>';
-    s += '<rect x="185" y="' + (y + 3) + '" width="' + w.toFixed(1) + '" height="17" rx="4" fill="#0f2a43"/>';
-    s += '<text x="' + (192 + w).toFixed(1) + '" y="' + (y + 17) + '" font-size="12.5" font-weight="700" fill="#0f2a43">' + esc(yen(d.total)) + '（' + (total ? (d.total / total * 100).toFixed(1) : "0.0") + '%）</text>';
+    const y = 6 + i * rowH, w = Math.max(3, (W - 365) * d.total / max);
+    s += '<text x="0" y="' + (y + 19) + '" font-size="12.5" fill="#22303c">' + esc(d.name) + '</text>';
+    s += '<rect x="205" y="' + (y + 3) + '" width="' + w.toFixed(1) + '" height="17" rx="4" fill="#0f2a43"/>';
+    s += '<text x="' + (212 + w).toFixed(1) + '" y="' + (y + 17) + '" font-size="12.5" font-weight="700" fill="#0f2a43">' + esc(yen(d.total)) + '（' + (total ? (d.total / total * 100).toFixed(1) : "0.0") + '%）</text>';
   });
   return s + "</svg>";
 }
@@ -232,7 +297,8 @@ function render(agg){
   else {
     const v = agg.latestChange;
     ch.innerHTML = '<span class="' + (v >= 0 ? "up" : "down") + '">' + (v >= 0 ? "▲ " : "▼ ") + Math.abs(v).toFixed(1) + "%</span>";
-    chSub.textContent = "前月 " + yen(agg.monthly[agg.monthly.length - 2].total) + " との比較";
+    const prev = agg.monthly.length >= 2 ? agg.monthly[agg.monthly.length - 2].total : agg.prevTotal;
+    chSub.textContent = (prev === null || prev === undefined) ? "" : "前月 " + yen(prev) + " との比較";
   }
   document.getElementById("kpiRows").textContent = agg.rowCount + " 件";
   document.getElementById("chartMonthly").innerHTML = barChartMonthly(agg.monthly);
@@ -252,30 +318,86 @@ function render(agg){
   document.getElementById("tableProducts").innerHTML = tp;
 }
 
-const SAMPLE = buildSampleCSV();
-function applyCSV(text, label){
+// ===== 状態管理：データセット全体と表示期間 =====
+const LS_KEY = "weba-sales-dashboard:csv";
+let allRows = [];
+let period = "all";
+
+function setStatus(msg, isErr){
   const st = document.getElementById("csvStatus");
+  st.textContent = msg;
+  st.className = isErr ? "status err" : "status";
+}
+function saveCSV(text){ try { localStorage.setItem(LS_KEY, text); } catch (e) { /* 保存できない環境では何もしない */ } }
+function loadSavedCSV(){ try { return localStorage.getItem(LS_KEY); } catch (e) { return null; } }
+function clearSavedCSV(){ try { localStorage.removeItem(LS_KEY); } catch (e) { /* 同上 */ } }
+
+// 現在のデータセットと期間で、KPI・グラフ・表をまとめて描き直す。
+// 前月比は表示期間で区切らず全データ基準で計算する（境目の月でも前月と比較できる）。
+function refresh(){
+  const full = aggregate(allRows);
+  const changeMap = {}, totalMap = {};
+  full.monthly.forEach(d => { changeMap[d.month] = d.change; totalMap[d.month] = d.total; });
+  const agg = aggregate(filterByPeriod(allRows, period));
+  agg.monthly.forEach(d => { if (d.month in changeMap) d.change = changeMap[d.month]; });
+  if (agg.latest){
+    agg.latestChange = agg.latest.change;
+    const prevMonth = monthAdd(agg.latest.month, -1);
+    agg.prevTotal = (prevMonth in totalMap) ? totalMap[prevMonth] : null;
+  }
+  render(agg);
+  // 期間まわりの注記
+  const months = full.monthly.map(d => d.month);
+  const note = document.getElementById("periodNote");
+  if (!months.length) note.textContent = "";
+  else if (period === "1m") note.textContent = "データの最新月（" + months[months.length - 1].replace("-", "年") + "月）だけを表示しています";
+  else if (period === "3m") note.textContent = "最新月を含む直近3か月（" + agg.range + "）を表示しています";
+  else note.textContent = "全期間（" + full.range + "）を表示しています";
+  document.getElementById("kpiRowsSub").textContent =
+    period === "all" ? "取り込んだ売上明細の行数" : "全 " + allRows.length + " 件のうち、表示期間分";
+}
+
+// CSVテキストを取り込んでデータセットを差し替える。成功したら true。
+function applyCSV(text, label){
   const res = parseCSV(text);
   if (!res.rows.length){
-    st.textContent = "集計できませんでした：" + (res.errors[0] || "形式をご確認ください");
-    st.className = "status err";
-    return;
+    setStatus("集計できませんでした：" + (res.errors[0] || "形式をご確認ください"), true);
+    return false;
   }
-  render(aggregate(res.rows));
-  st.textContent = label + "：" + res.rows.length + "件の明細を取り込みました。" + (res.errors.length ? "（読み取れなかった行が " + res.errors.length + " 件あります）" : "");
-  st.className = "status";
+  allRows = res.rows;
+  refresh();
+  setStatus(label + "：" + res.rows.length + "件の明細を取り込みました。" + (res.errors.length ? "（読み取れなかった行が " + res.errors.length + " 件あります）" : ""), false);
+  return true;
 }
+
+const SAMPLE = buildSampleCSV();
+document.querySelectorAll(".period-btns button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    period = btn.getAttribute("data-period");
+    document.querySelectorAll(".period-btns button").forEach(b => b.classList.toggle("active", b === btn));
+    refresh();
+  });
+});
 document.getElementById("btnApply").addEventListener("click", () => {
   const v = document.getElementById("csvInput").value;
-  if (!v.trim()){ const st = document.getElementById("csvStatus"); st.textContent = "CSVが貼り付けられていません。"; st.className = "status err"; return; }
-  applyCSV(v, "貼り付けたCSVで再集計しました");
+  if (!v.trim()){ setStatus("CSVが貼り付けられていません。", true); return; }
+  if (applyCSV(v, "貼り付けたCSVで再集計しました")) saveCSV(v); // うまく取り込めたときだけ保存する
 });
 document.getElementById("btnReset").addEventListener("click", () => {
   document.getElementById("csvInput").value = "";
+  clearSavedCSV();
   applyCSV(SAMPLE, "サンプルデータに戻しました");
 });
 document.getElementById("dlSample").href = "data:text/csv;charset=utf-8," + encodeURIComponent(SAMPLE);
-applyCSV(SAMPLE, "サンプルデータを表示しています");
+
+// 初期表示：保存済みのCSVがあれば復元し、なければサンプルを表示する
+const savedCSV = loadSavedCSV();
+if (savedCSV && applyCSV(savedCSV, "前回貼り付けたCSVを復元しました")){
+  document.getElementById("csvInput").value = savedCSV;
+} else {
+  if (savedCSV) clearSavedCSV(); // 壊れていた保存データは捨てる
+  applyCSV(SAMPLE, "サンプルデータを表示しています");
+}
 </script>
 </body>
 </html>

@@ -14,6 +14,7 @@
   .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
   h1{font-size:24px;margin:6px 0 4px}
   h2{font-size:17px;margin:0 0 10px}
+  h2 .count{font-size:13px;color:var(--muted);font-weight:400}
   .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px;box-shadow:0 4px 18px rgba(15,42,67,.05)}
   .card.alert{border-color:#eec5bf;background:#fffafa}
@@ -21,6 +22,7 @@
   th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle}
   th{color:var(--muted);font-weight:700;font-size:12.5px;white-space:nowrap}
   td.num,th.num{text-align:right}
+  td.sku{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);white-space:nowrap}
   tr.low td{background:var(--redbg)}
   .badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:6px;white-space:nowrap}
   .badge.ok{background:#e3f0ee;color:var(--teal)}
@@ -37,7 +39,20 @@
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
   .note a{color:var(--teal)}
+  .print-head{display:none}
   @media(max-width:640px){.hide-sp{display:none}}
+  @media print{
+    @page{margin:14mm}
+    body{background:#fff}
+    body *{visibility:hidden}
+    #orderPrint,#orderPrint *{visibility:visible}
+    #orderPrint{position:absolute;left:0;top:0;width:100%}
+    #orderPrint .hide-sp{display:table-cell}
+    .print-head{display:block;font-size:18px;font-weight:900;color:#000;margin-bottom:4px}
+    .print-head span{font-size:12px;font-weight:400;color:#333;margin-left:8px}
+    #orderPrint table{font-size:12.5px}
+    #orderPrint th,#orderPrint td{border-bottom:1px solid #bbb}
+  }
 </style>
 </head>
 <body>
@@ -47,36 +62,40 @@
 </header>
 <div class="wrap">
   <h1>在庫アラート（デモ）</h1>
-  <p class="lead">在庫が「発注点」を下回った品目を自動で見つけ、発注リストにまとめます。在庫表の「現在庫」の数字はその場で書き換えられます。数字を下げてみると、アラートにどう入るかが分かります。実際の業務では、在庫データ（Excel・CSV・販売管理システム）と連携し、定期チェックとメール・チャットへの通知まで自動化できます。</p>
+  <p class="lead">倉庫や事務所の在庫表を、そのまま画面に持ってきたようなデモです。「現在庫」の数字は直接書き換えできて、発注点を下回った品目だけが下の発注リストに集まります。サンプルデータには、よく出る消耗品ほど在庫が薄く、めったに動かない備品は多めに残っている、という実際の棚の偏りも入れてあります。編集した内容はこのブラウザに保存されるので、ページを開き直しても続きから試せます。</p>
 
   <div class="card">
-    <h2>在庫一覧（サンプル12品目）</h2>
+    <h2>在庫一覧 <span class="count" id="itemCount"></span></h2>
     <table>
       <thead><tr>
-        <th>品名</th><th class="hide-sp">分類</th><th class="num">現在庫</th><th class="num">発注点</th><th class="num hide-sp">単価</th><th class="hide-sp">仕入先</th><th>状態</th>
+        <th>品番</th><th>品名</th><th class="hide-sp">分類</th><th class="num">現在庫</th><th>単位</th><th class="num">発注点</th><th class="num hide-sp">単価</th><th class="hide-sp">仕入先</th><th>状態</th>
       </tr></thead>
       <tbody id="stockBody"></tbody>
     </table>
     <div class="row">
       <button class="sub" id="resetBtn" type="button">サンプルデータに戻す</button>
     </div>
-    <p class="note">※ 現在庫の欄は直接編集できます。発注点以下になった品目は行が赤くなり、下の「発注が必要な品目」に自動で入ります。</p>
+    <p class="note">※ 現在庫の欄は直接編集でき、書き換えるたびにこのブラウザへ自動で保存されます（外部に送信されることはありません）。発注点以下になった品目は行が赤くなり、下の「発注が必要な品目」に自動で入ります。</p>
   </div>
 
   <div class="card alert">
     <h2>発注が必要な品目</h2>
-    <div class="summary" id="alertSummary"></div>
-    <div id="alertArea"></div>
+    <div id="orderPrint">
+      <div class="print-head">発注リスト<span id="printDate"></span></div>
+      <div class="summary" id="alertSummary"></div>
+      <div id="alertArea"></div>
+    </div>
     <div class="row">
       <button id="csvBtn" type="button">発注リストをCSVでダウンロード</button>
+      <button class="sub" id="printBtn" type="button">発注リストを印刷／PDFで保存</button>
     </div>
-    <p class="note">発注推奨数は「発注点の2倍 − 現在庫」の目安計算です。実務では発注ロットや納期に合わせて調整します。</p>
+    <p class="note">発注推奨数は「発注点の2倍 − 現在庫」の目安計算です。実際の発注では、まとめ買いのロットや納期に合わせて丸めることが多いです。印刷ボタンからは、この発注リストだけを紙やPDFに出せます。</p>
   </div>
 
   <div class="card">
     <h2>在庫CSVを貼り付け（任意）</h2>
-    <p class="note" style="margin:0 0 10px">ヘッダー行が「品名,現在庫,発注点」のCSVを貼ると、在庫一覧がそのデータに置き換わります（分類・単価・仕入先は空欄になります）。</p>
-    <textarea id="csvInput" placeholder="品名,現在庫,発注点&#10;コピー用紙A4,30,50&#10;ボールペン（黒）,120,40"></textarea>
+    <p class="note" style="margin:0 0 10px">ヘッダー行が「品名,現在庫,発注点」のCSVを貼ると、在庫一覧がそのデータに置き換わり、保存もされます。品番・単位・単価・仕入先・分類の列があれば、それらも一緒に読み込みます。</p>
+    <textarea id="csvInput" placeholder="品名,現在庫,発注点&#10;コピー用紙 A4 500枚,7,10&#10;ボールペン 黒 0.7mm,132,60"></textarea>
     <div class="row">
       <button id="loadCsvBtn" type="button">このCSVで置き換える</button>
     </div>
@@ -84,31 +103,32 @@
     <div class="okmsg" id="csvOk"></div>
   </div>
 
-  <p class="note">※ このデモのデータはすべて架空のサンプルで、状態はこのページ内だけに保持されます（リロードするとリセットされます）。実案件では、在庫データと連携した定期チェック、発注点の見直し、通知の自動化まで含めて構築できます。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
+  <p class="note">※ サンプルの品名・品番・仕入先はすべて架空のものです。入力したデータはお使いのブラウザの中（localStorage）にだけ保存され、外部に送信されることはありません。「サンプルデータに戻す」を押すと最初の12品目に戻ります。実際の現場では、この一覧を販売管理ソフトやExcelの在庫表とつないで、朝の始業前に発注リストが届く形にすることもあります。ご相談は<a href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラ</a>または<a href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズ</a>からどうぞ。</p>
 </div>
 
 <script>
 var SAMPLE = [
- {name:"コピー用紙A4", cat:"事務用品", stock:320, reorder:100, price:380, supplier:"サンプル文具店"},
- {name:"ボールペン（黒）", cat:"事務用品", stock:45, reorder:50, price:80, supplier:"サンプル文具店"},
- {name:"封筒 長3（100枚）", cat:"事務用品", stock:18, reorder:20, price:450, supplier:"サンプル文具店"},
- {name:"トナーカートリッジ", cat:"事務用品", stock:3, reorder:3, price:6800, supplier:"オフィス機器センター"},
- {name:"段ボール箱（中・10枚）", cat:"梱包材", stock:64, reorder:30, price:120, supplier:"梱包資材ドットコム"},
- {name:"ラベルシール（24面）", cat:"梱包材", stock:9, reorder:15, price:260, supplier:"梱包資材ドットコム"},
- {name:"洗剤 詰替用", cat:"日用品", stock:22, reorder:10, price:320, supplier:"日用品卸センター"},
- {name:"ティッシュペーパー（5箱）", cat:"日用品", stock:6, reorder:8, price:290, supplier:"日用品卸センター"},
- {name:"ハンドソープ 詰替", cat:"日用品", stock:14, reorder:6, price:340, supplier:"日用品卸センター"},
- {name:"単三電池（4本）", cat:"消耗品", stock:40, reorder:16, price:240, supplier:"電材サプライ"},
- {name:"コーヒー豆（500g）", cat:"食品", stock:5, reorder:4, price:1480, supplier:"食材問屋まるや"},
- {name:"ミネラルウォーター 2L（6本）", cat:"食品", stock:2, reorder:6, price:110, supplier:"食材問屋まるや"}
+ {sku:"PP-A4-500", name:"コピー用紙 A4 500枚", cat:"消耗品", unit:"箱", stock:7, reorder:10, price:2180, supplier:"オフィスサプライ田辺"},
+ {sku:"PN-BK07", name:"ボールペン 黒 0.7mm", cat:"消耗品", unit:"本", stock:132, reorder:60, price:87, supplier:"文具のマルセン"},
+ {sku:"PN-MK02", name:"油性マーカー 細字 黒", cat:"消耗品", unit:"本", stock:11, reorder:24, price:118, supplier:"文具のマルセン"},
+ {sku:"TN-62J", name:"トナーカートリッジ TN-62J", cat:"備品", unit:"個", stock:1, reorder:2, price:11800, supplier:"コピー機のニシカワ"},
+ {sku:"DB-100", name:"段ボール 100サイズ（20枚入）", cat:"梱包材", unit:"箱", stock:23, reorder:8, price:1560, supplier:"梱包資材のサトウ"},
+ {sku:"PK-A4-100", name:"宅配袋 A4（100枚入）", cat:"梱包材", unit:"袋", stock:3, reorder:5, price:940, supplier:"梱包資材のサトウ"},
+ {sku:"TP-KF48", name:"クラフトテープ 48mm", cat:"梱包材", unit:"個", stock:48, reorder:20, price:156, supplier:"梱包資材のサトウ"},
+ {sku:"BT-AA4", name:"アルカリ単三電池 4本パック", cat:"消耗品", unit:"個", stock:26, reorder:12, price:328, supplier:"電材のオオタ"},
+ {sku:"CL-WT80", name:"除菌ウェットティッシュ 詰替 80枚", cat:"消耗品", unit:"個", stock:4, reorder:6, price:297, supplier:"日用品問屋ヒグチ"},
+ {sku:"FL-A4-PE", name:"フラットファイル A4 ピンク", cat:"備品", unit:"冊", stock:64, reorder:15, price:132, supplier:"文具のマルセン"},
+ {sku:"DR-OT500", name:"お茶 ペットボトル 500ml", cat:"消耗品", unit:"本", stock:9, reorder:12, price:108, supplier:"飲料のカネコ"},
+ {sku:"LT-LED40", name:"LED蛍光灯 40形 直管", cat:"備品", unit:"本", stock:2, reorder:1, price:2480, supplier:"電材のオオタ"}
 ];
+var STORAGE_KEY = "webaautolab.stockDemo.items.v1";
 var items = [];
 
 function isLow(it){ return it.stock <= it.reorder; }
 function recommendQty(it){ return Math.max(it.reorder * 2 - it.stock, 1); }
 function computeAlerts(list){
   return list.filter(isLow).map(function(it){
-    return {name:it.name, stock:it.stock, reorder:it.reorder, qty:recommendQty(it), price:it.price, amount:recommendQty(it) * (it.price || 0), supplier:it.supplier};
+    return {sku:it.sku, name:it.name, stock:it.stock, reorder:it.reorder, unit:it.unit, qty:recommendQty(it), price:it.price, amount:recommendQty(it) * (it.price || 0), supplier:it.supplier};
   });
 }
 function csvEscape(v){
@@ -116,11 +136,24 @@ function csvEscape(v){
   return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
 }
 function buildOrderCsv(alerts){
-  var lines = ["品名,現在庫,発注点,発注推奨数,単価,金額目安,仕入先"];
+  var lines = ["品番,品名,現在庫,単位,発注点,発注推奨数,単価,金額目安,仕入先"];
   alerts.forEach(function(a){
-    lines.push([a.name, a.stock, a.reorder, a.qty, a.price, a.amount, a.supplier].map(csvEscape).join(","));
+    lines.push([a.sku, a.name, a.stock, a.unit, a.reorder, a.qty, a.price, a.amount, a.supplier].map(csvEscape).join(","));
   });
   return lines.join("\r\n");
+}
+function normalizeItem(it){
+  it = it || {};
+  return {
+    sku: it.sku ? String(it.sku) : "—",
+    name: it.name ? String(it.name) : "",
+    cat: it.cat ? String(it.cat) : "—",
+    unit: it.unit ? String(it.unit) : "",
+    stock: isNaN(Number(it.stock)) ? 0 : Number(it.stock),
+    reorder: isNaN(Number(it.reorder)) ? 0 : Number(it.reorder),
+    price: isNaN(Number(it.price)) ? 0 : Number(it.price),
+    supplier: it.supplier ? String(it.supplier) : "—"
+  };
 }
 function parseStockCsv(text){
   var rows = text.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
@@ -128,34 +161,64 @@ function parseStockCsv(text){
   var head = rows[0].split(",").map(function(s){ return s.trim(); });
   var iName = head.indexOf("品名"), iStock = head.indexOf("現在庫"), iReorder = head.indexOf("発注点");
   if (iName < 0 || iStock < 0 || iReorder < 0) throw new Error("ヘッダーに「品名」「現在庫」「発注点」が必要です。");
+  var iSku = head.indexOf("品番"), iUnit = head.indexOf("単位"), iPrice = head.indexOf("単価"),
+      iSupplier = head.indexOf("仕入先"), iCat = head.indexOf("分類");
   var out = [];
   for (var i = 1; i < rows.length; i++){
     var cols = rows[i].split(",");
     var stock = Number(cols[iStock]), reorder = Number(cols[iReorder]);
     if (!cols[iName] || isNaN(stock) || isNaN(reorder)) throw new Error((i + 1) + "行目を読み取れませんでした（現在庫と発注点は数字にしてください）。");
-    out.push({name:cols[iName].trim(), cat:"—", stock:stock, reorder:reorder, price:0, supplier:"—"});
+    var price = iPrice >= 0 ? Number(cols[iPrice]) : 0;
+    out.push(normalizeItem({
+      sku: iSku >= 0 ? cols[iSku] : "",
+      name: cols[iName],
+      cat: iCat >= 0 ? cols[iCat] : "",
+      unit: iUnit >= 0 ? cols[iUnit] : "",
+      stock: stock,
+      reorder: reorder,
+      price: isNaN(price) ? 0 : price,
+      supplier: iSupplier >= 0 ? cols[iSupplier] : ""
+    }));
   }
   if (!out.length) throw new Error("読み取れるデータがありませんでした。");
   return out;
+}
+function saveItems(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch (e) {}
+}
+function loadItems(){
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return parsed.map(normalizeItem);
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(SAMPLE));
 }
 
 if (typeof document !== "undefined"){
   var stockBody = document.getElementById('stockBody');
   var alertArea = document.getElementById('alertArea');
   var alertSummary = document.getElementById('alertSummary');
+  var itemCount = document.getElementById('itemCount');
+  var printDate = document.getElementById('printDate');
 
   function yen(n){ return n ? "¥" + n.toLocaleString('ja-JP') : "—"; }
 
   function render(){
+    itemCount.textContent = "（全" + items.length + "品目）";
     stockBody.innerHTML = "";
     items.forEach(function(it, idx){
       var tr = document.createElement('tr');
       if (isLow(it)) tr.className = "low";
       var state = isLow(it) ? '<span class="badge">発注アラート</span>' : '<span class="badge ok">適正</span>';
       tr.innerHTML =
+        '<td class="sku">' + it.sku + "</td>" +
         "<td>" + it.name + "</td>" +
         '<td class="hide-sp">' + it.cat + "</td>" +
         '<td class="num"><input class="stock" type="number" min="0" value="' + it.stock + '" data-idx="' + idx + '"></td>' +
+        "<td>" + (it.unit || "—") + "</td>" +
         '<td class="num">' + it.reorder + "</td>" +
         '<td class="num hide-sp">' + yen(it.price) + "</td>" +
         '<td class="hide-sp">' + it.supplier + "</td>" +
@@ -166,6 +229,7 @@ if (typeof document !== "undefined"){
       inp.addEventListener('input', function(){
         var v = Number(inp.value);
         items[Number(inp.dataset.idx)].stock = isNaN(v) ? 0 : v;
+        saveItems();
         renderAlertsOnly();
         var tr = inp.closest('tr');
         var it = items[Number(inp.dataset.idx)];
@@ -177,6 +241,8 @@ if (typeof document !== "undefined"){
   }
 
   function renderAlertsOnly(){
+    var now = new Date();
+    printDate.textContent = "（" + now.getFullYear() + "/" + (now.getMonth() + 1) + "/" + now.getDate() + " 時点）";
     var alerts = computeAlerts(items);
     if (!alerts.length){
       alertSummary.innerHTML = "現在、発注が必要な品目はありません。";
@@ -185,9 +251,9 @@ if (typeof document !== "undefined"){
     }
     var total = alerts.reduce(function(s,a){ return s + a.amount; }, 0);
     alertSummary.innerHTML = "発注が必要な品目は <strong>" + alerts.length + " 件</strong>（金額目安の合計：" + yen(total) + "）";
-    var html = "<table><thead><tr><th>品名</th><th class=\"num\">現在庫</th><th class=\"num\">発注点</th><th class=\"num\">発注推奨数</th><th class=\"num\">金額目安</th><th class=\"hide-sp\">仕入先</th></tr></thead><tbody>";
+    var html = "<table><thead><tr><th>品番</th><th>品名</th><th class=\"num\">現在庫</th><th class=\"num\">発注点</th><th class=\"num\">発注推奨数</th><th class=\"num\">金額目安</th><th class=\"hide-sp\">仕入先</th></tr></thead><tbody>";
     alerts.forEach(function(a){
-      html += "<tr><td>" + a.name + "</td><td class=\"num\">" + a.stock + "</td><td class=\"num\">" + a.reorder + "</td><td class=\"num\">" + a.qty + "</td><td class=\"num\">" + yen(a.amount) + "</td><td class=\"hide-sp\">" + a.supplier + "</td></tr>";
+      html += "<tr><td class=\"sku\">" + a.sku + "</td><td>" + a.name + "</td><td class=\"num\">" + a.stock + "</td><td class=\"num\">" + a.reorder + "</td><td class=\"num\">" + a.qty + (a.unit || "") + "</td><td class=\"num\">" + yen(a.amount) + "</td><td class=\"hide-sp\">" + a.supplier + "</td></tr>";
     });
     html += "</tbody></table>";
     alertArea.innerHTML = html;
@@ -204,8 +270,15 @@ if (typeof document !== "undefined"){
     URL.revokeObjectURL(a.href);
   });
 
+  document.getElementById('printBtn').addEventListener('click', function(){
+    var alerts = computeAlerts(items);
+    if (!alerts.length){ alert("発注が必要な品目がありません。"); return; }
+    window.print();
+  });
+
   document.getElementById('resetBtn').addEventListener('click', function(){
     items = JSON.parse(JSON.stringify(SAMPLE));
+    saveItems();
     render();
   });
 
@@ -214,6 +287,7 @@ if (typeof document !== "undefined"){
     err.style.display = "none"; ok.style.display = "none";
     try {
       items = parseStockCsv(document.getElementById('csvInput').value);
+      saveItems();
       render();
       ok.textContent = items.length + "品目を読み込みました。";
       ok.style.display = "block";
@@ -223,7 +297,7 @@ if (typeof document !== "undefined"){
     }
   });
 
-  items = JSON.parse(JSON.stringify(SAMPLE));
+  items = loadItems();
   render();
 }
 </script>

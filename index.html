@@ -10,6 +10,7 @@
 <meta property="og:description" content="Excel・CSVの集計、問い合わせの仕分け、請求書づくり。毎回手でやっている作業をツール化して、時間を取り戻す。業務自動化の納品型パッケージ。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gomamonaka.github.io/">
+<script>document.documentElement.classList.add('js');</script>
 <style>
   :root{
     --paper:#faf8f3;
@@ -40,6 +41,7 @@
   .wrap{max-width:1060px;margin:0 auto;padding:0 28px}
   .narrow{max-width:760px}
   .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  .nw{white-space:nowrap}
   .en{
     font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size:11px;letter-spacing:.26em;text-transform:uppercase;
@@ -141,10 +143,11 @@
   .total-band .lost-total p b{color:#fff}
 
   /* ---------- reveal ---------- */
-  .rv{opacity:0;transform:translateY(26px);transition:opacity .85s ease,transform .85s ease}
-  .rv.in{opacity:1;transform:none}
+  /* 初期状態で隠すのはJSが有効な場合（html.js）だけ。JS無効時は本文がそのまま表示される */
+  html.js .rv{opacity:0;transform:translateY(26px);transition:opacity .85s ease,transform .85s ease}
+  html.js .rv.in{opacity:1;transform:none}
   @media (prefers-reduced-motion: reduce){
-    .rv{opacity:1;transform:none;transition:none}
+    html.js .rv{opacity:1;transform:none;transition:none}
     .marquee-track{animation:none}
   }
 
@@ -370,7 +373,18 @@
   .final .en{display:block;margin-bottom:20px;color:var(--teal)}
   .final h2{font-size:clamp(30px,5.4vw,54px);line-height:1.55;font-weight:700;letter-spacing:.02em}
   .final p{margin-top:20px;color:var(--ink-soft);font-size:15.5px;max-width:560px}
-  .final .cta-row{margin-top:32px;display:flex;gap:16px;flex-wrap:wrap}
+  .final .cta-row{margin-top:32px;display:flex;gap:16px;flex-wrap:wrap;align-items:stretch}
+  .final .cta-row a{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+  .btn-outline{
+    background:transparent;color:var(--ink);
+    padding:15px 38px;border:1px solid var(--ink);border-radius:999px;font-size:15px;font-weight:600;letter-spacing:.04em;
+    transition:background .35s ease,color .35s ease;
+  }
+  .btn-outline:hover{background:var(--ink);color:var(--paper)}
+  @media (max-width:760px){
+    .final .cta-row{flex-direction:column}
+    .final .cta-row a{width:100%}
+  }
 
   /* ---------- footer ---------- */
   footer{border-top:1px solid var(--line);background:var(--paper2);padding:46px 0 30px;font-size:13px;color:var(--ink-soft)}
@@ -463,7 +477,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="en">The time you lose</span>
-      <h2>まず、消えている時間を<br>数えてみます。</h2>
+      <h2><span class="nw">まず、</span><span class="nw">消えている時間を</span><br><span class="nw">数えてみます。</span></h2>
       <p>よくある手作業を、時間の損失として並べました。どれも「大したことない」作業です。でも、積み重なると、こうなります。</p>
     </div>
     <div class="lost-list">
@@ -616,7 +630,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="en">Engineering</span>
-      <h2>取り戻した時間の、裏側。</h2>
+      <h2><span class="nw">取り戻した時間の、</span><span class="nw">裏側。</span></h2>
       <p>処理の途中で何を直し、何を残したかを記録します。公開しているコード、テスト、実測値を、そのまま置きます。</p>
     </div>
 
@@ -735,7 +749,7 @@
   <div class="wrap">
     <div class="sec-head">
       <span class="en">Pricing</span>
-      <h2>時間を取り戻すための、価格。</h2>
+      <h2><span class="nw">時間を取り戻す</span><span class="nw">ための、価格。</span></h2>
       <p>ヒアリングのあと、着手前に固定価格でお見積もりします。作業後に金額が増えることはありません。</p>
     </div>
     <div class="price-list">
@@ -794,7 +808,7 @@
     <p>「毎週この作業に◯時間かかっている」という一言からで大丈夫です。自動化できるかどうかも含めて、無料でお答えします。</p>
     <div class="cta-row">
       <a class="btn" href="https://coconala.com/users/6294387">ココナラで相談する</a>
-      <a class="btn-quiet" href="https://www.lancers.jp/profile/webautolab">ランサーズで相談する</a>
+      <a class="btn-outline" href="https://www.lancers.jp/profile/webautolab">ランサーズで相談する</a>
     </div>
   </div>
 </div>
@@ -851,8 +865,18 @@
 <script>
 (function(){
   var targets = document.querySelectorAll('.sec-head, .statement-text, .lost-list, .lost-total, .how-main, .how-sub, .work, .more-demos, .eng-code, .eng-grid, .eng-github, .price-list, .price-note, .flow-list, .about-table, .ruler, .final .wrap');
-  if (!('IntersectionObserver' in window) || !targets.length) return;
+  if (!targets.length) return;
   targets.forEach(function(el){ el.classList.add('rv'); });
+  var showAll = function(){
+    targets.forEach(function(el){ el.classList.add('in'); });
+  };
+  /* フォールバック：読み込みから1.5秒経ったら、観測状態によらず全要素を表示する */
+  var fallback = setTimeout(showAll, 1500);
+  /* モーション軽減の希望がある場合はアニメーションなしで即表示 */
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    clearTimeout(fallback); showAll(); return;
+  }
+  if (!('IntersectionObserver' in window)){ clearTimeout(fallback); showAll(); return; }
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }

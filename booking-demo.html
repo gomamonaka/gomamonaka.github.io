@@ -66,13 +66,18 @@
   .cal-day{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 5px 6px;min-height:54px;cursor:pointer;text-align:left;font-family:inherit;color:var(--text);width:100%}
   .cal-day:hover{border-color:var(--teal)}
   .cal-day .dnum{font-size:13px;font-weight:700}
-  .cal-day .cnt{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
+  .cal-day .cnt{font-size:11px;color:var(--muted);display:block;margin-top:2px;white-space:nowrap}
   .cal-day .cbar{display:block;height:4px;border-radius:2px;background:#e3ded1;margin-top:4px;overflow:hidden}
   .cal-day .cbar i{display:block;height:100%;background:var(--teal)}
   .cal-day.sel{border-color:var(--teal);box-shadow:0 0 0 2px rgba(10,92,99,.28)}
   .cal-day.today .dnum{color:var(--teal);text-decoration:underline}
   .cal-day.full{background:#efeade}
   .cal-day.full .cnt{color:#b7791f;font-weight:700}
+  .cal-day.past{background:#f1ede2;color:#a39d8f}
+  .cal-day.past .dnum{color:#a39d8f}
+  .cal-day.past .cnt{color:#a89f8d;font-weight:400}
+  .cal-day.past .cbar{background:#e7e1cf}
+  .cal-day.past .cbar i{background:#c0b9a4}
   .cal-blank{min-height:54px}
   .slot .cap{font-size:11px;opacity:.75}
   @media (max-width:640px){
@@ -96,7 +101,7 @@
     .status-form select{min-height:40px;font-size:16px}
     textarea{height:240px;font-size:16px}
     .cal-day{min-height:47px;padding:4px 3px 5px}
-    .cal-day .cnt{font-size:10.5px}
+    .cal-day .cnt{font-size:10px}
     .cal-blank{min-height:47px}
     .cal-head span{font-size:14px}
   }
@@ -113,7 +118,7 @@
 </header>
 <div class="wrap">
   <h1>予約・受付システム（デモ）</h1>
-  <p class="lead">電話が鳴るたびに手を止めて、紙の台帳をめくって空き枠を探す。お客さんが重なる土曜の午後は、それだけでひと仕事です。このデモは、スタッフ3人の小さな美容室を想定して、その予約台帳をそのままブラウザに移したものです。お客様が自分で入れる予約画面と、お店側が見る管理画面、両方を触れます。月表示カレンダーでひと月の埋まり具合も見られますし、予約には担当スタッフが付いて、スタッフごとの空き枠も確認できます。昼前後は埋まりやすく、夕方は空きがち——という実際の偏りもサンプルデータに入れてあるので、まずは今日の日付で空き枠のバーを眺めてみてください。</p>
+  <p class="lead">電話が鳴るたびに手を止め、紙の台帳をめくって空き枠を探す。お客さんが重なる土曜の午後は、それだけでひと仕事です。このデモは、スタッフ3人の小さな美容室の予約台帳をブラウザに移したものです。お客様が入れる予約画面と、お店側の管理画面の両方を触れます。月カレンダーでひと月の埋まり具合が見られ、スタッフごとの空き枠も確認できます。昼前後は埋まりやすく夕方は空きがち、という偏りもサンプルに入れてあるので、まずは今日の空き枠のバーを眺めてみてください。</p>
 
   <div class="tabs">
     <button class="tab active" id="tab-customer" type="button">お客様画面（予約する）</button>
@@ -131,7 +136,7 @@
         <button class="sub" id="cal-next" type="button">次の月 ›</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
-      <p class="note" style="margin-top:10px">日をタップすると、その日の空き枠の確認に切り替わります。各日の数字は「埋まっている枠数／全枠（8枠×スタッフ3名＝24）」で、所要時間の長いメニューは複数の枠を埋めます。バーがその日の埋まり具合です。</p>
+      <p class="note" style="margin-top:10px">日をタップすると、その日の空き枠の確認に切り替わります。各日の数字は「埋まっている枠数／全枠（8枠×スタッフ3名＝24）」で、所要時間の長いメニューは複数の枠を埋めます。バーがその日の埋まり具合です。グレーの日は過ぎた日です（タップすれば、その日の予約の確認はそのままできます）。</p>
     </div>
     <div class="card" id="slots-card">
       <h2>空き枠の確認</h2>
@@ -454,7 +459,7 @@ function renderCalendar(){
     const iso = fmtDate(new Date(calYear, calMonth, d));
     const n = dayOccupiedCount(iso);
     const pct = Math.round(n / cap * 100);
-    const cls = "cal-day" + (iso === selected ? " sel" : "") + (iso === todayStr ? " today" : "") + (n >= cap ? " full" : "");
+    const cls = "cal-day" + (iso === selected ? " sel" : "") + (iso === todayStr ? " today" : "") + (n >= cap ? " full" : "") + (iso < todayStr ? " past" : "");
     const cnt = n >= cap ? n + "/" + cap + " 満枠" : n + "/" + cap + "件";
     h += '<button type="button" class="' + cls + '" onclick="onPickDay(\'' + iso + '\')">' +
       '<span class="dnum">' + d + '</span><span class="cnt">' + cnt + "</span>" +

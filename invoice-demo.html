@@ -11,10 +11,10 @@
   /* ツールバー */
   header.toolbar{background:var(--navy);color:#fff;padding:8px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
   .tb-left{display:flex;align-items:center;gap:12px;min-width:0}
-  .tb-left a.backlink{color:#cfe0da;text-decoration:none;font-size:12px;white-space:nowrap}
+  .tb-left a.brand-back{color:#f7f2e7;text-decoration:none;font-size:13px;border:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap}
   .tb-wa{border:1.5px solid #f7f2e7;color:#f7f2e7;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:.08em;padding:2px 5px;line-height:1;white-space:nowrap}
   .tb-brand{font-size:12px;color:#cfe0da;letter-spacing:.06em;white-space:nowrap}
-  @media (max-width:600px){.tb-brand{display:none}}
+  @media (max-width:600px){.tb-brand{display:none}.tb-name{font-size:12.5px}.tb-left{gap:9px}header.toolbar{gap:10px;padding:8px 12px}}
   .tb-name{font-weight:900;letter-spacing:.04em;font-size:15px;white-space:nowrap}
   .tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .seg{display:flex;border:1px solid rgba(255,255,255,.45);border-radius:8px;overflow:hidden}
@@ -26,6 +26,7 @@
   .tooldesc{color:var(--muted);font-size:12.5px;line-height:1.6;margin:0 0 12px}
   .draftbar{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f1eee3;border:1px solid var(--teal);color:var(--navy);border-radius:8px;padding:8px 12px;font-size:13px;margin:0 0 14px}
   .draftbar[hidden]{display:none}
+  #bankField[hidden]{display:none}
   .printwarn{background:#fdf0ee;border:1px solid #c0392b;color:#8f2a20;border-radius:8px;padding:8px 12px;font-size:13px;margin:0 0 14px}
   .printwarn[hidden]{display:none}
   .histmsg{color:var(--teal);font-size:13px;margin:0 0 8px}
@@ -33,6 +34,7 @@
   .draftbar button{flex:none;border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;padding:6px 11px;font-weight:700;cursor:pointer;font-size:12.5px;font-family:inherit}
   @media (max-width:600px){.draftbar{flex-direction:column;align-items:flex-start}}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .cols>div{min-width:0}
   @media (max-width:900px){.cols{grid-template-columns:1fr}}
   /* 編集エリア（台帳寄りの高密度レイアウト） */
   .panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
@@ -43,8 +45,11 @@
   input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
   textarea{resize:vertical;min-height:44px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row2>div{min-width:0}
+  @media (max-width:720px){.row2{grid-template-columns:1fr}}
   .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table.items{width:100%;min-width:560px;border-collapse:collapse;margin-top:4px}
+  table.items{width:100%;min-width:660px;border-collapse:collapse;margin-top:4px}
+  table.items th:first-child,table.items td:first-child{min-width:180px}
   table.items th{font-size:11.5px;color:var(--muted);text-align:left;padding:5px 6px;background:#f3f0e8;border-top:1px solid var(--line);border-bottom:2px solid #cfc8b4}
   table.items td{padding:3px 4px;border-bottom:1px solid #eae5d8;vertical-align:top}
   table.items input,table.items select{padding:5px 6px;font-size:13px;border-radius:4px}
@@ -70,7 +75,7 @@
     table.items input,table.items select{font-size:16px}
     .seg button{min-height:40px;padding:10px 14px}
     .tb-print{min-height:40px;padding:10px 14px}
-    .tb-left a.backlink{display:inline-block;padding:10px 2px}
+    .tb-left a.brand-back{padding:10px 13px}
     .draftbar button{min-height:40px;padding:8px 12px}
     .del{min-height:40px;padding:8px 10px}
     .addbtn{min-height:40px;padding:10px 14px}
@@ -81,9 +86,16 @@
   .sheet{background:#fff;border:1px solid var(--line);padding:34px 34px 30px;box-shadow:0 4px 18px rgba(33,30,26,.08);font-size:13.5px;line-height:1.6}
   .sheet .doc-title{text-align:center;font-size:24px;font-weight:900;letter-spacing:.35em;margin:0 0 18px;color:#111}
   .sheet .meta{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-  .sheet .to-name{font-size:16.5px;font-weight:700;border-bottom:1.5px solid #111;padding-bottom:3px}
+  .sheet .to-name{font-size:16.5px;font-weight:700;border-bottom:1.5px solid #111;padding-bottom:3px;word-break:keep-all}
   .sheet .subject{margin-top:12px;font-size:13.5px}
-  .sheet .from{text-align:right;font-size:12.5px;color:#333;white-space:pre-line}
+  .sheet .from{text-align:right;font-size:12.5px;color:#333;white-space:pre-line;word-break:keep-all}
+  @media (max-width:720px){
+    .sheet{padding:22px 16px 20px}
+    .sheet .meta{flex-direction:column;gap:12px}
+    .sheet .from{text-align:left}
+    .sheet .sumbox{width:100%}
+    table.doc td,table.doc th{padding:5px 5px;font-size:12px}
+  }
   .sheet .from .co{font-size:14.5px;font-weight:700;color:#111}
   .sheet .issue{text-align:right;font-size:12.5px;color:#333;margin-bottom:8px}
   table.doc{width:100%;border-collapse:collapse;margin-top:16px}
@@ -138,7 +150,7 @@
   <div class="tb-left">
     <span class="tb-wa">WA</span>
     <span class="tb-brand">ウェブオートラボ</span>
-    <a class="backlink" href="index.html">← トップへ戻る</a>
+    <a class="brand-back" href="index.html">トップへ戻る</a>
     <div class="tb-name">見積・請求書ジェネレータ</div>
   </div>
   <div class="tb-right">
@@ -179,7 +191,7 @@
       <div class="ph">明細</div>
       <div class="tbl-scroll">
       <table class="items">
-        <thead><tr><th style="width:34%">品名</th><th style="width:11%">数量</th><th style="width:19%">単価</th><th style="width:13%">税率</th><th style="width:15%;text-align:right">金額</th><th></th></tr></thead>
+        <thead><tr><th style="width:42%">品名</th><th style="width:10%">数量</th><th style="width:17%">単価</th><th style="width:12%">税率</th><th style="width:14%;text-align:right">金額</th><th></th></tr></thead>
         <tbody id="itemBody"></tbody>
       </table>
       </div>
@@ -189,9 +201,11 @@
 
       <div class="totals" id="totals"></div>
 
+      <div id="bankField" hidden>
       <label style="margin-top:12px">振込先</label>
       <textarea id="fBank">横浜みらい銀行 新横浜支店 普通 3048217
 口座名義：ウェブオートラボ</textarea>
+      </div>
       <label>備考</label>
       <textarea id="fMemo">本見積書の有効期限は、発行日から30日間です。
 金額はすべて税込表示です。</textarea>
@@ -285,6 +299,10 @@ function defaultFields(){
 // 備考がデフォルトのままなら、種別に合わせてデフォルト文面へ差し替える
 function syncMemoToType(){
   if (memoAuto) $('fMemo').value = MEMO_BY_TYPE[docType];
+}
+// 振込先の入力欄は請求書のときだけ出す（見積書のプレビューには振込先が出ないため）。値は保持したまま表示だけ切り替える
+function syncBankVisibility(){
+  $('bankField').hidden = docType !== '請求書';
 }
 // 保存された備考がどちらのデフォルトとも一致すれば「デフォルトのまま」とみなす（旧形式の下書き対応）
 function inferMemoAuto(state){
@@ -461,6 +479,7 @@ function setType(t){
   }
   $('segQuote').classList.toggle('on', docType === '見積書');
   $('segInvoice').classList.toggle('on', docType === '請求書');
+  syncBankVisibility();
   renderSheet(); saveDraft();
 }
 function isDirty(){
@@ -478,6 +497,7 @@ function startNew(){
   $('fNo').value = nextDocNumber();
   $('segQuote').classList.toggle('on', true);
   $('segInvoice').classList.toggle('on', false);
+  syncBankVisibility();
   $('draftBar').hidden = true;
   renderItems(); renderTotals(); renderSheet();
   // 初期状態そのものは下書きとして保存しない（次回「復元しました」と誤表示しないため）
@@ -533,6 +553,7 @@ function applyDoc(state, duplicate){
   }
   $('segQuote').classList.toggle('on', docType === '見積書');
   $('segInvoice').classList.toggle('on', docType === '請求書');
+  syncBankVisibility();
   $('draftBar').hidden = true;
   renderItems(); renderTotals(); renderSheet(); saveDraft();
   baselineJson = JSON.stringify(collectState());
@@ -660,6 +681,7 @@ function isPristineDraft(draft){
   }
   $('segQuote').classList.toggle('on', docType === '見積書');
   $('segInvoice').classList.toggle('on', docType === '請求書');
+  syncBankVisibility();
   renderItems(); renderTotals(); renderSheet();
   renderPresetChips(); renderHistory();
   baselineJson = JSON.stringify(collectState());

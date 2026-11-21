@@ -17,19 +17,18 @@
   body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;color:var(--ink);background:#faf8f3;line-height:1.85;-webkit-font-smoothing:antialiased}
   a{color:var(--teal);text-decoration:none}
   .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
-  .brand-bar{position:sticky;top:0;z-index:60;background:#06333a;color:#f7f2e7;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 20px}
-  .bb-brand{display:flex;align-items:center;gap:10px;color:#f7f2e7}
-  .bb-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1.5px solid #f7f2e7;border-radius:8px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;flex:none}
-  .bb-name{font-weight:700;font-size:15px;letter-spacing:.06em}
-  .bb-tag{font-size:11.5px;color:rgba(247,242,231,.72);letter-spacing:.08em}
-  .bb-back{color:#f7f2e7;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:2px;white-space:nowrap}
-  @media (max-width:640px){ .bb-tag{display:none} .bb-back{display:inline-flex;align-items:center;min-height:40px} .bf-links a{display:inline-flex;align-items:center;min-height:40px} }
-  .brand-foot{background:#f3f0e8;border-top:1px solid var(--line);margin-top:72px;padding:34px 0 30px;font-size:13px;color:var(--muted)}
-  .brand-foot .wrap{display:flex;justify-content:space-between;gap:14px 28px;flex-wrap:wrap;align-items:center}
-  .bf-brand{font-weight:700;color:var(--ink);font-size:14.5px;letter-spacing:.05em}
-  .bf-tag{display:block;font-weight:400;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
-  .bf-links{display:flex;gap:20px;flex-wrap:wrap}
-  .bf-links a{color:var(--teal)}
+  .brandbar{background:#06333a;color:#f7f2e7;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .brand-id{display:flex;align-items:center;gap:10px;color:#f7f2e7;text-decoration:none;min-width:0}
+  .brand-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1.5px solid #f7f2e7;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.05em;flex:none}
+  .brand-name{font-weight:900;letter-spacing:.04em;font-size:15px;white-space:nowrap}
+  .brand-tag{font-size:11px;color:#bcd2cb;letter-spacing:.1em;white-space:nowrap}
+  .brand-back{color:#f7f2e7;text-decoration:none;font-size:13px;border:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none}
+  @media (max-width:640px){ .brandbar{padding:10px 14px} .brand-tag{display:none} .brandfoot-in{padding:22px 14px} .brand-back{padding:10px 13px} .brandfoot-links{flex-wrap:wrap} .brandfoot-links a{display:inline-flex;align-items:center;min-height:40px} }
+  .brandfoot{background:#06333a;color:#f7f2e7;margin-top:72px}
+  .brandfoot-in{max-width:1080px;margin:0 auto;padding:26px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .brandfoot-name{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.05em}
+  .brandfoot-links{display:flex;gap:20px}
+  .brandfoot-links a{color:#f7f2e7;text-decoration:none;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:2px}
   .page-head{background:var(--deep);color:var(--ivory);padding:56px 0 48px}
   .page-head h1{font-size:30px;font-weight:900;line-height:1.5}
   .page-head p{margin-top:12px;color:rgba(247,242,231,.85);max-width:640px;font-size:15px}
@@ -71,9 +70,13 @@
 </head>
 <body>
 
-<header class="brand-bar">
-  <a class="bb-brand" href="index.html"><span class="bb-mark">WA</span><span class="bb-name">ウェブオートラボ</span><span class="bb-tag">手作業の時間を、取り戻す。</span></a>
-  <a class="bb-back" href="index.html">トップへ戻る ›</a>
+<header class="brandbar">
+  <a class="brand-id" href="index.html">
+    <span class="brand-mark">WA</span>
+    <span class="brand-name">ウェブオートラボ</span>
+    <span class="brand-tag">手作業の時間を、取り戻す。</span>
+  </a>
+  <a class="brand-back" href="index.html">トップへ戻る</a>
 </header>
 
 <div class="page-head">
@@ -122,15 +125,15 @@
   </div>
 </section>
 
-<footer class="brand-foot">
-  <div class="wrap">
-    <div class="bf-brand">ウェブオートラボ<span class="bf-tag">手作業の時間を、取り戻す。</span></div>
-    <nav class="bf-links">
+<footer class="brandfoot">
+  <div class="brandfoot-in">
+    <p class="brandfoot-name">ウェブオートラボ｜手作業の時間を、取り戻す。</p>
+    <nav class="brandfoot-links">
       <a href="index.html">トップ</a>
       <a href="demo.html">体験デモ</a>
       <a href="shindan.html">自動化診断</a>
       <a href="faq-chat.html">FAQチャット</a>
-          <a href="legal.html">運営者情報・プライバシー</a>
+      <a href="legal.html">運営者情報・プライバシー</a>
     </nav>
   </div>
 </footer>

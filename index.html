@@ -135,6 +135,22 @@
   footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
   footer b{color:#fff}
   footer a{color:#8fe3ea}
+
+  section[id]{scroll-margin-top:76px}
+  @media (max-width:600px){
+    h2{font-size:23px}
+    .card{padding:22px}
+    .demo .body{padding:20px}
+    .plan{padding:28px 22px}
+    .cta-band{padding:38px 22px}
+    .cta-band.mini{padding:30px 20px;margin-top:36px}
+    .works-group{font-size:17px;margin:28px 0 14px}
+    .works-group span{flex-basis:100%;margin-left:19px}
+    .hero-stats{gap:22px;margin-top:30px}
+    .hero-stats div b{font-size:20px}
+    .btn{padding:13px 24px;font-size:14.5px}
+    footer .wrap{flex-direction:column;align-items:flex-start}
+  }
 </style>
 </head>
 <body>
@@ -591,13 +607,15 @@
       <p class="lead">個人事業として、業務委託（納品型）のみで対応しています。</p>
     </div>
     <div style="max-width:760px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden">
-      <table style="width:100%;border-collapse:collapse;font-size:14.5px">
+      <div style="overflow-x:auto">
+      <table style="width:100%;min-width:540px;border-collapse:collapse;font-size:14.5px">
         <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">屋号</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">ウェブオートラボ</td></tr>
         <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">事業内容</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">業務自動化ツールの開発／問い合わせ分類などAI活用支援／既存ツールの診断・復旧／Chrome拡張・Windowsアプリ開発</td></tr>
         <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">契約形態</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">業務委託（納品型）のみ ※雇用・常駐は対応していません</td></tr>
         <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px;border-bottom:1px solid var(--line)">対応時間</th><td style="padding:16px 22px;border-bottom:1px solid var(--line)">平日の朝・夜（日中のご連絡には夜に返信します）</td></tr>
         <tr><th style="text-align:left;background:var(--soft);color:var(--navy);padding:16px 22px;width:180px">連絡方法</th><td style="padding:16px 22px">チャット（テキスト）のみ ※電話・オンライン会議は対応していません</td></tr>
       </table>
+      </div>
     </div>
   </div>
 </section>
@@ -640,7 +658,10 @@
 <footer>
   <div class="wrap">
     <div><b>ウェブオートラボ</b>　業務自動化・AIツール開発</div>
-    <div><a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div><a href="#services">対応領域</a>　／　<a href="#pricing">料金</a>　／　<a href="#works">制作物</a>　／　<a href="#try">体験デモ</a>　／　<a href="shindan.html">自動化診断</a>　／　<a href="security-shindan.html">セキュリティ簡易診断</a></div>
+      <div><a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+    </div>
   </div>
 </footer>
 

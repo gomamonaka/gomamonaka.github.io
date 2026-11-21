@@ -45,6 +45,15 @@
   .b-hi{background:var(--hi-bg);color:var(--hi);border:1px solid var(--hi)}
   .b-mid{background:var(--mid-bg);color:var(--mid);border:1px solid #d9b45b}
   .b-low{background:var(--low-bg);color:var(--low);border:1px solid #9cc184}
+  tr.finding{cursor:pointer}
+  tr.finding:hover td{background:#f7f4ec}
+  tr.finding .more{color:var(--teal);font-weight:700;font-size:11.5px;white-space:nowrap}
+  tr.detail td{background:#fbf9f4;padding:16px 18px}
+  .d-grid{display:grid;grid-template-columns:1fr 1fr minmax(130px,.55fr);gap:18px}
+  .d-grid h4{margin:0 0 6px;font-size:12.5px;color:var(--navy);letter-spacing:.04em}
+  .d-grid p{margin:0;font-size:12.5px;line-height:1.75}
+  .d-grid ol{margin:0;padding-left:18px;font-size:12.5px;line-height:1.75}
+  @media (max-width:720px){ .d-grid{grid-template-columns:1fr} }
   .status-ng{color:var(--hi);font-weight:700;white-space:nowrap}
   .status-warn{color:var(--mid);font-weight:700;white-space:nowrap}
   .status-ok{color:var(--low);font-weight:700;white-space:nowrap}
@@ -123,86 +132,101 @@
   </div>
 
   <h2>検出項目一覧</h2>
+  <p class="lead" style="margin-bottom:12px">各項目の行をクリックすると、「何が問題か」「どう直すか」「所要時間の目安」が開きます。</p>
   <table class="findings">
     <thead>
       <tr><th>項目</th><th>重要度</th><th>状態</th><th>根拠（確認できたこと）</th><th>対策</th><th>難易度</th></tr>
     </thead>
     <tbody>
       <tr class="layer"><td colspan="6">第1層：公開資産（サイト・メール）</td></tr>
-      <tr>
-        <td>HTTPS／証明書</td><td><span class="badge b-low">低</span></td><td class="status-ok">良好</td>
+      <tr class="finding">
+        <td>HTTPS／証明書 <span class="more">詳細 ▸</span></td><td><span class="badge b-low">低</span></td><td class="status-ok">良好</td>
         <td>全ページHTTPS化済み。証明書の有効期限は残り8か月、自動更新の設定も確認できました。</td>
         <td>現状維持。更新失敗時の通知先だけ確認しておく。</td><td>―</td>
       </tr>
-      <tr>
-        <td>メール認証（DMARC）</td><td><span class="badge b-hi">高</span></td><td class="status-ng">未設定</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>現状は良好です。残るリスクは、証明書の自動更新が何らかの理由で失敗したときに、気づかないまま期限切れを迎え、サイトに警告が表示されてしまうことです。</p></div><div><h4>どう直すか</h4><ol><li>証明書の更新通知が届く宛先（メールアドレス）を確認する</li><li>有効期限の3か月前に確認する予定をカレンダー等に登録しておく</li><li>更新後はブラウザで証明書の期限が延びていることを目視確認する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>15分程度（確認のみ）</p></div></div></td></tr>
+      <tr class="finding">
+        <td>メール認証（DMARC） <span class="more">詳細 ▸</span></td><td><span class="badge b-hi">高</span></td><td class="status-ng">未設定</td>
         <td>SPF・DKIMは設定済みですが、DMARCレコードが存在せず、自社名義のなりすましメールを受信側で弾けません。</td>
         <td>まず監視モード（p=none）でDMARCを導入し、レポートを確認してから拒否設定へ段階的に移行する。</td><td>中</td>
       </tr>
-      <tr>
-        <td>セキュリティヘッダ</td><td><span class="badge b-low">低</span></td><td class="status-warn">不足</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>SPF・DKIMだけでは「認証に失敗したメールをどう扱うか」を受信側に指示できません。自社ドメインを名乗るなりすましメールが取引先に届き、送金詐欺などに悪用される恐れがあります。</p></div><div><h4>どう直すか</h4><ol><li>DNSにDMARCレコードを監視モード（p=none）で追加し、レポートの送付先を設定する</li><li>2〜4週間レポートを確認し、正規の送信元（メール配信サービス等）が漏れていないか洗い出す</li><li>問題がなければ拒否の強さ（p=quarantine → p=reject）へ段階的に引き上げる</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>初期設定30分程度＋監視期間2〜4週間</p></div></div></td></tr>
+      <tr class="finding">
+        <td>セキュリティヘッダ <span class="more">詳細 ▸</span></td><td><span class="badge b-low">低</span></td><td class="status-warn">不足</td>
         <td>クリックジャッキング対策（X-Frame-Options）など、基本的な応答ヘッダが未設定でした。</td>
         <td>サーバー設定に数行追加する。既存表示への影響を確認しながら適用する。</td><td>低</td>
       </tr>
-      <tr>
-        <td>CMS（WordPress）とプラグインの版</td><td><span class="badge b-mid">中</span></td><td class="status-warn">旧版</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>X-Frame-Optionsなどの応答ヘッダがないと、自社サイトが他サイトの枠内に埋め込まれ、見た目を偽装してクリックを誘う「クリックジャッキング」に使われる恐れがあります。</p></div><div><h4>どう直すか</h4><ol><li>サーバー設定（サーバーパネルの設定画面や .htaccess など）に、X-Frame-Options、X-Content-Type-Options、Referrer-Policy 等を数行追加する</li><li>適用後、サイトの表示や埋め込みコンテンツに崩れがないか確認する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>30分〜1時間程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>CMS（WordPress）とプラグインの版 <span class="more">詳細 ▸</span></td><td><span class="badge b-mid">中</span></td><td class="status-warn">旧版</td>
         <td>WordPress本体とプラグイン2点が旧版のまま公開されており、既知の不具合の対象バージョンに該当しました。</td>
         <td>バックアップ取得後に更新する。あわせて自動更新を有効化し、使っていないプラグインは削除する。</td><td>低</td>
       </tr>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>旧版のまま公開されているCMSやプラグインは、既知の弱点が知られている状態で、自動化された攻撃の対象になりやすくなります。</p></div><div><h4>どう直すか</h4><ol><li>更新前にサイト全体のバックアップを取得する</li><li>WordPress本体・プラグイン・テーマを最新版へ更新する</li><li>自動更新を有効化し、使っていないプラグイン・テーマは削除する</li><li>更新後に主要ページの表示と動作を確認する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>1〜2時間程度</p></div></div></td></tr>
       <tr class="layer"><td colspan="6">第2層：公開情報の漏えいチェック</td></tr>
-      <tr>
-        <td>公開リポジトリ内の秘密情報</td><td><span class="badge b-hi">高</span></td><td class="status-ng">検出あり</td>
+      <tr class="finding">
+        <td>公開リポジトリ内の秘密情報 <span class="more">詳細 ▸</span></td><td><span class="badge b-hi">高</span></td><td class="status-ng">検出あり</td>
         <td>公開リポジトリの設定ファイルに、APIキーらしき文字列 <code>sk-****7f3a</code> が含まれていました（値はマスクして報告しています）。</td>
         <td>該当キーを直ちに無効化・再発行し、履歴からも除去する。今後は環境変数での管理に切り替える。</td><td>中</td>
       </tr>
-      <tr>
-        <td>公開ページ・文書の情報</td><td><span class="badge b-low">低</span></td><td class="status-warn">要確認</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>公開リポジトリに置かれたキーは、公開直後から自動スキャンで収集され得ます。「もう使っていないはず」という前提は安全ではなく、まず無効化することが先決です。</p></div><div><h4>どう直すか</h4><ol><li>該当キーを発行元の管理画面で直ちに無効化し、新しいキーを再発行する</li><li>コードからキーを取り除き、環境変数で管理する形に切り替える</li><li>リポジトリの履歴からもキー文字列を除去する（履歴の書き換え、またはリポジトリの作り直し）</li><li>同じキーを使い回している先がないか確認する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>1〜3時間程度（履歴対応を含む）</p></div></div></td></tr>
+      <tr class="finding">
+        <td>公開ページ・文書の情報 <span class="more">詳細 ▸</span></td><td><span class="badge b-low">低</span></td><td class="status-warn">要確認</td>
         <td>公開中のPDF資料に、社内向けの内線番号表がそのまま含まれていました。機密情報ではありませんが、公開範囲の見直し対象です。</td>
         <td>資料の差し替えと、公開前チェックの手順化。</td><td>低</td>
       </tr>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>内線番号表のような社内向け情報が公開資料に混ざっていると、電話やメールでの詐欺の材料に使われることがあります。機密でなくても、公開範囲の管理が緩いサインです。</p></div><div><h4>どう直すか</h4><ol><li>該当資料から社内向けの部分を除き、差し替えたファイルを再公開する</li><li>公開中の資料を一覧化し、出してよい情報だけが残っているか棚卸しする</li><li>公開前に「社外に出してよい内容か」を確認するチェックを手順に加える</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>資料1件あたり30分程度</p></div></div></td></tr>
       <tr class="layer"><td colspan="6">第3層：アカウント・端末の運用</td></tr>
-      <tr>
-        <td>退職者アカウントの棚卸し</td><td><span class="badge b-hi">高</span></td><td class="status-ng">未実施</td>
+      <tr class="finding">
+        <td>退職者アカウントの棚卸し <span class="more">詳細 ▸</span></td><td><span class="badge b-hi">高</span></td><td class="status-ng">未実施</td>
         <td>退職済み従業員のアカウント3件が有効なままで、うち1件は退職後にログイン履歴がありました。</td>
         <td>3件を即時無効化する。退職時のアカウント停止をチェックリスト化し、月1回の棚卸しを定例化する。</td><td>低</td>
       </tr>
-      <tr>
-        <td>MFA（二要素認証）の導入率</td><td><span class="badge b-hi">高</span></td><td class="status-warn">40%</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>有効なまま残った退職者のアカウントは、本人や第三者による不正アクセス・情報持ち出しの入口になります。退職後にログイン履歴がある場合は、特に優先度が高い項目です。</p></div><div><h4>どう直すか</h4><ol><li>対象のアカウントを即時に無効化する</li><li>その人が所有していた共有ファイルやデータの所有権を、在籍者へ移し替える</li><li>退職手続きのチェックリストに「アカウント停止」を追加する</li><li>月1回、アカウント一覧と在籍者を突き合わせる棚卸しを定例化する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>無効化は1件10分程度、手順化は1時間程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>MFA（二要素認証）の導入率 <span class="more">詳細 ▸</span></td><td><span class="badge b-hi">高</span></td><td class="status-warn">40%</td>
         <td>対象25名のうちMFA有効化は10名。管理者アカウントの1件も未設定でした。パスワードの使い回しがあると突破されやすくなります。</td>
         <td>管理者から先に全員へ展開する。認証アプリ方式で統一し、設定手順書を用意する。</td><td>中</td>
       </tr>
-      <tr>
-        <td>バックアップと復旧テスト</td><td><span class="badge b-mid">中</span></td><td class="status-warn">一部不足</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>パスワードだけの認証は、漏えい・使い回し・フィッシングで突破されやすくなります。特に管理者アカウントが未設定だと、1件の突破で全体の設定を変えられてしまいます。</p></div><div><h4>どう直すか</h4><ol><li>管理者アカウントから先にMFAを設定する</li><li>続いて全従業員へ展開し、認証アプリ方式で統一する</li><li>設定手順書と、困ったときの相談先を用意して案内する</li><li>回復コードの保管方法をあわせて周知する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>1人あたり10〜15分程度＋案内準備1時間程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>バックアップと復旧テスト <span class="more">詳細 ▸</span></td><td><span class="badge b-mid">中</span></td><td class="status-warn">一部不足</td>
         <td>業務データのバックアップは日次で取得されていますが、復旧テストは未実施で、実際に戻せるか未確認でした。</td>
         <td>四半期に1回、テスト環境への復旧リハーサルを行う。保管先を社内とクラウドに分散する。</td><td>中</td>
       </tr>
-      <tr>
-        <td>OS・ソフトの更新運用</td><td><span class="badge b-mid">中</span></td><td class="status-warn">ばらつき</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>バックアップは取得しているだけでは不十分で、復旧手順が未検証だと、障害のときに「戻せない」「戻せるが何時間もかかる」という事態が起こります。</p></div><div><h4>どう直すか</h4><ol><li>テスト用の環境に、バックアップから1回実際に復旧してみる</li><li>復旧の手順と所要時間を記録し、手順書として残す</li><li>保管先を社内とクラウドに分散させ、片方の障害でも残る形にする</li><li>四半期に1回の復旧リハーサルを予定に入れる</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>初回のリハーサルで半日程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>OS・ソフトの更新運用 <span class="more">詳細 ▸</span></td><td><span class="badge b-mid">中</span></td><td class="status-warn">ばらつき</td>
         <td>社内PC15台のうち3台でOSの更新が数か月止まっていました。自動更新が無効化されている端末がありました。</td>
         <td>自動更新を全台で有効化し、月1回の一覧確認を定例化する。</td><td>低</td>
       </tr>
-      <tr>
-        <td>ウイルス対策ソフト</td><td><span class="badge b-low">低</span></td><td class="status-ok">良好</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>更新が数か月止まっている端末は、既知の弱点を抱え続けることになり、感染や侵入の入口になります。自動更新が無効化されている端末は、意図せず放置されがちです。</p></div><div><h4>どう直すか</h4><ol><li>全端末でOSと主要ソフトの自動更新を有効化する</li><li>更新が失敗している端末は、空き容量不足などの原因を解消する</li><li>月1回、バージョンの一覧を確認する担当とタイミングを決める</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>設定変更は1台10分程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>ウイルス対策ソフト <span class="more">詳細 ▸</span></td><td><span class="badge b-low">低</span></td><td class="status-ok">良好</td>
         <td>全端末に導入済みで、定義ファイルの自動更新も有効でした。</td>
         <td>現状維持。ライセンス更新時期の管理だけ継続する。</td><td>―</td>
       </tr>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>現状は良好です。残るリスクは、ライセンスの更新時期を過ぎて無防備な期間ができることです。</p></div><div><h4>どう直すか</h4><ol><li>ライセンスの更新時期を台帳やカレンダーで管理する</li><li>更新時期が近づいたら、期限前に更新手続きを行う</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>確認15分程度</p></div></div></td></tr>
       <tr class="layer"><td colspan="6">第4層：クラウド設定（Google Workspace）</td></tr>
-      <tr>
-        <td>共有ドライブの公開リンク</td><td><span class="badge b-hi">高</span></td><td class="status-ng">要対応</td>
+      <tr class="finding">
+        <td>共有ドライブの公開リンク <span class="more">詳細 ▸</span></td><td><span class="badge b-hi">高</span></td><td class="status-ng">要対応</td>
         <td>見積書フォルダが「リンクを知っている全員が閲覧可」の設定で、社外からもアクセスできる状態でした。</td>
         <td>共有範囲を組織内限定に変更する。既存の共有リンクを棚卸しし、不要なものを一括で見直す。</td><td>低</td>
       </tr>
-      <tr>
-        <td>管理者権限の人数</td><td><span class="badge b-mid">中</span></td><td class="status-warn">過多</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>「リンクを知っている全員が閲覧可」の設定は、リンクが転送されたり漏れたりすれば、社外の誰でも内容を見られる状態です。見積書など業務情報のフォルダでは、影響が大きくなります。</p></div><div><h4>どう直すか</h4><ol><li>対象フォルダの共有範囲を「組織内限定」に変更する</li><li>既存の共有リンクを棚卸しし、不要なものは停止する</li><li>社外と共有が必要な場合は、リンクではなく相手を指定して共有する運用に統一する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>範囲の変更は10分程度、棚卸しは1〜2時間程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>管理者権限の人数 <span class="more">詳細 ▸</span></td><td><span class="badge b-mid">中</span></td><td class="status-warn">過多</td>
         <td>特権管理者が5名おり、うち2名は日常業務では権限を使っていませんでした。乗っ取り時の被害範囲が広がります。</td>
         <td>管理者は2名程度に絞り、日常用と管理用の
 ...[truncated 10905 chars]アカウントを分ける。</td><td>低</td>
       </tr>
-      <tr>
-        <td>外部共有の既定設定</td><td><span class="badge b-mid">中</span></td><td class="status-warn">緩い</td>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>管理者が多いほど、どれか1件のアカウントが乗っ取られたときの影響範囲が広がります。日常業務で権限を使っていない人の管理者権限は、リスクだけが残っている状態です。</p></div><div><h4>どう直すか</h4><ol><li>特権管理者を2名程度に絞る</li><li>日常業務用のアカウントと、管理作業用のアカウントを分ける</li><li>管理操作は管理用アカウントでのみ行う運用を周知する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>設定変更30分程度</p></div></div></td></tr>
+      <tr class="finding">
+        <td>外部共有の既定設定 <span class="more">詳細 ▸</span></td><td><span class="badge b-mid">中</span></td><td class="status-warn">緩い</td>
         <td>新規ファイルの共有既定が組織外への共有を許可する設定で、個人の判断で社外共有できる状態でした。</td>
         <td>既定を組織内限定に変更し、社外共有は申請制にする。あわせて共有時の警告表示を有効化する。</td><td>低</td>
       </tr>
+      <tr class="detail" style="display:none"><td colspan="6"><div class="d-grid"><div><h4>何が問題か</h4><p>新規ファイルの共有既定が緩いと、個人のうっかりした操作ひとつで社外共有が発生します。仕組み側で既定を絞ることが、最も確実な予防策です。</p></div><div><h4>どう直すか</h4><ol><li>管理コンソールで、新規ファイルの共有既定を「組織内限定」に変更する</li><li>社外への共有は、申請してから行う運用にする</li><li>共有操作時の警告表示を有効化する</li></ol></div><div class="d-time"><h4>所要時間の目安</h4><p>設定変更30分程度</p></div></div></td></tr>
     </tbody>
   </table>
   <p class="note">※ 検出項目のうち「秘密情報」にあたるものは、値そのものをこのレポートに記載していません。該当箇所のみをお伝えし、ご担当者さまの手元で確認いただく形式にしています。</p>
@@ -268,5 +292,18 @@
     <div><a href="index.html">トップ</a><a href="shindan.html">自動化診断</a><a href="security-shindan.html">セキュリティ簡易診断</a><a href="legal.html">運営者情報・プライバシー</a></div>
   </div>
 </footer>
+<script>
+document.querySelectorAll("tr.finding").forEach(function(row){
+  row.addEventListener("click", function(){
+    var d = row.nextElementSibling;
+    if (!d || !d.classList.contains("detail")) return;
+    var open = d.style.display !== "none";
+    d.style.display = open ? "none" : "table-row";
+    var m = row.querySelector(".more");
+    if (m) m.textContent = open ? "詳細 ▸" : "閉じる ▾";
+    row.classList.toggle("open", !open);
+  });
+});
+</script>
 </body>
 </html>

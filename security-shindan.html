@@ -65,6 +65,14 @@
   .advice-box ol{margin-left:20px}
   .advice-box li{margin-bottom:12px;font-size:14.5px}
   .advice-box li b{color:var(--navy)}
+  .layer-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;font-size:14px}
+  .layer-name{flex:0 0 11.5em;font-weight:700;color:var(--navy)}
+  .layer-bar{flex:1;height:10px;background:#e9e4d8;border-radius:999px;overflow:hidden}
+  .layer-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal2),var(--teal));border-radius:999px}
+  .layer-score{flex:0 0 5.5em;text-align:right;font-weight:700;color:var(--navy);white-space:nowrap}
+  @media (max-width:560px){ .layer-row{flex-wrap:wrap;gap:6px 10px} .layer-name{flex:1 1 100%} .layer-score{flex:0 0 auto} }
+  .advice-meta{margin-top:5px;font-size:12.5px;color:var(--muted)}
+  .advice-meta b{color:var(--teal)}
   .advice-box p{color:var(--muted);font-size:14px}
   .plan-box{background:#fff;border-radius:16px;padding:22px 24px;color:var(--ink);margin-top:20px}
   .plan-box h3{color:var(--navy);font-size:17px;margin-bottom:6px}
@@ -109,6 +117,11 @@
       <div class="big"><span id="r-score">0</span><small> / 20 点</small></div>
       <p id="r-message" style="margin-top:10px"></p>
       <div class="advice-box">
+        <h3>レイヤー別のスコア</h3>
+        <div id="r-layers"></div>
+        <p>点検の4つの観点（レイヤー）ごとに回答を集計したものです。満点に届いていないレイヤーから優先的に対策すると、効率よくリスクを下げられます。</p>
+      </div>
+      <div class="advice-box">
         <h3>優先対策トップ3</h3>
         <ol id="r-advice"></ol>
         <p id="r-advice-none" style="display:none">今回の10項目では、大きな弱点は見つかりませんでした。この状態を維持しつつ、半年に一度ほどの定期点検をおすすめします。</p>
@@ -118,6 +131,12 @@
         <p>簡易診断では分からない、公開情報や設定の具体的な検出結果までまとめた「セキュリティ点検レポート」を納品するサービスも行っています。まずサンプルレポートで、納品物のイメージをご確認ください。</p>
         <a class="btn btn-primary" href="security-report.html">点検レポート（サンプル）を見る</a>
         <a class="btn btn-primary" href="https://coconala.com/users/6294387" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ココナラで相談する</a>
+        <a class="btn btn-primary" href="https://www.lancers.jp/profile/webautolab" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ランサーズで相談する</a>
+      </div>
+      <div class="plan-box">
+        <h3>点検サービスのご相談について</h3>
+        <p>この簡易診断は、あくまで目安です。「自社では実際にどうなっているか」を確認したい場合は、公開情報と設定を実際に確認する点検サービス（お試し点検 49,800円〜）も行っています。診断結果をもとに「うちの場合はどこまで必要か」を整理するだけのご相談でもかまいません。必要性を感じたタイミングで、無理のない範囲でご検討ください。</p>
+        <a class="btn btn-primary" href="https://coconala.com/users/6294387">ココナラで相談する</a>
         <a class="btn btn-primary" href="https://www.lancers.jp/profile/webautolab" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ランサーズで相談する</a>
       </div>
     </div>
@@ -209,6 +228,21 @@
     }
   ];
 
+  // 各質問のレイヤー（点検の4観点）・対策の難易度・所要時間の目安。QUESTIONS と同じ並び順。
+  var LAYER_NAMES = ["公開資産（サイト・メール）", "公開情報の漏えいチェック", "アカウント・端末の運用", "クラウド設定"];
+  var META = [
+    { layer: 3, diff: "低", time: "1人あたり10〜15分程度（全員分でも半日ほど）" },
+    { layer: 3, diff: "中", time: "管理ツールの導入に半日程度、移行は1人30分ほど" },
+    { layer: 3, diff: "低", time: "一覧の突き合わせと無効化で1〜2時間程度" },
+    { layer: 3, diff: "中", time: "復旧テストの初回は半日程度" },
+    { layer: 3, diff: "低", time: "確認と設定変更は1台10分程度" },
+    { layer: 3, diff: "中", time: "アカウント発行と移行で半日〜1日程度" },
+    { layer: 1, diff: "中", time: "初期設定は30分程度、その後2〜4週間の監視期間" },
+    { layer: 2, diff: "低", time: "公開範囲の総点検に半日程度" },
+    { layer: 4, diff: "低", time: "棚卸しと見直しで1〜2時間程度" },
+    { layer: 3, diff: "低", time: "導入状況の一覧確認に1時間程度" }
+  ];
+
   function computeResult(scores){
     var total = 0, i;
     for(i = 0; i < scores.length; i++){ total += scores[i]; }
@@ -234,13 +268,21 @@
       return b.weight - a.weight;
     });
     var top = weak.slice(0, 3).map(function(w){
-      return { title: QUESTIONS[w.index].title, advice: QUESTIONS[w.index].advice };
+      return { title: QUESTIONS[w.index].title, advice: QUESTIONS[w.index].advice,
+               diff: META[w.index].diff, time: META[w.index].time };
     });
-    return { total: total, level: level, levelKey: levelKey, message: message, top: top };
+    var layers = LAYER_NAMES.map(function(name, li){
+      var s = 0, max = 0;
+      for(var j = 0; j < scores.length; j++){
+        if(META[j].layer === li + 1){ s += scores[j]; max += 2; }
+      }
+      return { name: name, score: s, max: max };
+    });
+    return { total: total, level: level, levelKey: levelKey, message: message, top: top, layers: layers };
   }
 
   if(typeof window !== "undefined"){
-    window.__secDiag = { QUESTIONS: QUESTIONS, computeResult: computeResult };
+    window.__secDiag = { QUESTIONS: QUESTIONS, META: META, LAYER_NAMES: LAYER_NAMES, computeResult: computeResult };
   }
 
   var box = document.getElementById("questions");
@@ -296,6 +338,15 @@
     badge.className = "level-badge level-" + res.levelKey;
     document.getElementById("r-score").textContent = res.total;
     document.getElementById("r-message").textContent = res.message;
+    var lbox = document.getElementById("r-layers");
+    lbox.innerHTML = "";
+    res.layers.forEach(function(L){
+      var pct = L.max ? Math.round(L.score / L.max * 100) : 0;
+      var row = document.createElement("div");
+      row.className = "layer-row";
+      row.innerHTML = '<span class="layer-name">' + L.name + '</span><span class="layer-bar"><i style="width:' + pct + '%"></i></span><span class="layer-score">' + L.score + ' / ' + L.max + ' 点</span>';
+      lbox.appendChild(row);
+    });
     var list = document.getElementById("r-advice");
     var none = document.getElementById("r-advice-none");
     list.innerHTML = "";
@@ -307,7 +358,8 @@
       none.style.display = "none";
       res.top.forEach(function(t){
         var li = document.createElement("li");
-        li.innerHTML = "<b>" + t.title + "</b><br>" + t.advice;
+        li.innerHTML = "<b>" + t.title + "</b><br>" + t.advice +
+          '<div class="advice-meta">難易度：<b>' + t.diff + '</b>｜所要時間の目安：' + t.time + '</div>';
         list.appendChild(li);
       });
     }

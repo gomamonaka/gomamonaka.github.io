@@ -42,6 +42,11 @@
   .card h2{font-size:16px;margin:0 0 4px;color:var(--navy)}
   .card .hint{font-size:12px;color:var(--muted);margin:0 0 12px}
   .card svg{width:100%;height:auto;display:block}
+  .card svg rect[data-month]{cursor:pointer}
+  .tbl-scroll{overflow-x:auto}
+  #drilldown{display:none;border-top:1px dashed var(--line);margin-top:12px;padding-top:12px}
+  #drilldown h3{font-size:14px;margin:0 0 2px;color:var(--navy)}
+  #drilldown .close{float:right;background:#fff;color:var(--teal);border:1px solid var(--teal);border-radius:8px;padding:5px 14px;font-size:12px;box-shadow:none}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
   th:first-child,td:first-child{text-align:left}
@@ -90,8 +95,9 @@
   <div class="grid">
     <div class="card" style="margin-bottom:0">
       <h2>月別売上</h2>
-      <p class="hint">月ごとの売上合計（棒グラフ）</p>
+      <p class="hint">月ごとの売上合計（棒グラフ）。バーをクリックすると、その月の週別内訳が見られます</p>
       <div id="chartMonthly"></div>
+      <div id="drilldown"></div>
     </div>
     <div class="card" style="margin-bottom:0">
       <h2>商品別ランキング</h2>
@@ -111,6 +117,12 @@
       <p class="hint">商品ごとの売上・数量・構成比</p>
       <div id="tableProducts"></div>
     </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>商品×月のクロス集計表</h2>
+    <p class="hint">商品ごとに月別の売上を並べた表です。表示期間の切り替えに連動します。「どの商品が、どの月に動いたか」を追うときに使います</p>
+    <div id="tableCross"></div>
   </div>
 
   <div class="card" style="margin-top:14px">
@@ -215,6 +227,36 @@ function filterByPeriod(rows, period){
   const from = monthAdd(last, -2);
   return rows.filter(r => r.month >= from);
 }
+// 商品×月のクロス集計。商品を行、月を列にして売上を並べる。
+function crossTab(rows){
+  const monthSet = {}, byProd = {};
+  for (const r of rows){
+    monthSet[r.month] = true;
+    if (!byProd[r.name]) byProd[r.name] = { name: r.name, byMonth: {}, total: 0 };
+    byProd[r.name].byMonth[r.month] = (byProd[r.name].byMonth[r.month] || 0) + r.amount;
+    byProd[r.name].total += r.amount;
+  }
+  const months = Object.keys(monthSet).sort();
+  const products = Object.values(byProd).sort((a, b) => b.total - a.total);
+  return { months: months, products: products };
+}
+// 指定した月の明細を週別（1〜7日＝第1週、8〜14日＝第2週…）に集計する。売上が0の週も含めて返す。
+function weeklyBreakdown(rows, month){
+  const parts = month.split("-");
+  const daysInMonth = new Date(Number(parts[0]), Number(parts[1]), 0).getDate();
+  const nWeeks = Math.ceil(daysInMonth / 7);
+  const weeks = [];
+  for (let i = 0; i < nWeeks; i++){
+    weeks.push({ week: i + 1, from: i * 7 + 1, to: Math.min(daysInMonth, (i + 1) * 7), total: 0, qty: 0, count: 0 });
+  }
+  for (const r of rows){
+    if (r.month !== month) continue;
+    const day = Number(r.date.slice(8, 10));
+    const w = weeks[Math.floor((day - 1) / 7)];
+    if (w){ w.total += r.amount; w.qty += r.qty; w.count++; }
+  }
+  return weeks;
+}
 // === CORE END ===
 
 // 架空サンプルデータ：水曜定休の小さなコーヒー豆店、直近6か月分。
@@ -290,7 +332,7 @@ function barChartMonthly(monthly){
   monthly.forEach((d, i) => {
     const h = Math.max(2, (base - top) * d.total / max);
     const x = 60 + step * i + (step - bw) / 2, y = base - h;
-    s += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="5" fill="#0a5c63"/>';
+    s += '<rect data-month="' + d.month + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="5" fill="' + (typeof drillMonth !== "undefined" && drillMonth === d.month ? "#06333a" : "#0a5c63") + '"><title>' + esc(d.month) + 'の週別内訳を見る</title></rect>';
     s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '</text>';
     s += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (base + 22) + '" text-anchor="middle" font-size="12.5" fill="#57534b">' + esc(d.month.slice(2).replace("-", "/")) + '</text>';
   });
@@ -339,10 +381,63 @@ function render(agg){
   document.getElementById("tableProducts").innerHTML = tp;
 }
 
+function renderCross(ct){
+  const box = document.getElementById("tableCross");
+  if (!ct.months.length){ box.innerHTML = '<p class="hint">表示できるデータがありません。</p>'; return; }
+  let h = '<div class="tbl-scroll"><table><thead><tr><th>商品名</th>';
+  for (const m of ct.months) h += "<th>" + esc(m.slice(2).replace("-", "/")) + "</th>";
+  h += "<th>合計</th></tr></thead><tbody>";
+  const monthTotals = {};
+  for (const p of ct.products){
+    h += "<tr><td>" + esc(p.name) + "</td>";
+    for (const m of ct.months){
+      const v = p.byMonth[m] || 0;
+      monthTotals[m] = (monthTotals[m] || 0) + v;
+      h += "<td>" + (v ? esc(yen(v)) : "—") + "</td>";
+    }
+    h += "<td><b>" + esc(yen(p.total)) + "</b></td></tr>";
+  }
+  h += '</tbody><tfoot><tr><td>合計</td>';
+  let grand = 0;
+  for (const m of ct.months){ grand += monthTotals[m] || 0; h += "<td>" + esc(yen(monthTotals[m] || 0)) + "</td>"; }
+  h += "<td>" + esc(yen(grand)) + "</td></tr></tfoot></table></div>";
+  box.innerHTML = h;
+}
+function drillChart(weeks){
+  const W = 640, rowH = 32, H = weeks.length * rowH + 8, max = Math.max.apply(null, weeks.map(d => d.total).concat([1]));
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="週別売上グラフ">';
+  weeks.forEach((d, i) => {
+    const y = 6 + i * rowH, w = Math.max(2, (W - 310) * d.total / max);
+    s += '<text x="0" y="' + (y + 18) + '" font-size="12.5" fill="#211e1a">第' + d.week + '週（' + d.from + '〜' + d.to + '日）</text>';
+    s += '<rect x="150" y="' + (y + 3) + '" width="' + w.toFixed(1) + '" height="16" rx="4" fill="#0a5c63"/>';
+    s += '<text x="' + (158 + w).toFixed(1) + '" y="' + (y + 16) + '" font-size="12.5" font-weight="700" fill="#06333a">' + esc(yen(d.total)) + '</text>';
+  });
+  return s + "</svg>";
+}
+function renderDrill(){
+  const box = document.getElementById("drilldown");
+  if (!drillMonth){ box.style.display = "none"; box.innerHTML = ""; return; }
+  const wk = weeklyBreakdown(allRows, drillMonth);
+  const total = wk.reduce((a, b) => a + b.total, 0);
+  let h = '<button type="button" class="close" id="drillClose">閉じる</button>';
+  h += "<h3>" + esc(drillMonth.replace("-", "年")) + "月の週別内訳</h3>";
+  h += '<p class="hint">週は日付の1〜7日を第1週として区切っています。月別グラフで別の月をクリックすると切り替わり、同じ月をもう一度クリックすると閉じます。</p>';
+  h += drillChart(wk);
+  h += '<table><thead><tr><th>週</th><th>売上</th><th>数量</th><th>明細件数</th></tr></thead><tbody>';
+  for (const d of wk){
+    h += "<tr><td>第" + d.week + "週（" + d.from + "〜" + d.to + "日）</td><td>" + esc(yen(d.total)) + "</td><td>" + d.qty.toLocaleString("ja-JP") + "</td><td>" + d.count + "</td></tr>";
+  }
+  h += '</tbody><tfoot><tr><td>月合計</td><td>' + esc(yen(total)) + "</td><td></td><td></td></tr></tfoot></table>";
+  box.innerHTML = h;
+  box.style.display = "block";
+  document.getElementById("drillClose").addEventListener("click", () => { drillMonth = null; refresh(); });
+}
+
 // ===== 状態管理：データセット全体と表示期間 =====
 const LS_KEY = "weba-sales-dashboard:csv";
 let allRows = [];
 let period = "all";
+let drillMonth = null;
 
 function setStatus(msg, isErr){
   const st = document.getElementById("csvStatus");
@@ -366,7 +461,10 @@ function refresh(){
     const prevMonth = monthAdd(agg.latest.month, -1);
     agg.prevTotal = (prevMonth in totalMap) ? totalMap[prevMonth] : null;
   }
+  if (drillMonth && !agg.monthly.some(d => d.month === drillMonth)) drillMonth = null;
   render(agg);
+  renderCross(crossTab(filterByPeriod(allRows, period)));
+  renderDrill();
   // 期間まわりの注記
   const months = full.monthly.map(d => d.month);
   const note = document.getElementById("periodNote");
@@ -398,6 +496,12 @@ document.querySelectorAll(".period-btns button").forEach(btn => {
     document.querySelectorAll(".period-btns button").forEach(b => b.classList.toggle("active", b === btn));
     refresh();
   });
+});
+document.getElementById("chartMonthly").addEventListener("click", (e) => {
+  const m = e.target && e.target.getAttribute ? e.target.getAttribute("data-month") : null;
+  if (!m) return;
+  drillMonth = drillMonth === m ? null : m;
+  refresh();
 });
 document.getElementById("btnApply").addEventListener("click", () => {
   const v = document.getElementById("csvInput").value;

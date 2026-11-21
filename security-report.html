@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>セキュリティ点検レポート（サンプル）｜ウェブオートラボ</title>
+<style>
+  :root{--navy:#0f2a43;--teal:#0e7c86;--bg:#f4f7f9;--card:#ffffff;--line:#d9e2e8;--text:#22303c;--muted:#5c6d7a;
+    --hi:#b3261e;--hi-bg:#fdecea;--mid:#9a6a00;--mid-bg:#fdf3dd;--low:#3f6d1f;--low-bg:#eaf4e0}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+  header{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+  header .name{font-weight:900;letter-spacing:.04em}
+  header a{color:#a8e6ff;text-decoration:none;font-size:13px}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 16px 48px}
+  h1{font-size:24px;margin:6px 0 4px}
+  h2{font-size:18px;margin:30px 0 10px;padding-left:10px;border-left:5px solid var(--teal)}
+  .lead{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 18px}
+  .sample-note{background:#fff8e1;border:1px solid #e3c86a;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.7;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 4px 18px rgba(15,42,67,.06)}
+  .cover{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+  .cover table{border-collapse:collapse;font-size:14px}
+  .cover th{text-align:left;color:var(--muted);font-weight:600;padding:5px 14px 5px 0;white-space:nowrap;vertical-align:top}
+  .cover td{padding:5px 0;line-height:1.6}
+  .score{text-align:center;min-width:150px}
+  .score .num{font-size:52px;font-weight:900;color:var(--navy);line-height:1}
+  .score .num small{font-size:20px;color:var(--muted);font-weight:600}
+  .score .label{font-size:12px;color:var(--muted);margin-top:6px}
+  .score .bar{height:10px;background:#e6edf1;border-radius:999px;overflow:hidden;margin-top:10px}
+  .score .bar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--teal),#35a5ae);border-radius:999px}
+  .summary{font-size:14px;line-height:1.8;margin:16px 0 0}
+  .top3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .top3 .item{border:1px solid var(--line);border-left:5px solid var(--hi);border-radius:10px;padding:14px;background:#fff}
+  .top3 .item .rank{font-size:11px;font-weight:700;color:var(--hi);letter-spacing:.06em}
+  .top3 .item h3{font-size:14.5px;margin:5px 0 6px;line-height:1.5}
+  .top3 .item p{font-size:12.5px;color:var(--muted);line-height:1.65;margin:0}
+  table.findings{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table.findings th{background:var(--navy);color:#fff;text-align:left;padding:10px 12px;font-size:12.5px;white-space:nowrap}
+  table.findings td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top;line-height:1.65}
+  table.findings tr.layer td{background:#eef4f6;font-weight:700;font-size:12.5px;color:var(--navy);padding:7px 12px}
+  .badge{display:inline-block;border-radius:999px;padding:1px 10px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .b-hi{background:var(--hi-bg);color:var(--hi);border:1px solid var(--hi)}
+  .b-mid{background:var(--mid-bg);color:var(--mid);border:1px solid #d9b45b}
+  .b-low{background:var(--low-bg);color:var(--low);border:1px solid #9cc184}
+  .status-ng{color:var(--hi);font-weight:700;white-space:nowrap}
+  .status-warn{color:var(--mid);font-weight:700;white-space:nowrap}
+  .status-ok{color:var(--low);font-weight:700;white-space:nowrap}
+  code{background:#eef2f4;border-radius:4px;padding:0 4px;font-size:12px}
+  .road{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .road .col{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .road h3{font-size:14px;margin:0 0 10px}
+  .road ul{margin:0;padding-left:18px;font-size:13px;line-height:1.8}
+  .scope{font-size:13px;line-height:1.85}
+  .scope ul{margin:6px 0 0;padding-left:20px}
+  .cta{background:var(--navy);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-top:34px}
+  .cta h2{border:none;padding:0;margin:0 0 8px;color:#fff;font-size:19px}
+  .cta p{font-size:13.5px;line-height:1.7;color:#cfe0ea;margin:0 0 16px}
+  .cta .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .cta a{display:inline-block;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;font-size:14px;border-radius:10px;padding:11px 22px}
+  .cta a.sub{background:#fff;color:var(--navy)}
+  .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.7}
+  @media (max-width:720px){
+    .cover{grid-template-columns:1fr}
+    .score{margin:0 auto}
+    .top3,.road{grid-template-columns:1fr}
+    table.findings{display:block;overflow-x:auto;white-space:normal}
+    table.findings th,table.findings td{min-width:110px}
+    table.findings td:first-child{min-width:170px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="name">ウェブオートラボ</div>
+  <a href="index.html">← トップへ戻る</a>
+</header>
+<div class="wrap">
+  <h1>セキュリティ点検レポート（サンプル）</h1>
+  <p class="lead">中小企業向け「セキュリティ点検」の納品レポートのサンプルです。公開情報の確認とヒアリングをもとに、リスクと対策を一覧化します。本格的な脆弱性診断や侵入テストとは異なり、「いま何が危ないか、どこから直すか」を平易に整理する点検です。</p>
+
+  <div class="sample-note">※ 本ページは<strong>サンプル</strong>です。対象企業・数値・検出内容はすべて架空のもので、実在の企業・個人とは関係ありません。実際の点検では、ご依頼者さま自身の資産のみを、権限確認のうえで点検します。</div>
+
+  <div class="card">
+    <div class="cover">
+      <table>
+        <tr><th>点検対象</th><td>株式会社サンプル製作所（従業員25名・製造業）<br>対象範囲：公式Webサイト、メールシステム、業務用クラウド（Google Workspace）、公開リポジトリ、社内PC運用状況（ヒアリング）</td></tr>
+        <tr><th>点検種別</th><td>標準点検（公開資産の確認＋運用ヒアリング＋クラウド設定確認）</td></tr>
+        <tr><th>点検日</th><td>2026年11月</td></tr>
+        <tr><th>実施者</th><td>ウェブオートラボ</td></tr>
+      </table>
+      <div class="score">
+        <div class="num">62<small> / 100</small></div>
+        <div class="label">総合スコア（点検14項目の達成度）</div>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+    <p class="summary">総評：土台となる対策（HTTPS化、ウイルス対策ソフトの導入、バックアップの取得）はできている一方で、「人と設定」に起因する穴が目立ちます。特に、なりすましメールへの防御（DMARC）、退職者アカウントの放置、共有リンクの公開範囲の3点は、情報漏えいや不正アクセスに直結しやすい項目です。いずれも大きな費用をかけずに対応できるものから着手することをおすすめします。</p>
+    <div class="top3">
+      <div class="item">
+        <div class="rank">最優先 1</div>
+        <h3>退職者アカウント3件が有効のまま</h3>
+        <p>退職済みの従業員のアカウントが削除・無効化されておらず、ログイン可能な状態でした。まず無効化し、棚卸しの手順を定例化してください。</p>
+      </div>
+      <div class="item">
+        <div class="rank">最優先 2</div>
+        <h3>共有ドライブに「全体公開」リンク</h3>
+        <p>見積書フォルダへのリンクが、リンクを知る全員が閲覧できる設定でした。共有範囲を社内限定に見直してください。</p>
+      </div>
+      <div class="item">
+        <div class="rank">最優先 3</div>
+        <h3>DMARC未設定でなりすまし放題</h3>
+        <p>自社ドメインを騙るメールを止める仕組みがなく、取引先への詐欺メールに悪用される恐れがあります。段階的な導入をご提案します。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>検出項目一覧</h2>
+  <table class="findings">
+    <thead>
+      <tr><th>項目</th><th>重要度</th><th>状態</th><th>根拠（確認できたこと）</th><th>対策</th><th>難易度</th></tr>
+    </thead>
+    <tbody>
+      <tr class="layer"><td colspan="6">第1層：公開資産（サイト・メール）</td></tr>
+      <tr>
+        <td>HTTPS／証明書</td><td><span class="badge b-low">低</span></td><td class="status-ok">良好</td>
+        <td>全ページHTTPS化済み。証明書の有効期限は残り8か月、自動更新の設定も確認できました。</td>
+        <td>現状維持。更新失敗時の通知先だけ確認しておく。</td><td>―</td>
+      </tr>
+      <tr>
+        <td>メール認証（DMARC）</td><td><span class="badge b-hi">高</span></td><td class="status-ng">未設定</td>
+        <td>SPF・DKIMは設定済みですが、DMARCレコードが存在せず、自社名義のなりすましメールを受信側で弾けません。</td>
+        <td>まず監視モード（p=none）でDMARCを導入し、レポートを確認してから拒否設定へ段階的に移行する。</td><td>中</td>
+      </tr>
+      <tr>
+        <td>セキュリティヘッダ</td><td><span class="badge b-low">低</span></td><td class="status-warn">不足</td>
+        <td>クリックジャッキング対策（X-Frame-Options）など、基本的な応答ヘッダが未設定でした。</td>
+        <td>サーバー設定に数行追加する。既存表示への影響を確認しながら適用する。</td><td>低</td>
+      </tr>
+      <tr>
+        <td>CMS（WordPress）とプラグインの版</td><td><span class="badge b-mid">中</span></td><td class="status-warn">旧版</td>
+        <td>WordPress本体とプラグイン2点が旧版のまま公開されており、既知の不具合の対象バージョンに該当しました。</td>
+        <td>バックアップ取得後に更新する。あわせて自動更新を有効化し、使っていないプラグインは削除する。</td><td>低</td>
+      </tr>
+      <tr class="layer"><td colspan="6">第2層：公開情報の漏えいチェック</td></tr>
+      <tr>
+        <td>公開リポジトリ内の秘密情報</td><td><span class="badge b-hi">高</span></td><td class="status-ng">検出あり</td>
+        <td>公開リポジトリの設定ファイルに、APIキーらしき文字列 <code>sk-****7f3a</code> が含まれていました（値はマスクして報告しています）。</td>
+        <td>該当キーを直ちに無効化・再発行し、履歴からも除去する。今後は環境変数での管理に切り替える。</td><td>中</td>
+      </tr>
+      <tr>
+        <td>公開ページ・文書の情報</td><td><span class="badge b-low">低</span></td><td class="status-warn">要確認</td>
+        <td>公開中のPDF資料に、社内向けの内線番号表がそのまま含まれていました。機密情報ではありませんが、公開範囲の見直し対象です。</td>
+        <td>資料の差し替えと、公開前チェックの手順化。</td><td>低</td>
+      </tr>
+      <tr class="layer"><td colspan="6">第3層：アカウント・端末の運用</td></tr>
+      <tr>
+        <td>退職者アカウントの棚卸し</td><td><span class="badge b-hi">高</span></td><td class="status-ng">未実施</td>
+        <td>退職済み従業員のアカウント3件が有効なままで、うち1件は退職後にログイン履歴がありました。</td>
+        <td>3件を即時無効化する。退職時のアカウント停止をチェックリスト化し、月1回の棚卸しを定例化する。</td><td>低</td>
+      </tr>
+      <tr>
+        <td>MFA（二要素認証）の導入率</td><td><span class="badge b-hi">高</span></td><td class="status-warn">40%</td>
+        <td>対象25名のうちMFA有効化は10名。管理者アカウントの1件も未設定でした。パスワードの使い回しがあると突破されやすくなります。</td>
+        <td>管理者から先に全員へ展開する。認証アプリ方式で統一し、設定手順書を用意する。</td><td>中</td>
+      </tr>
+      <tr>
+        <td>バックアップと復旧テスト</td><td><span class="badge b-mid">中</span></td><td class="status-warn">一部不足</td>
+        <td>業務データのバックアップは日次で取得されていますが、復旧テストは未実施で、実際に戻せるか未確認でした。</td>
+        <td>四半期に1回、テスト環境への復旧リハーサルを行う。保管先を社内とクラウドに分散する。</td><td>中</td>
+      </tr>
+      <tr>
+        <td>OS・ソフトの更新運用</td><td><span class="badge b-mid">中</span></td><td class="status-warn">ばらつき</td>
+        <td>社内PC15台のうち3台でOSの更新が数か月止まっていました。自動更新が無効化されている端末がありました。</td>
+        <td>自動更新を全台で有効化し、月1回の一覧確認を定例化する。</td><td>低</td>
+      </tr>
+      <tr>
+        <td>ウイルス対策ソフト</td><td><span class="badge b-low">低</span></td><td class="status-ok">良好</td>
+        <td>全端末に導入済みで、定義ファイルの自動更新も有効でした。</td>
+        <td>現状維持。ライセンス更新時期の管理だけ継続する。</td><td>―</td>
+      </tr>
+      <tr class="layer"><td colspan="6">第4層：クラウド設定（Google Workspace）</td></tr>
+      <tr>
+        <td>共有ドライブの公開リンク</td><td><span class="badge b-hi">高</span></td><td class="status-ng">要対応</td>
+        <td>見積書フォルダが「リンクを知っている全員が閲覧可」の設定で、社外からもアクセスできる状態でした。</td>
+        <td>共有範囲を組織内限定に変更する。既存の共有リンクを棚卸しし、不要なものを一括で見直す。</td><td>低</td>
+      </tr>
+      <tr>
+        <td>管理者権限の人数</td><td><span class="badge b-mid">中</span></td><td class="status-warn">過多</td>
+        <td>特権管理者が5名おり、うち2名は日常業務では権限を使っていませんでした。乗っ取り時の被害範囲が広がります。</td>
+        <td>管理者は2名程度に絞り、日常用と管理用の
+...[truncated 10905 chars]アカウントを分ける。</td><td>低</td>
+      </tr>
+      <tr>
+        <td>外部共有の既定設定</td><td><span class="badge b-mid">中</span></td><td class="status-warn">緩い</td>
+        <td>新規ファイルの共有既定が組織外への共有を許可する設定で、個人の判断で社外共有できる状態でした。</td>
+        <td>既定を組織内限定に変更し、社外共有は申請制にする。あわせて共有時の警告表示を有効化する。</td><td>低</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">※ 検出項目のうち「秘密情報」にあたるものは、値そのものをこのレポートに記載していません。該当箇所のみをお伝えし、ご担当者さまの手元で確認いただく形式にしています。</p>
+
+  <h2>優先対応ロードマップ</h2>
+  <div class="road">
+    <div class="col">
+      <h3>🔴 すぐやる（今週中）</h3>
+      <ul>
+        <li>退職者アカウント3件の無効化</li>
+        <li>共有ドライブの全体公開リンクを組織内限定へ変更</li>
+        <li>公開リポジトリのAPIキーを無効化・再発行</li>
+        <li>管理者アカウントへのMFA設定</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>🟡 今月やる</h3>
+      <ul>
+        <li>DMARCの段階的導入（監視モードから）</li>
+        <li>MFAの全従業員への展開</li>
+        <li>WordPress本体・プラグインの更新と自動更新の有効化</li>
+        <li>管理者権限を5名→2名へ削減</li>
+        <li>外部共有の既定設定の見直し</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>🟢 様子見（定例化・改善）</h3>
+      <ul>
+        <li>セキュリティヘッダの追加</li>
+        <li>公開資料の棚卸しと公開前チェックの手順化</li>
+        <li>バックアップの復旧テスト（四半期ごと）</li>
+        <li>アカウント棚卸しの月次定例化</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>点検の範囲と前提</h2>
+  <div class="card scope">
+    本点検は、以下の前提のもとで実施しています。
+    <ul>
+      <li>点検対象は、ご依頼者さま自身が所有・管理する資産（Webサイト、ドメイン、クラウドサービス、公開情報）のみに限ります。</li>
+      <li>着手前に、対象資産の所有・管理権限を書面で確認のうえ実施します。</li>
+      <li>侵入や攻撃の模擬、パスワードの解読、サービス妨害につながる行為は一切行いません。あくまで設定と公開情報の「点検」です。</li>
+      <li>点検中に発見した秘密情報（APIキー、パスワード等）は、値そのものを保存・転記しません。マスク表記と該当箇所のみを報告します。</li>
+      <li>本レポートは点検時点の状態に基づくものです。設定変更や新たな公開により、状態は変わることがあります。</li>
+    </ul>
+  </div>
+
+  <div class="cta">
+    <h2>自社の点検をご希望の方へ</h2>
+    <p>まずは簡易診断でリスクの目安を確認できます。本点検のご相談は、ココナラ・ランサーズからお気軽にどうぞ。<br>お試し点検（公開情報のみ）49,800円〜／標準点検 148,000円〜／月次点検 30,000円〜</p>
+    <div class="btns">
+      <a href="security-shindan.html">セキュリティ簡易診断を試す</a>
+      <a class="sub" href="https://coconala.com/users/6294387" target="_blank" rel="noopener">ココナラで相談する</a>
+      <a class="sub" href="https://www.lancers.jp/profile/webautolab" target="_blank" rel="noopener">ランサーズで相談する</a>
+    </div>
+  </div>
+  <p class="note">※ 繰り返しになりますが、本ページの企業名・数値・検出内容はすべて架空のサンプルです。実在の企業への点検結果ではありません。</p>
+</div>
+</body>
+</html>

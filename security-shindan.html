@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>セキュリティ簡易診断｜10の質問で自社のリスクをチェック - ウェブオートラボ</title>
+<meta name="description" content="10の質問に答えるだけで、自社のセキュリティリスクの目安と優先対策がその場で分かります。入力はブラウザ内のみで処理され、外部に送信されることはありません。">
+<style>
+  :root{
+    --navy:#0f2a43; --navy2:#173d5e; --teal:#0e7c86; --teal2:#12a5b0;
+    --ink:#182635; --muted:#5d7183; --line:#e3eaf0; --soft:#f4f8fa;
+    --shadow:0 10px 30px rgba(15,42,67,.08); --shadow-lg:0 24px 60px rgba(15,42,67,.16);
+    --radius:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;color:var(--ink);background:#fff;line-height:1.85;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--navy);letter-spacing:.04em}
+  .brand small{display:block;font-size:10px;letter-spacing:.28em;color:var(--teal);font-weight:800;line-height:1}
+  .nav-links{display:flex;gap:28px;align-items:center;font-size:14px;font-weight:500}
+  .nav-links a{color:var(--ink)}
+  .nav-cta{background:var(--navy);color:#fff !important;padding:9px 20px;border-radius:999px;font-weight:700}
+  @media (max-width:720px){ .nav-links a:not(.nav-cta){display:none} }
+  .page-head{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,#0d4a54 100%);color:#fff;padding:56px 0 48px}
+  .page-head h1{font-size:30px;font-weight:900;line-height:1.5}
+  .page-head p{margin-top:12px;color:rgba(255,255,255,.85);max-width:680px;font-size:15px}
+  .page-head .head-note{margin-top:16px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:12px 16px;font-size:13.5px;color:#fff;max-width:680px}
+  section{padding:56px 0}
+  h2{font-size:22px;font-weight:900;color:var(--navy);margin-bottom:14px}
+  .q-card{border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:12px;background:#fff}
+  .q-card.answered{border-color:var(--teal);background:#f2fafa}
+  .q-card.unanswered{border-color:#c0392b;background:#fdf3f2}
+  .q-text{font-weight:700;color:var(--navy);font-size:15.5px;display:flex;gap:10px;align-items:flex-start}
+  .q-num{flex:none;background:var(--navy);color:#fff;font-size:12px;font-weight:800;border-radius:999px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;margin-top:3px}
+  .q-opts{margin-top:12px;display:grid;gap:8px}
+  .q-opts label{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;font-size:14px;background:#fff}
+  .q-opts label:hover{border-color:var(--teal2)}
+  .q-opts input[type=radio]{width:17px;height:17px;accent-color:var(--teal);flex:none}
+  @media (min-width:721px){ .q-opts{grid-template-columns:repeat(3,1fr)} .q-opts label{height:100%} }
+  .diag-area{text-align:center;margin-top:28px}
+  .btn{display:inline-block;padding:13px 28px;border-radius:999px;font-weight:700;font-size:14.5px;transition:.2s;border:none;cursor:pointer;margin-top:16px}
+  .btn-primary{background:linear-gradient(135deg,var(--teal2),var(--teal));color:#fff;box-shadow:0 12px 28px rgba(14,124,134,.35)}
+  .btn-light{background:#fff;color:var(--navy)}
+  .warn{display:none;color:#c0392b;font-weight:700;font-size:14px;margin-top:12px}
+  .result{background:linear-gradient(135deg,var(--navy),#0d4a54);border-radius:22px;color:#fff;padding:34px;box-shadow:var(--shadow-lg);margin-top:36px}
+  .result .big{font-size:40px;font-weight:800;line-height:1.25}
+  .result .big small{font-size:16px;font-weight:700}
+  .level-badge{display:inline-block;padding:6px 18px;border-radius:999px;font-weight:800;font-size:15px;color:#fff}
+  .level-good{background:#12a5b0}
+  .level-warn{background:#d9930d}
+  .level-bad{background:#c0392b}
+  .result p{color:rgba(255,255,255,.85);font-size:14px}
+  .advice-box{background:#fff;border-radius:16px;padding:22px 24px;color:var(--ink);margin-top:20px}
+  .advice-box h3{color:var(--navy);font-size:17px;margin-bottom:10px}
+  .advice-box ol{margin-left:20px}
+  .advice-box li{margin-bottom:12px;font-size:14.5px}
+  .advice-box li b{color:var(--navy)}
+  .advice-box p{color:var(--muted);font-size:14px}
+  .plan-box{background:#fff;border-radius:16px;padding:22px 24px;color:var(--ink);margin-top:20px}
+  .plan-box h3{color:var(--navy);font-size:17px;margin-bottom:6px}
+  .plan-box p{color:var(--muted);font-size:14px}
+  .note{font-size:12.5px;color:var(--muted);margin-top:16px}
+  footer{background:var(--navy);color:rgba(255,255,255,.75);padding:40px 0;font-size:13.5px;margin-top:72px}
+  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+  footer b{color:#fff}
+  footer a{color:#8fe3ea}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="index.html"><svg width="34" height="34" viewBox="0 0 48 48" aria-label="ウェブオートラボ ロゴ"><rect width="48" height="48" rx="10" fill="#0f2a43"/><text x="24" y="30" text-anchor="middle" font-weight="800" font-size="12" fill="#ffffff">WA</text></svg><span>ウェブオートラボ<small>WEBAUTOLAB</small></span></a>
+    <div class="nav-links">
+      <a href="index.html#services">対応領域</a>
+      <a href="index.html#pricing">料金</a>
+      <a href="demo.html">体験デモ</a>
+      <a href="shindan.html">自動化診断</a>
+      <a class="nav-cta" href="https://coconala.com/users/6294387">相談する</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-head">
+  <div class="wrap">
+    <h1>セキュリティ簡易診断：10の質問で自社のリスクをチェック</h1>
+    <p>日々の運用に関する10の質問に答えるだけで、自社のセキュリティリスクの目安と、いま優先すべき対策トップ3がその場で分かります。専任のIT担当がいない中小企業・個人事業主の方を想定した診断です。</p>
+    <div class="head-note">※ これは簡易診断であり、本格的な脆弱性診断ではありません。あくまで運用面の弱点をざっくり把握するための目安としてご利用ください。回答はお使いのブラウザ内でのみ処理され、外部に送信されることはありません。</div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <h2>質問に答えてください（全10問・各3択）</h2>
+    <div id="questions"></div>
+
+    <div class="diag-area">
+      <button class="btn btn-primary" id="diagnose" type="button">診断する</button>
+      <p class="warn" id="warn"></p>
+    </div>
+
+    <div class="result" id="result" style="display:none">
+      <p>あなたの会社のリスクの目安</p>
+      <div style="margin:10px 0 6px"><span class="level-badge" id="r-badge">―</span></div>
+      <div class="big"><span id="r-score">0</span><small> / 20 点</small></div>
+      <p id="r-message" style="margin-top:10px"></p>
+      <div class="advice-box">
+        <h3>優先対策トップ3</h3>
+        <ol id="r-advice"></ol>
+        <p id="r-advice-none" style="display:none">今回の10項目では、大きな弱点は見つかりませんでした。この状態を維持しつつ、半年に一度ほどの定期点検をおすすめします。</p>
+      </div>
+      <div class="plan-box">
+        <h3>本格的な点検レポートについて</h3>
+        <p>簡易診断では分からない、公開情報や設定の具体的な検出結果までまとめた「セキュリティ点検レポート」を納品するサービスも行っています。まずサンプルレポートで、納品物のイメージをご確認ください。</p>
+        <a class="btn btn-primary" href="security-report.html">点検レポート（サンプル）を見る</a>
+        <a class="btn btn-primary" href="https://coconala.com/users/6294387" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ココナラで相談する</a>
+        <a class="btn btn-primary" href="https://www.lancers.jp/profile/webautolab" style="background:#fff;color:var(--navy);box-shadow:none;margin-left:8px">ランサーズで相談する</a>
+      </div>
+    </div>
+
+    <p class="note">※ スコアは各質問「できている＝2点／一部のみ・わからない＝1点／できていない＝0点」の合計（20点満点）です。16点以上＝良好、10〜15点＝注意、9点以下＝要対策を目安としています。実際のリスクは業種や扱う情報によって変わります。具体的な検出と対策の優先順位づけは、点検レポートでお渡しします。</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><b>ウェブオートラボ</b>　業務自動化・AIツール開発／セキュリティ点検</div>
+    <div><a href="index.html">トップ</a>　／　<a href="https://github.com/gomamonaka">GitHub</a>　／　<a href="https://coconala.com/users/6294387">ココナラ</a>　／　<a href="https://www.lancers.jp/profile/webautolab">ランサーズ</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var QUESTIONS = [
+    {
+      q: "業務で使う主要なサービス（メール、クラウドストレージ、会計ソフトなど）に、二要素認証（MFA）を設定していますか？",
+      options: ["はい（主要サービス・全員に設定済み）", "一部のみ／わからない", "いいえ（未設定）"],
+      weight: 9,
+      title: "二要素認証（MFA）の有効化",
+      advice: "二要素認証は、不正ログイン対策として最も効果が高い対策のひとつです。パスワードが漏れても侵入を防げるよう、まずメールとクラウドストレージから、全員分を有効化してください。"
+    },
+    {
+      q: "パスワードは使い回さず、パスワード管理ツールなどでサービスごとに個別に管理していますか？",
+      options: ["はい（個別に管理している）", "一部使い回しがある／わからない", "いいえ（使い回している）"],
+      weight: 7,
+      title: "パスワードの使い回し廃止",
+      advice: "パスワードの使い回しは、1件の漏えいが全サービスへの侵入につながります。パスワード管理ツールを導入し、サービスごとに異なる長いパスワードへ切り替えましょう。"
+    },
+    {
+      q: "退職・異動した人のアカウントを、定期的に棚卸しして無効化していますか？",
+      options: ["はい（定期的に棚卸ししている）", "不定期／わからない", "いいえ（したことがない）"],
+      weight: 10,
+      title: "退職者アカウントの棚卸し",
+      advice: "退職者のアカウントが残っていると、不正アクセスや情報持ち出しの入口になります。在籍者とアカウント一覧を突き合わせ、不要なアカウントを今すぐ無効化してください。"
+    },
+    {
+      q: "重要なデータのバックアップを取得し、実際に復旧できるかテストしたことがありますか？",
+      options: ["はい（復旧テストも実施済み）", "バックアップはあるが復旧テストは未実施／わからない", "いいえ（取っていない）"],
+      weight: 8,
+      title: "バックアップと復旧テスト",
+      advice: "バックアップは「取っている」だけでは不十分で、復旧できて初めて意味があります。重要データのバックアップ方法を見直し、一度は復旧テストを行いましょう。"
+    },
+    {
+      q: "パソコンのOSや業務ソフトは、自動更新を有効にして最新の状態に保っていますか？",
+      options: ["はい（自動更新を有効化している）", "一部は手動／わからない", "いいえ（更新していない端末がある）"],
+      weight: 5,
+      title: "OS・ソフトの自動更新",
+      advice: "OSやソフトの更新漏れは、既知の弱点を放置することになります。自動更新を有効にし、更新が止まっている端末がないか定期的に確認してください。"
+    },
+    {
+      q: "アカウントは一人ひとり個別に発行し、複数人での共有アカウントは使っていませんか？",
+      options: ["はい（個別アカウントのみ）", "一部共有している／わからない", "いいえ（共有アカウントがある）"],
+      weight: 8,
+      title: "共有アカウントの廃止",
+      advice: "共有アカウントは「誰が操作したか」が分からず、漏えい時の影響も大きくなります。利用者ごとにアカウントを発行し、権限も必要最小限に分けましょう。"
+    },
+    {
+      q: "自社ドメインのメールなりすまし対策（SPF／DKIM／DMARC）の設定状況を把握していますか？",
+      options: ["はい（設定状況を把握している）", "聞いたことはあるが未確認／わからない", "いいえ（把握していない）"],
+      weight: 5,
+      title: "メールなりすまし対策の確認",
+      advice: "SPF／DKIM／DMARCが未設定だと、自社を騙るメールを送られやすくなります。ドメインのDNS設定を確認し、段階的にDMARCまで導入することをおすすめします。"
+    },
+    {
+      q: "公開リポジトリや公開ページに、パスワードやAPIキーなどの秘密情報が載っていないか確認したことがありますか？",
+      options: ["はい（確認済み）", "一部確認した／わからない", "いいえ（確認したことがない）"],
+      weight: 9,
+      title: "公開情報の秘密情報チェック",
+      advice: "公開ページやリポジトリに秘密情報が残っていると、誰でも取得できてしまいます。公開範囲を一度総点検し、見つけたキーやパスワードは無効化・再発行してください。"
+    },
+    {
+      q: "クラウドストレージの外部共有リンク（URLを知っている人が閲覧できる共有など）を、定期的に確認・管理していますか？",
+      options: ["はい（定期的に確認している）", "不定期／わからない", "いいえ（確認していない）"],
+      weight: 6,
+      title: "外部共有リンクの棚卸し",
+      advice: "外部共有リンクは、意図せず情報が社外に出る経路になります。共有中のリンクを棚卸しし、不要なものは停止、必要なものも期限やパスワードを設定しましょう。"
+    },
+    {
+      q: "全ての業務パソコンにウイルス対策ソフトを入れ、定義ファイルを最新の状態に保っていますか？",
+      options: ["はい（全台導入し最新を維持）", "一部不明／わからない", "いいえ（未導入・期限切れの端末がある）"],
+      weight: 6,
+      title: "ウイルス対策ソフトの整備",
+      advice: "ウイルス対策ソフトが入っていない・期限切れの端末は、感染の入口になります。全端末の導入状況と更新状態を一覧で確認してください。"
+    }
+  ];
+
+  function computeResult(scores){
+    var total = 0, i;
+    for(i = 0; i < scores.length; i++){ total += scores[i]; }
+    var level, levelKey, message;
+    if(total >= 16){
+      level = "良好"; levelKey = "good";
+      message = "基本的な対策はおおむねできています。この状態を維持しつつ、新しいサービスを導入するときも同じ基準で設定していくことが大切です。";
+    } else if(total >= 10){
+      level = "注意"; levelKey = "warn";
+      message = "大きな穴はないものの、一部に弱いところがあります。下の優先対策から順に潰していくことで、事故の確率を大きく下げられます。";
+    } else {
+      level = "要対策"; levelKey = "bad";
+      message = "複数の項目で対策が不足しています。情報漏えいや不正アクセスの事故が起きてからでは対応コストが跳ね上がるため、優先対策トップ3から着手をおすすめします。";
+    }
+    var weak = [];
+    for(i = 0; i < scores.length; i++){
+      if(scores[i] < 2){
+        weak.push({ index: i, score: scores[i], weight: QUESTIONS[i].weight });
+      }
+    }
+    weak.sort(function(a, b){
+      if(a.score !== b.score){ return a.score - b.score; }
+      return b.weight - a.weight;
+    });
+    var top = weak.slice(0, 3).map(function(w){
+      return { title: QUESTIONS[w.index].title, advice: QUESTIONS[w.index].advice };
+    });
+    return { total: total, level: level, levelKey: levelKey, message: message, top: top };
+  }
+
+  if(typeof window !== "undefined"){
+    window.__secDiag = { QUESTIONS: QUESTIONS, computeResult: computeResult };
+  }
+
+  var box = document.getElementById("questions");
+  QUESTIONS.forEach(function(item, i){
+    var div = document.createElement("div");
+    div.className = "q-card";
+    div.id = "qcard-" + i;
+    var html = '<div class="q-text"><span class="q-num">' + (i + 1) + '</span><span>' + item.q + '</span></div><div class="q-opts">';
+    item.options.forEach(function(label, j){
+      var score = 2 - j;
+      html += '<label><input type="radio" name="q' + i + '" value="' + score + '"> ' + label + '</label>';
+    });
+    html += '</div>';
+    div.innerHTML = html;
+    box.appendChild(div);
+  });
+
+  box.addEventListener("change", function(e){
+    var name = e.target && e.target.name ? e.target.name : "";
+    if(name.indexOf("q") === 0){
+      var idx = parseInt(name.slice(1), 10);
+      var card = document.getElementById("qcard-" + idx);
+      if(card){ card.classList.add("answered"); card.classList.remove("unanswered"); }
+    }
+  });
+
+  document.getElementById("diagnose").addEventListener("click", function(){
+    var scores = [], missing = [], i;
+    for(i = 0; i < QUESTIONS.length; i++){
+      var checked = document.querySelector('input[name="q' + i + '"]:checked');
+      var card = document.getElementById("qcard-" + i);
+      if(checked){
+        scores.push(parseInt(checked.value, 10));
+        if(card){ card.classList.remove("unanswered"); }
+      } else {
+        scores.push(null);
+        missing.push(i);
+        if(card){ card.classList.add("unanswered"); }
+      }
+    }
+    var warn = document.getElementById("warn");
+    if(missing.length > 0){
+      warn.textContent = "未回答の質問が " + missing.length + " 件あります（赤く表示された質問）。すべて回答してから診断してください。";
+      warn.style.display = "block";
+      var first = document.getElementById("qcard-" + missing[0]);
+      if(first && first.scrollIntoView){ first.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      return;
+    }
+    warn.style.display = "none";
+    var res = computeResult(scores);
+    var badge = document.getElementById("r-badge");
+    badge.textContent = "リスクの目安：" + res.level;
+    badge.className = "level-badge level-" + res.levelKey;
+    document.getElementById("r-score").textContent = res.total;
+    document.getElementById("r-message").textContent = res.message;
+    var list = document.getElementById("r-advice");
+    var none = document.getElementById("r-advice-none");
+    list.innerHTML = "";
+    if(res.top.length === 0){
+      list.style.display = "none";
+      none.style.display = "block";
+    } else {
+      list.style.display = "";
+      none.style.display = "none";
+      res.top.forEach(function(t){
+        var li = document.createElement("li");
+        li.innerHTML = "<b>" + t.title + "</b><br>" + t.advice;
+        list.appendChild(li);
+      });
+    }
+    var result = document.getElementById("result");
+    result.style.display = "block";
+    if(result.scrollIntoView){ result.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  });
+})();
+</script>
+</body>
+</html>

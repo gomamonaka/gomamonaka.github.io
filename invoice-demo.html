@@ -94,6 +94,24 @@
   .sheet .bank b{display:block;margin-bottom:2px}
   .sheet .memo{margin-top:12px;font-size:12.5px;color:#333;white-space:pre-line}
   .note{font-size:11.5px;color:var(--muted);margin-top:12px;line-height:1.6}
+  /* よく使う品目（定型文）チップ */
+  .presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .presets .plabel{font-size:11.5px;color:var(--muted)}
+  .chip{border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+  .chip:hover{background:#eaf1ee}
+  /* 作成した帳票の履歴 */
+  .hist{margin-top:20px}
+  .nowrap{white-space:nowrap}
+  table.hist-t{width:100%;border-collapse:collapse;font-size:13px}
+  table.hist-t th{font-size:11.5px;color:var(--muted);text-align:left;padding:5px 6px;background:#f3f0e8;border-top:1px solid var(--line);border-bottom:2px solid #cfc8b4}
+  table.hist-t td{padding:6px;border-bottom:1px solid #eae5d8;vertical-align:middle}
+  .hist-ops{white-space:nowrap;text-align:right}
+  .hbtn{border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;padding:5px 10px;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit;margin-left:4px}
+  .hbtn:hover{background:#eaf1ee}
+  .hbtn.danger{border-color:#d66;color:#c33}
+  .hbtn.danger:hover{background:#fdf0ee}
+  .ab-save{background:transparent;color:#e6efe9;border:1px solid rgba(255,255,255,.5);border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;white-space:nowrap}
+  @media (max-width:600px){.chip{min-height:40px;padding:8px 12px}.hbtn{min-height:40px;padding:8px 10px}.ab-save{min-height:40px}}
   /* ブランドフッター帯 */
   .brandfoot{background:var(--navy);color:#f7f2e7;padding:22px 16px;font-size:13px}
   .brandfoot .bf-in{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -157,6 +175,8 @@
         <tbody id="itemBody"></tbody>
       </table>
       <button type="button" class="addbtn" id="addRow">＋ 明細行を追加</button>
+      <div class="presets"><span class="plabel">よく使う品目：</span><span id="presetChips"></span></div>
+      <datalist id="presetNames"></datalist>
 
       <div class="totals" id="totals"></div>
 
@@ -173,6 +193,12 @@
     </div>
   </div>
 
+  <div class="panel hist">
+    <div class="ph">作成した帳票の履歴</div>
+    <p class="note" style="margin:0 0 8px">いま表示している内容を残すには、下の操作バーの「履歴に保存」を押してください。保存した帳票は「呼び出す」で再表示でき、「複製」では書類番号を新しく採番して読み込めます。履歴はこのブラウザ内にのみ保存されます。</p>
+    <div id="historyArea"></div>
+  </div>
+
   <p class="note">※ 登場する会社名・住所・口座はすべて架空のサンプルです。入力内容はこのブラウザ内（localStorage）にのみ保存され、外部に送信されません。</p>
 
   <div class="actionbar">
@@ -181,6 +207,7 @@
       <div class="ab-total"><small>合計（税込）</small><span id="barTotal">¥0</span></div>
     </div>
     <div class="ab-btns">
+      <button type="button" class="ab-save" id="saveHistoryBtn">履歴に保存</button>
       <button type="button" class="ab-clear" id="clearBtn2">クリアして新規作成</button>
       <button type="button" class="ab-print" id="printBtn2">印刷／PDFで保存</button>
     </div>
@@ -197,6 +224,16 @@
 <script>
 const LS_DRAFT = 'walab_invoice_draft_v1';
 const LS_SEQ = 'walab_invoice_seq_v1';
+const LS_HISTORY = 'walab_invoice_history_v1';
+// よく使う品目（定型文）の候補。品名欄の候補表示と、チップからの行追加に使う
+const PRESETS = [
+  {name:'作業工数（1時間あたり）', qty:1, price:8000, rate:10},
+  {name:'保守対応（月額）', qty:1, price:30000, rate:10},
+  {name:'操作マニュアル作成・改訂', qty:1, price:20000, rate:10},
+  {name:'データ移行作業', qty:1, price:40000, rate:10},
+  {name:'ソフトウェア利用料（月額）', qty:1, price:3000, rate:10},
+  {name:'打合せ用飲料・菓子代（立替分）', qty:1, price:1500, rate:8}
+];
 function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
 function lsSet(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
 function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
@@ -283,7 +320,7 @@ function renderItems(){
   items.forEach((it, i) => {
     const tr = document.createElement('tr');
     tr.innerHTML =
-      '<td><input type="text" data-f="name" value="' + escapeHtml(it.name) + '"></td>' +
+      '<td><input type="text" data-f="name" list="presetNames" value="' + escapeHtml(it.name) + '"></td>' +
       '<td><input type="number" data-f="qty" min="0" step="0.5" value="' + it.qty + '"></td>' +
       '<td><input type="number" data-f="price" min="0" step="1" value="' + it.price + '"></td>' +
       '<td><select data-f="rate"><option value="10"' + (it.rate === 10 ? ' selected' : '') + '>10%</option><option value="8"' + (it.rate === 8 ? ' selected' : '') + '>8%</option></select></td>' +
@@ -299,6 +336,16 @@ function renderItems(){
         renderTotals(); renderSheet(); saveDraft();
         tr.querySelector('.amt').textContent = yen(lineAmt(items[i]));
       });
+    });
+    const nameEl = tr.querySelector('input[data-f="name"]');
+    nameEl.addEventListener('change', () => {
+      // 定型文と完全一致し、単価が未入力（0）のときだけ単価・税率を補完する
+      const p = PRESETS.find(pr => pr.name === nameEl.value);
+      if (p && !(Number(items[i].price) > 0)){
+        items[i].price = p.price;
+        items[i].rate = p.rate;
+        renderItems(); renderTotals(); renderSheet(); saveDraft();
+      }
     });
     tr.querySelector('.del').addEventListener('click', () => {
       items.splice(i, 1);
@@ -374,6 +421,111 @@ function startNew(){
   $('draftBar').hidden = true;
   renderItems(); renderTotals(); renderSheet(); saveDraft();
 }
+// ---- 作成した帳票の履歴 ----
+function loadHistory(){
+  try {
+    const a = JSON.parse(lsGet(LS_HISTORY) || '[]');
+    return Array.isArray(a) ? a : [];
+  } catch(e){ return []; }
+}
+function saveHistoryList(a){ lsSet(LS_HISTORY, JSON.stringify(a)); }
+function sanitizeItems(list){
+  return (Array.isArray(list) ? list : []).map(it => ({
+    name: String((it && it.name) || ''),
+    qty: Number(it && it.qty) || 0,
+    price: Number(it && it.price) || 0,
+    rate: Number(it && it.rate) === 8 ? 8 : 10
+  }));
+}
+function addToHistory(){
+  const st = collectState();
+  const t = calcTotals(st.items);
+  const h = loadHistory();
+  h.unshift({
+    savedAt: new Date().toISOString(),
+    docType: st.docType,
+    no: st.fields.fNo,
+    to: st.fields.fTo,
+    total: t.total,
+    state: st
+  });
+  saveHistoryList(h.slice(0, 30));
+  renderHistory();
+  const btn = $('saveHistoryBtn');
+  const orig = btn.textContent;
+  btn.textContent = '保存しました ✓';
+  setTimeout(() => { btn.textContent = orig; }, 1600);
+}
+function applyDoc(state, duplicate){
+  if (!state || !state.fields) return;
+  docType = state.docType === '請求書' ? '請求書' : '見積書';
+  items = sanitizeItems(state.items);
+  applyFields(state.fields);
+  if (duplicate){
+    noAuto = true;
+    $('fNo').value = nextDocNumber();
+  } else {
+    noAuto = false;
+  }
+  $('segQuote').classList.toggle('on', docType === '見積書');
+  $('segInvoice').classList.toggle('on', docType === '請求書');
+  $('draftBar').hidden = true;
+  renderItems(); renderTotals(); renderSheet(); saveDraft();
+}
+function fmtDateTime(isoStr){
+  const d = new Date(isoStr);
+  if (isNaN(d)) return '';
+  return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' +
+    String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function renderHistory(){
+  const area = $('historyArea');
+  const h = loadHistory();
+  if (!h.length){
+    area.innerHTML = '<p class="note" style="margin:0">まだ履歴はありません。</p>';
+    return;
+  }
+  let html = '<div style="overflow-x:auto"><table class="hist-t"><thead><tr><th>保存日時</th><th>種別</th><th>番号</th><th>宛先</th><th style="text-align:right">合計（税込）</th><th></th></tr></thead><tbody>';
+  h.forEach((e, i) => {
+    html += '<tr><td class="nowrap">' + fmtDateTime(e.savedAt) + '</td><td>' + escapeHtml(e.docType || '') + '</td><td class="nowrap">' + escapeHtml(e.no || '') + '</td><td>' + escapeHtml(e.to || '') + '</td><td class="nowrap" style="text-align:right">' + yen(e.total || 0) + '</td>' +
+      '<td class="hist-ops"><button type="button" class="hbtn" data-hact="load" data-hi="' + i + '">呼び出す</button><button type="button" class="hbtn" data-hact="dup" data-hi="' + i + '">複製</button><button type="button" class="hbtn danger" data-hact="del" data-hi="' + i + '">削除</button></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  area.innerHTML = html;
+  area.querySelectorAll('button[data-hact]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const list = loadHistory();
+      const e = list[Number(btn.getAttribute('data-hi'))];
+      if (!e) return;
+      const act = btn.getAttribute('data-hact');
+      if (act === 'del'){
+        list.splice(Number(btn.getAttribute('data-hi')), 1);
+        saveHistoryList(list);
+        renderHistory();
+      } else if (e.state){
+        applyDoc(e.state, act === 'dup');
+      }
+    });
+  });
+}
+function renderPresetChips(){
+  const dl = $('presetNames');
+  dl.innerHTML = PRESETS.map(p => '<option value="' + escapeHtml(p.name) + '"></option>').join('');
+  const box = $('presetChips');
+  box.innerHTML = '';
+  PRESETS.forEach(p => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = p.name;
+    b.addEventListener('click', () => {
+      items.push({name: p.name, qty: p.qty, price: p.price, rate: p.rate});
+      renderItems(); renderTotals(); renderSheet(); saveDraft();
+    });
+    box.appendChild(b);
+  });
+}
+
 $('segQuote').addEventListener('click', () => setType('見積書'));
 $('segInvoice').addEventListener('click', () => setType('請求書'));
 $('addRow').addEventListener('click', () => {
@@ -382,6 +534,7 @@ $('addRow').addEventListener('click', () => {
 });
 $('printBtn').addEventListener('click', () => window.print());
 $('printBtn2').addEventListener('click', () => window.print());
+$('saveHistoryBtn').addEventListener('click', addToHistory);
 $('clearDraft').addEventListener('click', startNew);
 $('clearBtn2').addEventListener('click', startNew);
 FIELD_IDS.forEach(id => {
@@ -415,6 +568,7 @@ FIELD_IDS.forEach(id => {
   $('segQuote').classList.toggle('on', docType === '見積書');
   $('segInvoice').classList.toggle('on', docType === '請求書');
   renderItems(); renderTotals(); renderSheet();
+  renderPresetChips(); renderHistory();
   if (!draft) saveDraft();
 })();
 </script>

@@ -43,6 +43,12 @@
   .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.7}
   .note a{color:var(--teal)}
   #result{display:none}
+  .seg{display:inline-flex;border:1px solid var(--teal);border-radius:8px;overflow:hidden;margin-bottom:10px}
+  .seg button{border:none;border-radius:0;padding:7px 16px;font-size:13px;background:#fff;color:var(--teal)}
+  .seg button.active{background:var(--navy);color:#fff}
+  .filterbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:13.5px}
+  .filterbar select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff;color:var(--text);font-family:inherit}
+  .filterbar span{color:var(--muted);font-size:13px}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .summary{background:#f4efe3;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.85}
   @media (max-width:640px){
@@ -73,12 +79,13 @@
 </header>
 <div class="wrap">
   <h1>議事録 → タスク抽出（デモ）</h1>
-  <p class="lead">会議のあと、メモを読み返して「で、何が決まったんだっけ」「あの件、誰がやるんだっけ」を拾い直すの、地味に時間がかかります。このデモは、会議メモを貼るだけで決定事項とToDo（誰が・何を・いつまでに）を抜き出し、要約つきの表にするところまでを自動でやります。まずは「サンプル議事録を入れる」で、実際の週次会議メモに近い文面で試してみてください。</p>
+  <p class="lead">会議のあと、メモを読み返して「で、何が決まったんだっけ」「あの件、誰がやるんだっけ」を拾い直すの、地味に時間がかかります。このデモは、会議メモを貼るだけで決定事項とToDo（誰が・何を・いつまでに）を抜き出し、要約つきの表にするところまでを自動でやります。まずは下のサンプルボタンで、実際の会議メモに近い文面（題材の違う2種類を用意しました）で試してみてください。抽出結果では、要約の長さを切り替えたり、ToDoを担当者で絞り込んだりもできます。</p>
 
   <div class="card">
     <textarea id="src" placeholder="ここに会議メモ（議事録）を貼り付けてください。"></textarea>
     <div class="btns">
-      <button class="btn-sub" id="btn-sample">サンプル議事録を入れる</button>
+      <button class="btn-sub" id="btn-sample">サンプル1（ECサイト会議）を入れる</button>
+      <button class="btn-sub" id="btn-sample2">サンプル2（定期便の会議）を入れる</button>
       <button class="btn-main" id="btn-run">抽出する</button>
       <button class="btn-sub" id="btn-clear">クリア</button>
     </div>
@@ -86,10 +93,19 @@
 
   <div id="result">
     <h2>要約</h2>
+    <div class="seg" id="summary-mode" role="group" aria-label="要約の長さ">
+      <button type="button" data-mode="short">短い</button>
+      <button type="button" data-mode="normal" class="active">通常</button>
+    </div>
     <div id="summary-area"></div>
     <h2>決定事項<span class="count" id="cnt-dec">0件</span></h2>
     <div id="dec-area"></div>
     <h2>ToDoリスト<span class="count" id="cnt-todo">0件</span></h2>
+    <div class="filterbar" id="todo-filterbar">
+      <label for="todo-filter">担当者で絞り込む</label>
+      <select id="todo-filter"></select>
+      <span id="todo-filter-note"></span>
+    </div>
     <div id="todo-area"></div>
     <div class="btns">
       <button class="btn-main" id="btn-csv">結果をCSVでダウンロード</button>
@@ -131,6 +147,24 @@ const SAMPLE_TEXT = [
 "キャンペーンの件は、たぶん来月の予算会議で改めて…ということで、今日はここまで。",
 "（エアコンが効きすぎて寒い、という木村さんのぼやきで5分休憩）",
 "次回は11月25日10時から。伊藤さんは、レビュー機能の費用対効果の試算を11月25日までに提出する。"
+].join("\n");
+
+const SAMPLE2_TEXT = [
+"コーヒー豆の定期便「月いち便」開始準備会議メモ（11月20日 14:00〜15:00）",
+"参加者：佐野、北川、長谷川、大野、藤井、西田",
+"記録：北川",
+"",
+"まず進捗の確認から。佐野さんから、焙煎所との契約条件はほぼ固まり、初回の仕入れ量は80kgで進めていると報告があった。",
+"定期便のサービス開始日は、1月10日に決定した。当初は年内開始の案もあったが、年末の配送混雑を避ける判断。",
+"定期便の価格は月額2,980円（税込・送料込み）にすることにした。",
+"初回お試し価格の案は、採算が合わないため見送ることにした。",
+"大野さんから、豆の鮮度を保つため発送は焙煎後3日以内にすること、と提案があり、その方針で合意した。",
+"佐野さんは、LPの文案を11月27日までに作成する。",
+"北川さんは、申込フォームの項目案を今週中に用意する。",
+"長谷川さんは、配送業者との料金交渉を担当する。期限：12月4日。",
+"藤井さんは、初回発送分の在庫確保を12月18日までにお願いします。",
+"西田さんは、既存顧客向けの案内メールの文面を作成する。期限：12月11日。",
+"次回は12月2日14時から。北川さんは、試飲会の日程候補を12月2日までに共有する。"
 ].join("\n");
 
 const DECISION_KEYS = ["決定", "決まった", "決まりました", "することにした", "することになりました", "ことにした", "合意した", "合意しました", "承認された", "承認しました", "採用すること", "方針とした"];
@@ -203,7 +237,7 @@ function extractAll(text){
   return { decisions: decisions, todos: todos };
 }
 
-function buildSummary(res){
+function buildSummary(res, mode){
   const dn = res.decisions.length, tn = res.todos.length;
   if (!dn && !tn) return "この会議メモからは、決定事項もToDoも見つかりませんでした。";
   let s = "この会議では、決定事項" + dn + "件・ToDo" + tn + "件が抽出されました。";
@@ -211,6 +245,7 @@ function buildSummary(res){
     const main = res.decisions[0].replace(/。+$/, "");
     s += "主な決定は「" + (main.length > 60 ? main.slice(0, 60) + "…" : main) + "」です。";
   }
+  if (mode === "short") return s;
   if (tn){
     const dated = res.todos.filter(t => /\d{1,2}月\d{1,2}日/.test(t.due));
     let near = null;
@@ -235,15 +270,54 @@ function buildSummary(res){
 
 const $ = id => document.getElementById(id);
 let lastResult = null;
+let summaryMode = "normal";
+let todoFilter = "all";
 
 function esc(s){
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function renderSummary(){
+  if (!lastResult) return;
+  $("summary-area").innerHTML = "<div class='summary'>" + esc(buildSummary(lastResult, summaryMode)) + "</div>"
+    + "<p class='note' style='margin-top:8px'>※ 要約はルールベースの簡易版です。実案件ではAIと組み合わせ、文脈を踏まえた要約に精度を上げられます。</p>";
+  document.querySelectorAll("#summary-mode button").forEach(b => {
+    b.classList.toggle("active", b.getAttribute("data-mode") === summaryMode);
+  });
+}
+
+function renderTodos(){
+  if (!lastResult) return;
+  const res = lastResult;
+  if (!res.todos.length){
+    $("todo-filterbar").style.display = "none";
+    $("todo-area").innerHTML = "<p class='empty'>ToDoは見つかりませんでした。「〜さんは〜まで」「期限：〜」などの表現があると抽出できます。</p>";
+    return;
+  }
+  // 担当者フィルタの選択肢を抽出結果から組み立てる（現在の選択は可能な限り維持）
+  const whos = [...new Set(res.todos.map(t => t.who))];
+  if (todoFilter !== "all" && !whos.includes(todoFilter)) todoFilter = "all";
+  $("todo-filter").innerHTML = '<option value="all">全員</option>' + whos.map(w =>
+    '<option value="' + esc(w) + '"' + (w === todoFilter ? " selected" : "") + ">" + esc(w) + "</option>"
+  ).join("");
+  $("todo-filterbar").style.display = "";
+  const rows = todoFilter === "all" ? res.todos : res.todos.filter(t => t.who === todoFilter);
+  $("todo-filter-note").textContent = todoFilter === "all"
+    ? "全 " + res.todos.length + " 件を表示中"
+    : todoFilter + "さんのToDoは " + rows.length + " 件です（全 " + res.todos.length + " 件中）";
+  if (!rows.length){
+    $("todo-area").innerHTML = "<p class='empty'>該当するToDoはありません。</p>";
+    return;
+  }
+  let h = "<div class='tbl-wrap'><table><tr><th>担当者</th><th>タスク内容</th><th>期限</th></tr>";
+  rows.forEach(t => { h += "<tr><td class='who'>" + esc(t.who) + "</td><td>" + esc(t.task) + "</td><td class='due'>" + esc(t.due) + "</td></tr>"; });
+  $("todo-area").innerHTML = h + "</table></div>";
+}
+
 function render(res){
   lastResult = res;
-  $("summary-area").innerHTML = "<div class='summary'>" + esc(buildSummary(res)) + "</div>"
-    + "<p class='note' style='margin-top:8px'>※ 要約はルールベースの簡易版です。実案件ではAIと組み合わせ、文脈を踏まえた要約に精度を上げられます。</p>";
+  todoFilter = "all";
+  renderSummary();
   $("cnt-dec").textContent = res.decisions.length + "件";
   $("cnt-todo").textContent = res.todos.length + "件";
   if (res.decisions.length){
@@ -253,13 +327,7 @@ function render(res){
   } else {
     $("dec-area").innerHTML = "<p class='empty'>決定事項は見つかりませんでした。「決定」「決まった」「することにした」などの表現があると抽出できます。</p>";
   }
-  if (res.todos.length){
-    let h = "<div class='tbl-wrap'><table><tr><th>担当者</th><th>タスク内容</th><th>期限</th></tr>";
-    res.todos.forEach(t => { h += "<tr><td class='who'>" + esc(t.who) + "</td><td>" + esc(t.task) + "</td><td class='due'>" + esc(t.due) + "</td></tr>"; });
-    $("todo-area").innerHTML = h + "</table></div>";
-  } else {
-    $("todo-area").innerHTML = "<p class='empty'>ToDoは見つかりませんでした。「〜さんは〜まで」「期限：〜」などの表現があると抽出できます。</p>";
-  }
+  renderTodos();
   $("result").style.display = "block";
 }
 
@@ -271,7 +339,12 @@ function toCSV(res){
 }
 
 $("btn-sample").addEventListener("click", () => { $("src").value = SAMPLE_TEXT; });
-$("btn-clear").addEventListener("click", () => { $("src").value = ""; $("result").style.display = "none"; lastResult = null; });
+$("btn-sample2").addEventListener("click", () => { $("src").value = SAMPLE2_TEXT; });
+$("btn-clear").addEventListener("click", () => { $("src").value = ""; $("result").style.display = "none"; lastResult = null; todoFilter = "all"; });
+document.querySelectorAll("#summary-mode button").forEach(b => {
+  b.addEventListener("click", () => { summaryMode = b.getAttribute("data-mode"); renderSummary(); });
+});
+$("todo-filter").addEventListener("change", () => { todoFilter = $("todo-filter").value; renderTodos(); });
 $("btn-run").addEventListener("click", () => {
   const text = $("src").value.trim();
   if (!text){ alert("会議メモを入力するか、「サンプル議事録を入れる」を押してください。"); return; }

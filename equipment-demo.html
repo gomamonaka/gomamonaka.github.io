@@ -43,6 +43,12 @@
   .panel label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
   .panel input,.panel select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px;background:#fff}
   .panel .row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .alertbox{border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;line-height:1.7}
+  .alertbox.over{background:var(--redbg);border:1px solid var(--red);color:#7a1712}
+  .alertbox.soon{background:#fff8e1;border:1px solid #c79a00;color:#6b5200}
+  .alertbox ul{margin:4px 0 0;padding-left:18px}
+  .ubar{min-width:90px;height:10px;background:#eae5d8;border-radius:999px;overflow:hidden}
+  .ubar i{display:block;height:100%;background:var(--teal);border-radius:999px}
   .flash{background:#e2f4e5;border:1px solid #1d7a35;color:#1d7a35;padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
   .error{background:var(--redbg);border:1px solid var(--red);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
   .muted{color:var(--muted);font-size:12.5px}
@@ -109,11 +115,17 @@
   </div>
   <div id="itemsArea"></div>
 
+  <h2>返却アラート</h2>
+  <div id="alertArea"></div>
+
   <h2>貸出中の一覧</h2>
   <div id="loansArea"></div>
 
   <h2>貸出履歴</h2>
   <div id="historyArea"></div>
+
+  <h2>備品の利用状況</h2>
+  <div id="usageArea"></div>
 
   <p class="note">紙の貸出簿やExcelでの管理だと、返却の消し忘れ・書き忘れで「行方不明の備品」がどうしても出てきます。このデモくらいの機能でも、期限切れが赤く出るだけで、総務の確認や催促の手間はかなり減ります。現場によっては、返却期限前のメール通知や、備品ラベルに貼ったQRコードでの貸出受付まで足すこともありますが、まずは貸出と返却が止まらずに回る形が大事、という考えで作っています。</p>
 </div>
@@ -221,6 +233,17 @@ function itemById(id){ return items.find(i => i.id === id) || null; }
 function itemName(id){ const it = itemById(id); return it ? it.name : ""; }
 function loanStatus(loan){ return loan.returnDate ? "返却済み" : (isOverdue(loan) ? "期限切れ" : "貸出中"); }
 function borrowerLabel(l){ return (l.dept ? l.dept + '　' : '') + l.borrower; }
+function daysDiff(a, b){ // 'YYYY-MM-DD' 同士の日数差（a - b）
+  return Math.round((new Date(a + 'T00:00:00') - new Date(b + 'T00:00:00')) / 86400000);
+}
+// 備品ごとの貸出回数（貸出中＋返却済みの全記録ベース）
+function usageStats(){
+  const total = loans.length;
+  return items.map(it => {
+    const count = loans.filter(l => l.itemId === it.id).length;
+    return {item: it, count: count, pct: total ? Math.round(count / total * 100) : 0};
+  }).sort((a, b) => b.count - a.count || a.item.id - b.item.id);
+}
 
 function esc(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -293,6 +316,55 @@ function render(){
     hh = '<p class="muted">貸出の記録はまだありません。</p>';
   }
   document.getElementById('historyArea').innerHTML = hh;
+
+  renderAlerts();
+  renderUsage();
+}
+
+// ---- 返却アラート（期限超過・期限が近い貸出） ----
+function renderAlerts(){
+  const t = todayStr();
+  const active = loans.filter(l => !l.returnDate);
+  const over = active.filter(l => l.dueDate < t)
+    .sort((a,b) => a.dueDate < b.dueDate ? -1 : (a.dueDate > b.dueDate ? 1 : a.id - b.id));
+  const soon = active.filter(l => { const d = daysDiff(l.dueDate, t); return d >= 0 && d <= 3; })
+    .sort((a,b) => a.dueDate < b.dueDate ? -1 : (a.dueDate > b.dueDate ? 1 : a.id - b.id));
+  let h = '';
+  if (over.length){
+    h += '<div class="alertbox over"><strong>⚠ 返却期限を過ぎている貸出が ' + over.length + ' 件あります</strong><ul>';
+    for (const l of over){
+      h += '<li>' + esc(itemName(l.itemId)) + '（' + esc(borrowerLabel(l)) + 'さん）― 期限 ' + l.dueDate + '、' + (-daysDiff(l.dueDate, t)) + ' 日超過</li>';
+    }
+    h += '</ul></div>';
+  }
+  if (soon.length){
+    h += '<div class="alertbox soon"><strong>返却期限が近い貸出が ' + soon.length + ' 件あります（3日以内）</strong><ul>';
+    for (const l of soon){
+      const d = daysDiff(l.dueDate, t);
+      h += '<li>' + esc(itemName(l.itemId)) + '（' + esc(borrowerLabel(l)) + 'さん）― 期限 ' + l.dueDate + '、' + (d === 0 ? '本日が期限' : 'あと ' + d + ' 日') + '</li>';
+    }
+    h += '</ul></div>';
+  }
+  if (!h) h = '<p class="muted">期限を過ぎた貸出、期限が近い貸出はありません。</p>';
+  document.getElementById('alertArea').innerHTML = h;
+}
+
+// ---- 備品の利用状況（貸出回数ベースの集計） ----
+function renderUsage(){
+  const stats = usageStats();
+  const total = loans.length;
+  let h = '';
+  if (total){
+    h = '<div class="tblwrap"><table><tr><th>管理番号</th><th>備品名</th><th>貸出回数</th><th>割合</th><th>利用の偏り</th></tr>';
+    for (const s of stats){
+      h += '<tr><td class="nowrap">' + esc(s.item.code) + '</td><td>' + esc(s.item.name) + '</td><td>' + s.count + ' 回</td><td class="nowrap">' + s.pct + '%</td>' +
+           '<td><div class="ubar"><i style="width:' + s.pct + '%"></i></div></td></tr>';
+    }
+    h += '</table></div><p class="muted">貸出回数は、これまでの全記録（貸出中＋返却済み、全 ' + total + ' 件）をもとに数えています。よく出る備品と、ほとんど動かない備品の偏りが見えます。</p>';
+  } else {
+    h = '<p class="muted">貸出の記録はまだありません。</p>';
+  }
+  document.getElementById('usageArea').innerHTML = h;
 }
 
 // ---- 貸出 ----

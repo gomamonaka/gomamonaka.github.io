@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直接依頼・直接購入｜ウェブオートラボ</title>
+<meta name="description" content="ウェブオートラボへの直接依頼・直接購入のご案内。業務自動化パッケージ、セキュリティ点検、デジタル商品を、プラットフォームを介さず同じ価格で。中身でお返しします。">
+<style>
+  :root{
+    --ink:#211e1a;
+    --muted:#57534b;
+    --faint:#8a857a;
+    --line:#e3ded1;
+    --paper:#faf8f3;
+    --paper2:#f3f0e8;
+    --teal:#0a5c63;
+    --deep:#06333a;
+    --ivory:#f7f2e7;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.9;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+  .brandbar{background:#06333a;color:#f7f2e7;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .brand-id{display:flex;align-items:center;gap:10px;color:#f7f2e7;text-decoration:none;min-width:0}
+  .brand-id:hover{text-decoration:none}
+  .brand-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:1.5px solid #f7f2e7;border-radius:6px;font-size:12px;font-weight:900;letter-spacing:.05em;flex:none}
+  .brand-name{font-weight:900;letter-spacing:.04em;font-size:15px;white-space:nowrap}
+  .brand-tag{font-size:11px;color:#bcd2cb;letter-spacing:.1em;white-space:nowrap}
+  .brand-back{color:#f7f2e7;text-decoration:none;font-size:13px;border:1px solid rgba(247,242,231,.45);border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none}
+  .brand-back:hover{text-decoration:none}
+  @media (max-width:640px){.brandbar{padding:10px 14px}.brand-tag{display:none}.brandfoot-in{padding:22px 14px}.brand-back{padding:10px 13px}.brandfoot-links{flex-wrap:wrap}.brandfoot-links a{display:inline-flex;align-items:center;min-height:40px}}
+  .page-head{padding:64px 0 42px;border-bottom:1px solid var(--line)}
+  .en{
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:10px;font-weight:600;
+    letter-spacing:.26em;text-transform:uppercase;color:var(--faint);
+  }
+  h1{font-size:32px;line-height:1.55;font-weight:800;letter-spacing:.03em;margin-top:12px}
+  .lead{margin-top:14px;color:var(--muted);font-size:15px;max-width:720px}
+  main{padding:18px 0 8px}
+  section{padding:38px 0 42px;border-bottom:1px solid var(--line)}
+  section:last-child{border-bottom:none}
+  h2{font-size:22px;line-height:1.6;font-weight:800;letter-spacing:.03em;margin-bottom:10px}
+  h2 .en{display:block;margin-bottom:8px}
+  .section-lead{color:var(--muted);font-size:14.5px;margin-bottom:22px;max-width:760px}
+  .merit-list{display:grid;gap:22px}
+  .merit-item{border-top:1px solid var(--line);padding-top:20px}
+  .merit-item:first-child{border-top:none;padding-top:2px}
+  .merit-item h3{font-size:16px;line-height:1.65;margin-bottom:6px}
+  .merit-item p{color:#38342e;font-size:14.5px}
+  .price-list{display:grid;gap:0}
+  .price-row{border-top:1px solid var(--line);padding:22px 0}
+  .price-row:first-child{border-top:none;padding-top:4px}
+  .price-row h3{font-size:17px;font-weight:800;letter-spacing:.02em;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .price-row h3 .en{color:var(--faint)}
+  .amount{font-size:26px;font-weight:800;letter-spacing:.02em;margin:4px 0 6px}
+  .amount small{font-size:13px;font-weight:700;color:var(--muted);margin-left:2px}
+  .price-row .desc{color:#38342e;font-size:14.5px;max-width:760px}
+  .pay-slot{
+    margin-top:14px;border:1.5px dashed var(--faint);border-radius:10px;
+    padding:12px 16px;font-size:13px;color:var(--muted);background:rgba(255,255,255,.42);
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .pay-slot .pay-label{font-weight:700;color:var(--ink)}
+  .pay-slot .pay-state{
+    font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--ivory);
+    background:var(--faint);border-radius:999px;padding:3px 10px;white-space:nowrap;
+  }
+  .pay-action{margin-top:14px}
+  .pay-note{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .product-list{display:grid;gap:0}
+  .product-row{border-top:1px solid var(--line);padding:22px 0;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start}
+  .product-row:first-child{border-top:none;padding-top:4px}
+  .product-row h3{font-size:16.5px;font-weight:800}
+  .product-row .desc{color:#38342e;font-size:14.5px;max-width:620px;margin-top:4px}
+  .product-side{text-align:right;flex:none}
+  .product-side .amount{margin:0 0 8px}
+  .btn{
+    display:inline-block;background:var(--deep);color:var(--ivory);text-decoration:none;
+    font-size:13.5px;font-weight:700;border-radius:999px;padding:9px 20px;white-space:nowrap;
+  }
+  .btn:hover{text-decoration:none;opacity:.88}
+  .flow-list{display:grid;gap:0}
+  .flow-row{display:flex;gap:16px;align-items:baseline;border-top:1px solid var(--line);padding:16px 0}
+  .flow-row:first-child{border-top:none;padding-top:4px}
+  .flow-row .no{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:700;color:var(--teal);font-size:14px;flex:none}
+  .flow-row b{font-size:15.5px;flex:none;min-width:8.5em}
+  .flow-row span{color:#38342e;font-size:14.5px}
+  .note{font-size:13px;color:var(--muted);margin-top:18px}
+  .brandfoot{background:#06333a;color:#f7f2e7;margin-top:56px}
+  .brandfoot-in{max-width:920px;margin:0 auto;padding:26px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .brandfoot-name{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.05em}
+  .brandfoot-links{display:flex;gap:20px}
+  .brandfoot-links a{color:#f7f2e7;text-decoration:none;font-size:13px;border-bottom:1px solid rgba(247,242,231,.45);padding-bottom:2px}
+  @media (max-width:720px){
+    h1{font-size:27px}
+    .page-head{padding:48px 0 34px}
+    section{padding:32px 0 34px}
+    .flow-row{flex-wrap:wrap;gap:6px 12px}
+    .flow-row b{min-width:0}
+    .product-side{text-align:left}
+  }
+</style>
+</head>
+<body>
+
+<header class="brandbar">
+  <a class="brand-id" href="index.html">
+    <span class="brand-mark">WA</span>
+    <span class="brand-name">ウェブオートラボ</span>
+    <span class="brand-tag">手作業の時間を、取り戻す。</span>
+  </a>
+  <a class="brand-back" href="index.html">トップへ戻る</a>
+</header>
+
+<div class="page-head">
+  <div class="wrap">
+    <p class="en">Direct — Order &amp; Purchase</p>
+    <h1>直接依頼・直接購入のご案内</h1>
+    <p class="lead">ココナラ・ランサーズなどのプラットフォームを介さず、ウェブオートラボへ直接ご依頼いただくためのページです。価格はプラットフォーム経由と同じ。違うのは、仲介手数料がかからない分を「中身」でお返しする点です。</p>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section aria-labelledby="why-direct">
+    <h2 id="why-direct"><span class="en">Why Direct</span>直接依頼だと、何が違うのか</h2>
+    <p class="section-lead">値引きはしません。その代わり、プラットフォームの手数料に消えていた分を、納品物と対応の厚みとしてお返しします。価格表そのものは、どこからご依頼いただいても同一です。</p>
+    <div class="merit-list">
+      <div class="merit-item">
+        <h3>見積もり前の「自動化できるか診断」を詳しく</h3>
+        <p>直接依頼では、無料ヒアリングの内容をもとに、対象作業の棚卸しと自動化の可否・優先順位を整理したメモをお渡しします。発注に至らなかった場合も、そのメモはそのままお使いいただけます。</p>
+      </div>
+      <div class="merit-item">
+        <h3>納品物に「運用メモ」を同梱</h3>
+        <p>ツール本体と使い方マニュアルに加えて、処理ログの見方、よくあるつまずきと対処、仕様を変えたくなったときの相談先までを1枚にまとめた運用メモを付けます。引き継ぎや属人化の防止に効きます。</p>
+      </div>
+      <div class="merit-item">
+        <h3>納品後30日間、チャットで質問対応</h3>
+        <p>納品後の「これ、どうやるんだっけ」に応えます。使い方の範囲の質問は30日間チャットで対応します（仕様変更・追加開発は別途お見積もり）。</p>
+      </div>
+      <div class="merit-item">
+        <h3>やり取りがひとつの窓口で完結</h3>
+        <p>プラットフォームのメッセージ仕様に縛られず、見積書・納品物の受け渡しまでを一本の流れで進められます。やり取りは従来どおりテキスト（チャット）のみです。</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="automation">
+    <h2 id="automation"><span class="en">Automation Packages</span>業務自動化パッケージ</h2>
+    <p class="section-lead">ヒアリングのあと、着手前に固定価格でお見積もりします。作業後に金額が増えることはありません。お試しパッケージは固定価格のため、このページからそのままお申し込みいただけます。標準パッケージは、固定見積もりの確定後に専用の決済リンクをご案内します。</p>
+    <div class="price-list">
+      <div class="price-row">
+        <h3>お試し自動化<span class="en">Trial</span></h3>
+        <div class="amount">49,800<small>円</small></div>
+        <p class="desc">1つの繰り返し作業を自動化する入門パッケージ。Excel / CSVの整形・集計・転記の自動化、処理ログ付き。納期 3〜5日。固定価格のため、このページからそのままお申し込みいただけます（対象範囲を超える作業は、固定見積もりのうえ別途ご案内します）。</p>
+        <div class="pay-action"><a class="btn" href="https://buy.stripe.com/4gMaEY2FJ6C38wQ7VAew800">オンライン決済へ進む（Stripe）</a></div>
+      </div>
+      <div class="price-row">
+        <h3>標準パッケージ<span class="en">Standard</span></h3>
+        <div class="amount">148,000<small>円〜</small></div>
+        <p class="desc">現場でそのまま使える形まで仕上げる実務向け。お試しの内容すべてに、操作画面（UI）と使い方マニュアル、修正2回までを含みます。</p>
+        <div class="pay-action"><a class="btn" href="#flow">まずは無料ヒアリングから（進め方を見る）</a><p class="pay-note">標準パッケージは固定見積もりの確定後に、専用の決済リンク（Stripe）をご案内します。</p></div>
+      </div>
+      <div class="price-row">
+        <h3>月額保守<span class="en">Support</span></h3>
+        <div class="amount">30,000<small>円 / 月</small></div>
+        <p class="desc">納品したツールを使い続けるために。軽微な修正・仕様変更への追随、トラブル時の一次対応、月次の改善提案。</p>
+        <div class="pay-action"><a class="btn" href="https://buy.stripe.com/8x2fZibcf7G78wQ1xcew802">月額保守を申し込む（Stripe）</a><p class="pay-note">Stripeの定期課金（毎月）です。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="security">
+    <h2 id="security"><span class="en">Security Check</span>セキュリティ点検</h2>
+    <p class="section-lead">本格的な脆弱性診断ではなく、「何から直すか」を整理してレポートで納品する点検・整備型のサービスです。サンプルレポートと10問の簡易診断はトップページからご覧いただけます。</p>
+    <div class="price-list">
+      <div class="price-row">
+        <h3>お試し点検<span class="en">Light Check</span></h3>
+        <div class="amount">49,800<small>円</small></div>
+        <p class="desc">公開情報の範囲で設定漏れを点検し、レポートで納品します。メール認証（SPF / DKIM / DMARC）、公開範囲の設定などが対象です。</p>
+        <div class="pay-action"><a class="btn" href="https://buy.stripe.com/00w8wQ803aSj7sM1xcew801">オンライン決済へ進む（Stripe）</a></div>
+      </div>
+      <div class="price-row">
+        <h3>標準点検<span class="en">Standard Check</span></h3>
+        <div class="amount">148,000<small>円</small></div>
+        <p class="desc">ヒアリングを加え、運用・設定の点検と改善提案までを行います。退職者アカウントの残存、ファイル共有の範囲など、内部の運用面も含みます。</p>
+        <div class="pay-action"><a class="btn" href="#flow">まずは無料ヒアリングから（進め方を見る）</a><p class="pay-note">標準点検は固定見積もりの確定後に、専用の決済リンク（Stripe）をご案内します。</p></div>
+      </div>
+      <div class="price-row">
+        <h3>月次点検<span class="en">Monthly Check</span></h3>
+        <div class="amount">30,000<small>円 / 月</small></div>
+        <p class="desc">自動チェックと月次レポートで、設定の変化を見続けます。一度直して終わりにしないための継続枠です。</p>
+        <div class="pay-action"><a class="btn" href="https://buy.stripe.com/8x23cw5RV7G79AUcbQew803">月次点検を申し込む（Stripe）</a><p class="pay-note">Stripeの定期課金（毎月）です。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="products">
+    <h2 id="products"><span class="en">Digital Products</span>デジタル商品</h2>
+    <p class="section-lead">Googleスプレッドシート＋GASで動く、すぐ使えるキットです。購入・ダウンロードはBOOTHの商品ページからお願いします。</p>
+    <div class="product-list">
+      <div class="product-row">
+        <div>
+          <h3>請求書かんたん作成キット</h3>
+          <p class="desc">インボイス対応。明細を入れるだけで請求書を作成し、PDF化まで進められます。税額計算・採番の検証済み。</p>
+        </div>
+        <div class="product-side">
+          <div class="amount">4,980<small>円</small></div>
+          <a class="btn" href="https://webautolab.booth.pm/items/9197905">BOOTHで購入する</a>
+        </div>
+      </div>
+      <div class="product-row">
+        <div>
+          <h3>見積書かんたん作成キット</h3>
+          <p class="desc">見積番号の自動採番・有効期限（発行日＋30日）つき。受注したらワンクリックで請求書に変換でき、番号もつながります。</p>
+        </div>
+        <div class="product-side">
+          <div class="amount">4,980<small>円</small></div>
+          <a class="btn" href="https://webautolab.booth.pm/items/9199858">BOOTHで購入する</a>
+        </div>
+      </div>
+      <div class="product-row">
+        <div>
+          <h3>見積書＋請求書 セット</h3>
+          <p class="desc">上記2点のセットです。単品合計9,960円のところ、セット価格でご用意しています。</p>
+        </div>
+        <div class="product-side">
+          <div class="amount">7,980<small>円</small></div>
+          <a class="btn" href="https://webautolab.booth.pm/items/9199878">BOOTHで購入する</a>
+        </div>
+      </div>
+    </div>
+    <!-- キットは自動配信のあるBOOTH販売のみ（直接販売化は配信の仕組みを用意してから。設計メモ参照） -->
+  </section>
+
+  <section aria-labelledby="flow">
+    <h2 id="flow"><span class="en">Process</span>進め方</h2>
+    <p class="section-lead">やり取りはチャット（テキスト）のみで完結します。電話・オンライン会議は対応していません。その分、あなたの時間も使いません。契約形態は業務委託（納品型）のみです。</p>
+    <div class="flow-list">
+      <div class="flow-row"><div class="no">01</div><b>無料ヒアリング</b><span>30分相当の無料ヒアリングをテキストで行います。いまの手順と、困っている作業を教えてください。</span></div>
+      <div class="flow-row"><div class="no">02</div><b>固定見積もり</b><span>納品物・納期・価格を先に確定します。合わなければ、そのまま終了で構いません。</span></div>
+      <div class="flow-row"><div class="no">03</div><b>制作</b><span>確定した金額の決済リンク（Stripe）をご案内します。進捗は随時テキストで共有します。作業は平日の朝・夜に行います。</span></div>
+      <div class="flow-row"><div class="no">04</div><b>納品・説明</b><span>ツールと使い方マニュアル、運用メモをお渡しします。</span></div>
+    </div>
+    <p class="note">お支払いはStripeの決済リンク経由（クレジットカード等）です。お試し・月額プランはこのページから直接お申し込みいただけます。特定商取引法に基づく表記・プライバシーについては<a href="legal.html">運営者情報・プライバシー</a>をご確認ください。プラットフォーム経由のご依頼も引き続き歓迎しています（ココナラ・ランサーズの窓口はトップページにあります）。</p>
+  </section>
+
+</main>
+
+<footer class="brandfoot">
+  <div class="brandfoot-in">
+    <p class="brandfoot-name">ウェブオートラボ — 手作業の時間を、取り戻す。</p>
+    <div class="brandfoot-links">
+      <a href="index.html">トップ</a>
+      <a href="legal.html">運営者情報・プライバシー</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

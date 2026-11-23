@@ -6,31 +6,43 @@
 <title>プライベートサロン ウノ｜AI受付デモ</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0;}
-:root { --main:#2f4f43; --bg:#f6f3ee; --chatbg:#f3efe9; --radius:12px; --headfont:inherit; }
+:root { --main:#2f4f43; --accent:#2f4f43; --hero:linear-gradient(135deg,#2f4f43,#4a7a63); --herotext:#fff; --bg:#f6f3ee; --chatbg:#f3efe9; --radius:12px; --headfont:inherit; }
 body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; background: var(--bg); color: #33302b;}
-header { background: var(--main); color: #fff; padding: 28px 20px; text-align: center;}
-header h1 { font-size: 26px; letter-spacing:.08em; font-family: var(--headfont); }
-.tagline { margin-top: 8px; font-size: 13px; opacity:.92; }
-header p { margin-top: 6px; font-size: 13px; opacity:.85;}
-.demo-badge { display: inline-block; margin-top: 10px; background: #e8b34b; color: #3a2c07; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 999px;}
-main { max-width: 760px; margin: 0 auto; padding: 24px 16px 120px;}
-.card { background: #fff; border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06);}
-.card h2 { font-size: 17px; margin-bottom: 10px; color: var(--main); font-family: var(--headfont); }
+.hero { background: var(--hero); color: var(--herotext); padding: 52px 20px 44px; text-align: center;}
+.hero h1 { font-size: 32px; letter-spacing:.06em; font-family: var(--headfont); }
+.hero p { margin-top: 8px; font-size: 13px; opacity:.92;}
+.tagline { margin-top: 14px; font-size: 15px; font-weight: bold; opacity:1; }
+.hero-cta { margin-top: 20px; background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 14px 30px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25);}
+.demo-badge { display: inline-block; margin-top: 16px; background: #e8b34b; color: #3a2c07; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 999px;}
+main { max-width: 820px; margin: 0 auto; padding: 28px 16px 120px;}
+.card { background: #fff; border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06);}
+.sec-head { text-align: center; margin-bottom: 16px;}
+.sec-en { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 13px; letter-spacing: .35em; color: var(--accent); text-transform: uppercase;}
+.sec-head h2 { font-size: 20px; margin-top: 4px; color: #33302b; font-family: var(--headfont); }
 .card p,.card li { font-size: 14px; line-height: 1.8;}
 .card ul { padding-left: 20px;}
-table { width: 100%; border-collapse: collapse; font-size: 14px;}
-td { padding: 8px 4px; border-bottom: 1px solid #eee;}
-td:last-child { text-align: right; font-weight: bold; white-space: nowrap;}
-#inbox { border: 2px dashed #b9c8c0;}
+#menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px;}
+.menu-card { border: 1px solid #e7e1d6; border-radius: calc(var(--radius) * .75); padding: 16px; background: #fffdf9;}
+.menu-name { font-size: 14px; font-weight: bold; line-height: 1.5;}
+.menu-price { margin-top: 8px; font-size: 16px; font-weight: bold; color: var(--main);}
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;}
+.step { background: var(--chatbg); border-radius: calc(var(--radius) * .75); padding: 16px;}
+.step .num { display: inline-block; background: var(--main); color: #fff; font-size: 12px; font-weight: bold; border-radius: 999px; padding: 2px 10px; margin-bottom: 8px;}
+.step p { font-size: 13px; }
+.cta-band { background: var(--hero); color: var(--herotext); border-radius: var(--radius); padding: 28px 24px; text-align: center; margin-bottom: 20px;}
+.cta-band h2 { font-size: 18px; font-family: var(--headfont); }
+.cta-band p { font-size: 13px; margin-top: 8px; opacity:.92;}
+#inbox { border: 2px dashed #b9c8c0; background:#fff; border-radius: var(--radius); padding: 24px;}
+#inbox h2 { font-size: 17px; margin-bottom: 10px; color: var(--main);}
 #inbox-list { font-size: 13px; line-height: 1.7;}
-#inbox-list.empty { color: #999;}
+#inbox-list .empty { color: #999;}
 .inbox-item { background: #f0f6f2; border-radius: 8px; padding: 10px 12px; margin-top: 8px; white-space: pre-wrap;}
-#chat-launcher { position: fixed; right: 18px; bottom: 18px; background: var(--main); color: #fff; border: none; border-radius: 999px; padding: 14px 20px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); z-index: 50;}
+#chat-launcher { position: fixed; right: 18px; bottom: 18px; background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 14px 20px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); z-index: 50;}
 #chat-window { position: fixed; right: 18px; bottom: 76px; width: min(360px, calc(100vw - 24px)); height: 480px; max-height: calc(100vh - 100px); background: #fff; border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.25); display: none; flex-direction: column; overflow: hidden; z-index: 50;}
 #chat-window.open { display: flex;}
 .chat-head { background: var(--main); color: #fff; padding: 12px 14px;}
-.chat-head.name { font-weight: bold; font-size: 15px;}
-.chat-head.status { font-size: 12px; opacity:.9; margin-top: 2px;}
+.chat-head .name { font-weight: bold; font-size: 15px;}
+.chat-head .status { font-size: 12px; opacity:.9; margin-top: 2px;}
 #chat-log { flex: 1; overflow-y: auto; padding: 12px; background: var(--chatbg);}
 .msg { max-width: 85%; padding: 9px 12px; border-radius: 12px; margin-bottom: 8px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;}
 .msg.bot { background: #fff; border: 1px solid #e2ddd2; margin-right: auto;}
@@ -42,30 +54,44 @@ td:last-child { text-align: right; font-weight: bold; white-space: nowrap;}
 .chat-input button { background: var(--main); color: #fff; border: none; padding: 0 18px; font-size: 14px; cursor: pointer;}
 </style>
 <style>
-:root { --main:#3a3632; --bg:#faf8f4; --chatbg:#f3efe7; --radius:3px; --headfont:"Hiragino Mincho ProN", "Yu Mincho", serif; }
+:root { --main:#7a2e3d; --accent:#7a2e3d; --hero:linear-gradient(120deg,#f6dde0,#fbf0ee); --herotext:#57222d; --bg:#fdfaf7; --chatbg:#f7ecea; --radius:3px; --headfont:"Hiragino Mincho ProN", "Yu Mincho", serif; }
 </style>
 </head>
 <body>
-<header>
+<header class="hero">
 <h1 id="shop-name"></h1>
 <p id="shop-sub"></p>
 <p class="tagline">埼玉県桶川市のエステサロンです。心と体をほぐす、癒しの時間をお届けします。</p>
-<span class="demo-badge">これはAI受付の導入イメージ用デモです</span>
+<button class="hero-cta" id="hero-cta">AI受付に質問・予約する</button>
+<div><span class="demo-badge">これはAI受付の導入イメージ用デモです</span></div>
 </header>
 <main>
 <section class="card">
-<h2>このページの見どころ</h2>
+<div class="sec-head"><span class="sec-en">About</span><h2>このページの見どころ</h2></div>
 <p>右下の「AI受付に聞く」を押してみてください。営業時間外でも、料金などの質問に自動で答え、予約の希望まで聞き取ります。聞き取った予約は、このページ下の「お店側の受信箱」に届く想定です（実際のお店ではメールやLINEに届きます）。</p>
 </section>
 <section class="card">
-<h2>トリートメントメニュー</h2>
-<table id="menu-table"></table>
+<div class="sec-head"><span class="sec-en">Treatment</span><h2>トリートメントメニュー</h2></div>
+<div id="menu-grid"></div>
 </section>
 <section class="card">
-<h2>サロン情報</h2>
+<div class="sec-head"><span class="sec-en">Flow</span><h2>ご予約の流れ</h2></div>
+<div class="flow">
+<div class="step"><span class="num">STEP 1</span><p>右下のAI受付に、料金の質問や予約の希望を送ります。営業時間外でもその場で返事が来ます。</p></div>
+<div class="step"><span class="num">STEP 2</span><p>メニューと日時、お名前を伝えると、内容の確認画面が出ます。</p></div>
+<div class="step"><span class="num">STEP 3</span><p>予約リクエストがお店に届き、空き状況を確認のうえ、お店から確定のご連絡をします。</p></div>
+</div>
+</section>
+<section class="card">
+<div class="sec-head"><span class="sec-en">Salon</span><h2>サロン情報</h2></div>
 <ul id="info-list"></ul>
 </section>
-<section class="card" id="inbox">
+<section class="cta-band">
+<h2>営業時間外のご予約・お問い合わせは、AI受付が承ります</h2>
+<p>夜間・休日でも、料金のご質問と予約の聞き取りができます。</p>
+<button class="hero-cta" id="band-cta">AI受付に質問・予約する</button>
+</section>
+<section id="inbox">
 <h2>お店側の受信箱（デモ表示）</h2>
 <div id="inbox-list"><span class="empty">まだ予約リクエストはありません。チャットで「予約したい」と送ると、ここに届きます。</span></div>
 </section>
@@ -200,12 +226,12 @@ return answerFor(raw) || FALLBACK;
 document.getElementById("shop-name").textContent = SHOP.name;
 document.getElementById("shop-sub").textContent = SHOP.genre + "｜営業時間 " + SHOP.hoursText + (SHOP.closedText? "（" + SHOP.closedText + "定休）": "");
 document.getElementById("chat-name").textContent = "AI受付｜" + SHOP.name;
-const mt = document.getElementById("menu-table");
+const mt = document.getElementById("menu-grid");
 SHOP.menus.forEach(m => {
-const tr = document.createElement("tr");
-const td1 = document.createElement("td"); td1.textContent = m.name;
-const td2 = document.createElement("td"); td2.textContent = priceText(m);
-tr.appendChild(td1); tr.appendChild(td2); mt.appendChild(tr);
+const card = document.createElement("div"); card.className = "menu-card";
+const nm = document.createElement("div"); nm.className = "menu-name"; nm.textContent = m.name;
+const pr = document.createElement("div"); pr.className = "menu-price"; pr.textContent = priceText(m);
+card.appendChild(nm); card.appendChild(pr); mt.appendChild(card);
 });
 const il = document.getElementById("info-list");
 [["営業時間", SHOP.hoursText + (SHOP.lastReception? "（最終受付 " + SHOP.lastReception + "）": "")],
@@ -261,6 +287,8 @@ b.className = "chip"; b.textContent = label;
 b.addEventListener("click", () => send(label));
 chipBox.appendChild(b);
 });
+
+["hero-cta","band-cta"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("click", () => document.getElementById("chat-launcher").click()); });
 </script>
 </body>
 </html>

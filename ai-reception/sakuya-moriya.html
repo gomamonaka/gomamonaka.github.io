@@ -6,14 +6,16 @@
 <title>咲八寫眞館｜AI受付デモ</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0;}
-body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; background: #f6f3ee; color: #33302b;}
-header { background: #2f4f43; color: #fff; padding: 28px 20px; text-align: center;}
-header h1 { font-size: 26px; letter-spacing:.08em;}
+:root { --main:#2f4f43; --bg:#f6f3ee; --chatbg:#f3efe9; --radius:12px; --headfont:inherit; }
+body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; background: var(--bg); color: #33302b;}
+header { background: var(--main); color: #fff; padding: 28px 20px; text-align: center;}
+header h1 { font-size: 26px; letter-spacing:.08em; font-family: var(--headfont); }
+.tagline { margin-top: 8px; font-size: 13px; opacity:.92; }
 header p { margin-top: 6px; font-size: 13px; opacity:.85;}
 .demo-badge { display: inline-block; margin-top: 10px; background: #e8b34b; color: #3a2c07; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 999px;}
 main { max-width: 760px; margin: 0 auto; padding: 24px 16px 120px;}
-.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06);}
-.card h2 { font-size: 17px; margin-bottom: 10px; color: #2f4f43;}
+.card { background: #fff; border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.06);}
+.card h2 { font-size: 17px; margin-bottom: 10px; color: var(--main); font-family: var(--headfont); }
 .card p,.card li { font-size: 14px; line-height: 1.8;}
 .card ul { padding-left: 20px;}
 table { width: 100%; border-collapse: collapse; font-size: 14px;}
@@ -23,27 +25,31 @@ td:last-child { text-align: right; font-weight: bold; white-space: nowrap;}
 #inbox-list { font-size: 13px; line-height: 1.7;}
 #inbox-list.empty { color: #999;}
 .inbox-item { background: #f0f6f2; border-radius: 8px; padding: 10px 12px; margin-top: 8px; white-space: pre-wrap;}
-#chat-launcher { position: fixed; right: 18px; bottom: 18px; background: #2f4f43; color: #fff; border: none; border-radius: 999px; padding: 14px 20px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); z-index: 50;}
+#chat-launcher { position: fixed; right: 18px; bottom: 18px; background: var(--main); color: #fff; border: none; border-radius: 999px; padding: 14px 20px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); z-index: 50;}
 #chat-window { position: fixed; right: 18px; bottom: 76px; width: min(360px, calc(100vw - 24px)); height: 480px; max-height: calc(100vh - 100px); background: #fff; border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.25); display: none; flex-direction: column; overflow: hidden; z-index: 50;}
 #chat-window.open { display: flex;}
-.chat-head { background: #2f4f43; color: #fff; padding: 12px 14px;}
+.chat-head { background: var(--main); color: #fff; padding: 12px 14px;}
 .chat-head.name { font-weight: bold; font-size: 15px;}
 .chat-head.status { font-size: 12px; opacity:.9; margin-top: 2px;}
-#chat-log { flex: 1; overflow-y: auto; padding: 12px; background: #f3efe9;}
+#chat-log { flex: 1; overflow-y: auto; padding: 12px; background: var(--chatbg);}
 .msg { max-width: 85%; padding: 9px 12px; border-radius: 12px; margin-bottom: 8px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;}
 .msg.bot { background: #fff; border: 1px solid #e2ddd2; margin-right: auto;}
-.msg.user { background: #2f4f43; color: #fff; margin-left: auto;}
-.chips { padding: 8px 12px 0; display: flex; flex-wrap: wrap; gap: 6px; background: #f3efe9;}
-.chip { border: 1px solid #2f4f43; color: #2f4f43; background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer;}
+.msg.user { background: var(--main); color: #fff; margin-left: auto;}
+.chips { padding: 8px 12px 0; display: flex; flex-wrap: wrap; gap: 6px; background: var(--chatbg);}
+.chip { border: 1px solid var(--main); color: var(--main); background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer;}
 .chat-input { display: flex; border-top: 1px solid #e5e0d5;}
 .chat-input input { flex: 1; border: none; padding: 12px; font-size: 14px; outline: none;}
-.chat-input button { background: #2f4f43; color: #fff; border: none; padding: 0 18px; font-size: 14px; cursor: pointer;}
+.chat-input button { background: var(--main); color: #fff; border: none; padding: 0 18px; font-size: 14px; cursor: pointer;}
+</style>
+<style>
+:root { --main:#1c1c1c; --bg:#f4f4f4; --chatbg:#ececec; --radius:0px; --headfont:"Hiragino Mincho ProN", "Yu Mincho", serif; }
 </style>
 </head>
 <body>
 <header>
 <h1 id="shop-name"></h1>
 <p id="shop-sub"></p>
+<p class="tagline">茨城県守谷市の写真館です。記念日も、何気ない日常も、一枚に残します。</p>
 <span class="demo-badge">これはAI受付の導入イメージ用デモです</span>
 </header>
 <main>
@@ -52,11 +58,11 @@ td:last-child { text-align: right; font-weight: bold; white-space: nowrap;}
 <p>右下の「AI受付に聞く」を押してみてください。営業時間外でも、料金などの質問に自動で答え、予約の希望まで聞き取ります。聞き取った予約は、このページ下の「お店側の受信箱」に届く想定です（実際のお店ではメールやLINEに届きます）。</p>
 </section>
 <section class="card">
-<h2>メニュー</h2>
+<h2>撮影プラン</h2>
 <table id="menu-table"></table>
 </section>
 <section class="card">
-<h2>お店情報</h2>
+<h2>スタジオ情報</h2>
 <ul id="info-list"></ul>
 </section>
 <section class="card" id="inbox">

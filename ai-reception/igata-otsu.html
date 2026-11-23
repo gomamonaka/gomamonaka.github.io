@@ -7,33 +7,51 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0;}
 :root { --main:#2f4f43; --accent:#2f4f43; --hero:linear-gradient(135deg,#2f4f43,#4a7a63); --herotext:#fff; --bg:#f6f3ee; --chatbg:#f3efe9; --radius:12px; --headfont:inherit; }
+html { scroll-behavior: smooth; }
 body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; background: var(--bg); color: #33302b;}
-.hero { background: var(--hero); color: var(--herotext); padding: 52px 20px 44px; text-align: center;}
-.hero h1 { font-size: 32px; letter-spacing:.06em; font-family: var(--headfont); }
+.topbar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 20px; padding: 12px 20px; background: rgba(255,255,255,.96); box-shadow: 0 1px 6px rgba(0,0,0,.08);}
+.topbar .logo { font-size: 17px; font-weight: bold; font-family: var(--headfont); color: var(--main); letter-spacing:.04em; white-space: nowrap;}
+.topbar nav { margin-left: auto; display: flex; gap: 18px;}
+.topbar nav a { color: #44403a; text-decoration: none; font-size: 13px;}
+.topbar nav a:hover { color: var(--main); }
+.top-cta { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 9px 18px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap;}
+@media (max-width: 640px) { .topbar nav { display: none; } .top-cta { margin-left: auto; } }
+.hero { background: var(--hero); color: var(--herotext); padding: 64px 20px 56px; text-align: center;}
+.hero h1 { font-size: 34px; letter-spacing:.06em; font-family: var(--headfont); }
 .hero p { margin-top: 8px; font-size: 13px; opacity:.92;}
-.tagline { margin-top: 14px; font-size: 15px; font-weight: bold; opacity:1; }
-.hero-cta { margin-top: 20px; background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 14px 30px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25);}
-.demo-badge { display: inline-block; margin-top: 16px; background: #e8b34b; color: #3a2c07; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 999px;}
-main { max-width: 820px; margin: 0 auto; padding: 28px 16px 120px;}
-.card { background: #fff; border-radius: var(--radius); padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06);}
-.sec-head { text-align: center; margin-bottom: 16px;}
+.tagline { margin-top: 16px; font-size: 16px; font-weight: bold; opacity:1; }
+.hero-cta { margin-top: 24px; background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 14px 30px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25);}
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 90px;}
+.card { background: #fff; border-radius: var(--radius); padding: 28px; margin-bottom: 22px; box-shadow: 0 1px 4px rgba(0,0,0,.06);}
+.sec-head { text-align: center; margin-bottom: 18px;}
 .sec-en { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 13px; letter-spacing: .35em; color: var(--accent); text-transform: uppercase;}
-.sec-head h2 { font-size: 20px; margin-top: 4px; color: #33302b; font-family: var(--headfont); }
-.card p,.card li { font-size: 14px; line-height: 1.8;}
+.sec-head h2 { font-size: 21px; margin-top: 4px; color: #33302b; font-family: var(--headfont); }
+.card p,.card li { font-size: 14px; line-height: 1.9;}
 .card ul { padding-left: 20px;}
-#menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px;}
+.about-text { max-width: 640px; margin: 0 auto; text-align: left;}
+#menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;}
 .menu-card { border: 1px solid #e7e1d6; border-radius: calc(var(--radius) * .75); padding: 16px; background: #fffdf9;}
 .menu-name { font-size: 14px; font-weight: bold; line-height: 1.5;}
 .menu-price { margin-top: 8px; font-size: 16px; font-weight: bold; color: var(--main);}
-.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;}
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;}
 .step { background: var(--chatbg); border-radius: calc(var(--radius) * .75); padding: 16px;}
 .step .num { display: inline-block; background: var(--main); color: #fff; font-size: 12px; font-weight: bold; border-radius: 999px; padding: 2px 10px; margin-bottom: 8px;}
 .step p { font-size: 13px; }
-.cta-band { background: var(--hero); color: var(--herotext); border-radius: var(--radius); padding: 28px 24px; text-align: center; margin-bottom: 20px;}
+.cta-band { background: var(--hero); color: var(--herotext); border-radius: var(--radius); padding: 32px 24px; text-align: center; margin-bottom: 22px;}
 .cta-band h2 { font-size: 18px; font-family: var(--headfont); }
 .cta-band p { font-size: 13px; margin-top: 8px; opacity:.92;}
-#inbox { border: 2px dashed #b9c8c0; background:#fff; border-radius: var(--radius); padding: 24px;}
-#inbox h2 { font-size: 17px; margin-bottom: 10px; color: var(--main);}
+footer { background: var(--main); color: #fff; padding: 36px 20px 28px; text-align: center;}
+footer .f-name { font-size: 18px; font-weight: bold; font-family: var(--headfont); letter-spacing:.05em;}
+footer .f-sub { font-size: 12px; opacity:.85; margin-top: 6px;}
+footer .f-note { font-size: 11px; opacity:.65; margin-top: 18px; line-height: 1.7;}
+footer .f-copy { font-size: 11px; opacity:.65; margin-top: 6px;}
+#preview-btn { position: fixed; left: 14px; bottom: 14px; z-index: 45; background: rgba(30,30,30,.72); color: #fff; border: none; border-radius: 999px; padding: 8px 14px; font-size: 12px; cursor: pointer;}
+#preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px;}
+#preview-modal.open { display: flex; }
+.preview-box { background: #fff; border-radius: 12px; max-width: 440px; width: 100%; padding: 22px; max-height: 80vh; overflow-y: auto;}
+.preview-box h3 { font-size: 15px; color: var(--main); margin-bottom: 6px;}
+.preview-box .p-sub { font-size: 12px; color: #777; margin-bottom: 10px; line-height: 1.6;}
+#preview-close { margin-top: 14px; background: var(--main); color: #fff; border: none; border-radius: 999px; padding: 8px 20px; font-size: 13px; cursor: pointer;}
 #inbox-list { font-size: 13px; line-height: 1.7;}
 #inbox-list .empty { color: #999;}
 .inbox-item { background: #f0f6f2; border-radius: 8px; padding: 10px 12px; margin-top: 8px; white-space: pre-wrap;}
@@ -58,23 +76,32 @@ main { max-width: 820px; margin: 0 auto; padding: 28px 16px 120px;}
 </style>
 </head>
 <body>
+<header class="topbar">
+<div class="logo" id="brand-name"></div>
+<nav>
+<a href="#about">当店について</a>
+<a href="#menu">レッスン・料金</a>
+<a href="#flow">ご予約の流れ</a>
+<a href="#info">教室のご案内</a>
+</nav>
+<button class="top-cta" id="top-cta">ご予約・お問い合わせ</button>
+</header>
 <header class="hero">
 <h1 id="shop-name"></h1>
 <p id="shop-sub"></p>
 <p class="tagline">滋賀県大津市のピアノ教室です。お子さまから大人の方まで、楽しくレッスンしています。</p>
 <button class="hero-cta" id="hero-cta">AI受付に質問・予約する</button>
-<div><span class="demo-badge">これはAI受付の導入イメージ用デモです</span></div>
 </header>
 <main>
-<section class="card">
-<div class="sec-head"><span class="sec-en">About</span><h2>このページの見どころ</h2></div>
-<p>右下の「AI受付に聞く」を押してみてください。営業時間外でも、料金などの質問に自動で答え、予約の希望まで聞き取ります。聞き取った予約は、このページ下の「お店側の受信箱」に届く想定です（実際のお店ではメールやLINEに届きます）。</p>
+<section class="card" id="about">
+<div class="sec-head"><span class="sec-en">About</span><h2>当店について</h2></div>
+<p class="about-text">いがたピアノ教室は、滋賀県大津市のピアノ教室です。お子さまから大人の方まで、一人ひとりのペースに合わせて基礎から丁寧にレッスンしています。初めてピアノに触れる方も、久しぶりに再開する方も歓迎します。</p>
 </section>
-<section class="card">
+<section class="card" id="menu">
 <div class="sec-head"><span class="sec-en">Lesson</span><h2>レッスン・料金</h2></div>
 <div id="menu-grid"></div>
 </section>
-<section class="card">
+<section class="card" id="flow">
 <div class="sec-head"><span class="sec-en">Flow</span><h2>ご予約の流れ</h2></div>
 <div class="flow">
 <div class="step"><span class="num">STEP 1</span><p>右下のAI受付に、料金の質問や予約の希望を送ります。営業時間外でもその場で返事が来ます。</p></div>
@@ -82,7 +109,7 @@ main { max-width: 820px; margin: 0 auto; padding: 28px 16px 120px;}
 <div class="step"><span class="num">STEP 3</span><p>予約リクエストがお店に届き、空き状況を確認のうえ、お店から確定のご連絡をします。</p></div>
 </div>
 </section>
-<section class="card">
+<section class="card" id="info">
 <div class="sec-head"><span class="sec-en">School</span><h2>教室のご案内</h2></div>
 <ul id="info-list"></ul>
 </section>
@@ -91,11 +118,23 @@ main { max-width: 820px; margin: 0 auto; padding: 28px 16px 120px;}
 <p>夜間・休日でも、料金のご質問と予約の聞き取りができます。</p>
 <button class="hero-cta" id="band-cta">AI受付に質問・予約する</button>
 </section>
-<section id="inbox">
-<h2>お店側の受信箱（デモ表示）</h2>
-<div id="inbox-list"><span class="empty">まだ予約リクエストはありません。チャットで「予約したい」と送ると、ここに届きます。</span></div>
-</section>
 </main>
+<footer>
+<div class="f-name" id="footer-name"></div>
+<div class="f-sub" id="footer-sub"></div>
+<div class="f-note">※このページは、AI受付サービスの導入イメージとして作成したデモページです。店舗の公式サイトではありません。</div>
+<div class="f-copy" id="footer-copy"></div>
+</footer>
+
+<button id="preview-btn">お店側プレビュー</button>
+<div id="preview-modal" role="dialog" aria-label="お店側プレビュー">
+<div class="preview-box">
+<h3>お店側の受信イメージ</h3>
+<p class="p-sub">AI受付が聞き取った予約リクエストは、実際のお店ではメールやLINEに届きます。このデモでは、届く内容をここで確認できます。</p>
+<div id="inbox-list"><span class="empty">まだ予約リクエストはありません。チャットで「予約したい」と送ると、ここに届きます。</span></div>
+<button id="preview-close">閉じる</button>
+</div>
+</div>
 
 <button id="chat-launcher">💬 AI受付に聞く</button>
 <div id="chat-window" role="dialog" aria-label="AI受付チャット">
@@ -289,6 +328,15 @@ chipBox.appendChild(b);
 });
 
 ["hero-cta","band-cta"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("click", () => document.getElementById("chat-launcher").click()); });
+
+["top-cta"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("click", () => document.getElementById("chat-launcher").click()); });
+document.getElementById("brand-name").textContent = SHOP.name;
+document.getElementById("footer-name").textContent = SHOP.name;
+document.getElementById("footer-sub").textContent = SHOP.genre + "｜" + (SHOP.area || "") + "｜営業時間 " + SHOP.hoursText;
+document.getElementById("footer-copy").textContent = "© 2026 " + SHOP.name;
+const pm = document.getElementById("preview-modal");
+document.getElementById("preview-btn").addEventListener("click", () => pm.classList.add("open"));
+document.getElementById("preview-close").addEventListener("click", () => pm.classList.remove("open"));
 </script>
 </body>
 </html>

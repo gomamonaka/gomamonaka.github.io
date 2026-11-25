@@ -344,6 +344,7 @@
   .price-row h3{font-size:clamp(19px,2.6vw,24px);font-weight:700}
   .price-row h3 .en{display:inline-block;margin-left:16px;letter-spacing:.18em}
   .price-row .desc{grid-column:1;color:var(--ink-soft);font-size:14px;max-width:560px}
+  .price-row .prod-links{grid-column:1;margin:6px 0 0;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   .price-row .amount{font-size:clamp(38px,5.8vw,60px);font-weight:700;line-height:1;white-space:nowrap}
   .price-row .amount small{font-size:.36em;font-weight:600;color:var(--ink-soft);margin-left:2px}
   @media (max-width:760px){
@@ -780,6 +781,33 @@
   </div>
 </section>
 
+<!-- ============ 販売中のツール ============ -->
+<section id="products">
+  <span class="vlabel" aria-hidden="true">販売中のツール</span>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="en">Products</span>
+      <h2><span class="nw">そのまま買って、</span><span class="nw">すぐ使えるツール。</span></h2>
+      <p>受託の合間に作った、買い切りのツールです。どちらも、届いたその日から使えます。</p>
+    </div>
+    <div class="price-list">
+      <div class="price-row">
+        <h3>PetaPin（ぺたピン）<span class="en">Windowsアプリ</span></h3>
+        <div class="amount num">2,980<small>円</small></div>
+        <p class="desc">画面の一部を切り取って、付箋のように画面にピン留め。注釈と日本語OCR付き。処理はPCの中で完結し、クラウドには送りません。自動テスト62件。</p>
+        <p class="prod-links"><a class="btn" href="https://it-yorisoi.jp/petapin/">詳しく見る・購入する</a></p>
+      </div>
+      <div class="price-row">
+        <h3>突合レポート Pro版<span class="en">CSV・Excel差分</span></h3>
+        <div class="amount num">4,980<small>円</small></div>
+        <p class="desc">新旧2つのCSV・Excelをキー列で照合し、追加・削除・変更を色付きレポートに。Shift_JIS対応、設定の保存付き。試用版は無料で試せます。</p>
+        <p class="prod-links"><a class="btn" href="https://webautolab.booth.pm/items/9203732">BOOTHで購入する</a><a class="btn-outline" href="https://it-yorisoi.jp/csv-diff/">試用版を無料で試す</a></p>
+      </div>
+    </div>
+    <p class="price-note">購入・お支払いは各商品ページから。どちらも買い切りで、月額費用はありません。</p>
+  </div>
+</section>
+
 <!-- ============ FLOW & ABOUT ============ -->
 <section id="flow">
   <span class="vlabel" aria-hidden="true">進め方</span>
@@ -837,6 +865,7 @@
           <li><a href="#reclaimed">取り戻した例</a></li>
           <li><a href="#engineering">技術の裏側</a></li>
           <li><a href="#pricing">料金</a></li>
+          <li><a href="#products">販売中のツール</a></li>
           <li><a href="#flow">進め方・事業概要</a></li>
         </ul>
       </div>
@@ -865,7 +894,7 @@
     <div class="foot-bottom">
       <span>© ウェブオートラボ</span>
       <span>やり取りはチャットのみ ／ 対応は平日の朝・夜</span>
-      <span>最終更新：2026年11月22日</span>
+      <span>最終更新：2026年11月25日</span>
     </div>
   </div>
 </footer>

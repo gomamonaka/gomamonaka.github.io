@@ -15,7 +15,7 @@ body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; backgr
 .topbar nav a { color: #44403a; text-decoration: none; font-size: 13px;}
 .topbar nav a:hover { color: var(--main); }
 .top-cta { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 9px 18px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap;}
-@media (max-width: 640px) { .topbar nav { display: none; } .top-cta { margin-left: auto; } }
+@media (max-width: 640px) { .topbar nav { display: none; } .top-cta { margin-left: auto; } .topbar { gap: 10px; padding: 12px 14px; } .topbar .logo { font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; } }
 .hero { position: relative; overflow: hidden; background: var(--hero); background-image: var(--heroimg); background-size: cover; background-position: center; color: var(--herotext); padding: 92px 20px 80px; text-align: center;}
 .hero::before { content: ""; position: absolute; inset: 0; background: var(--hero); opacity: .86; }
 .hero > * { position: relative; z-index: 1; }
@@ -170,19 +170,14 @@ footer .f-nav a:hover { opacity: 1; text-decoration: underline;}
 <script>
 "use strict";
 const SHOP = {
-  "slug": "tsumekira-tokushima",
-  "name": "ツメキラ（TSUME☆KIRA）",
-  "genre": "ネイルサロン（深爪矯正専門）",
   "area": "徳島県徳島市",
-  "hoursText": "10:00〜18:00",
-  "openHour": 10,
-  "closeHour": 18,
-  "closedWeekday": 1,
-  "closedText": "月曜日・火曜日",
-  "lastReception": null,
-  "parking": "駐車場があります",
-  "payment": "現金のみとなります",
   "cancel": null,
+  "closeHour": 18,
+  "closedText": "月曜日・火曜日",
+  "closedWeekday": 1,
+  "genre": "ネイルサロン（深爪矯正専門）",
+  "hoursText": "10:00〜18:00",
+  "lastReception": null,
   "menus": [
     {
       "name": "深爪矯正（1回）",
@@ -196,7 +191,12 @@ const SHOP = {
       "name": "フットケア 40分",
       "price": 2200
     }
-  ]
+  ],
+  "name": "ツメキラ（TSUME☆KIRA）",
+  "openHour": 10,
+  "parking": "駐車場があります",
+  "payment": "現金のみとなります",
+  "slug": "tsumekira-tokushima"
 };
 
 function isOpenNow(d) {

@@ -15,7 +15,7 @@ body { font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; backgr
 .topbar nav a { color: #44403a; text-decoration: none; font-size: 13px;}
 .topbar nav a:hover { color: var(--main); }
 .top-cta { background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 9px 18px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap;}
-@media (max-width: 640px) { .topbar nav { display: none; } .top-cta { margin-left: auto; } }
+@media (max-width: 640px) { .topbar nav { display: none; } .top-cta { margin-left: auto; } .topbar { gap: 10px; padding: 12px 14px; } .topbar .logo { font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; } }
 .hero { position: relative; overflow: hidden; background: var(--hero); background-image: var(--heroimg); background-size: cover; background-position: center; color: var(--herotext); padding: 92px 20px 80px; text-align: center;}
 .hero::before { content: ""; position: absolute; inset: 0; background: var(--hero); opacity: .86; }
 .hero > * { position: relative; z-index: 1; }
